@@ -1,41 +1,62 @@
 /**
- * Humble View: Skin theme switcher — 3 circular buttons.
+ * Humble View: Theme switcher — 4 circular buttons.
+ * Consumes DesignTokens + themeName from ThemeProvider.
  */
-import { SkinTheme, SkinConfig } from '../../domain/SkinTheme';
+import { SkinTheme, DesignTokens, ThemeNames, ThemePalette } from '../../domain/SkinTheme';
+import { Spacing } from '../../common/SpacingTokens';
 
 @Component
 export struct SkinSwitcher {
-  @Prop skinConfig: SkinConfig;
-  @Prop currentSkin: SkinTheme;
+  @Consume tokens: DesignTokens;
+  @Consume themeName: SkinTheme;
   onSwitch?: (theme: SkinTheme) => void;
+
+  private readonly themes: SkinTheme[] = [
+    SkinTheme.LIGHT, SkinTheme.DARK, SkinTheme.PINK, SkinTheme.PASTEL
+  ];
 
   build() {
     Row() {
-      this.skinButton(SkinTheme.EVA, '#FF6B35')
-      this.skinButton(SkinTheme.MIKU, '#39C5BB')
-      this.skinButton(SkinTheme.CYBERPUNK, '#00FFFF')
+      ForEach(this.themes, (theme: SkinTheme) => {
+        this.skinButton(theme)
+      })
     }
     .justifyContent(FlexAlign.Center)
-    .padding({ top: 8, bottom: 8 })
+    .padding({ top: Spacing.xs, bottom: Spacing.xs })
     .width('100%')
   }
 
   @Builder
-  skinButton(theme: SkinTheme, color: string) {
-    Column()
-      .width(24)
-      .height(24)
-      .borderRadius(12)
-      .backgroundColor(color)
-      .border({
-        width: this.currentSkin === theme ? 3 : 0,
-        color: this.skinConfig.textOnSurface,
-      })
-      .margin({ left: 8, right: 8 })
-      .onClick(() => {
-        if (this.onSwitch) {
-          this.onSwitch(theme);
-        }
-      })
+  skinButton(theme: SkinTheme) {
+    Column() {
+      Column()
+        .width(24)
+        .height(24)
+        .borderRadius(12)
+        .backgroundColor(ThemePalette[theme].brandPrimary)
+        .border({
+          width: this.themeName === theme ? 3 : 0,
+          color: this.tokens.textPrimary,
+        })
+
+      Text(ThemeNames[theme])
+        .fontSize(9)
+        .fontColor(this.tokens.textMuted)
+        .margin({ top: 2 })
+        .maxLines(1)
+    }
+    .alignItems(HorizontalAlign.Center)
+    .margin({ left: Spacing.xs, right: Spacing.xs })
+    .stateStyles({
+      pressed: {
+        .scale({ x: 0.92, y: 0.92 })
+      }
+    })
+    .animation({ duration: 150, curve: Curve.EaseOut })
+    .onClick(() => {
+      if (this.onSwitch) {
+        this.onSwitch(theme);
+      }
+    })
   }
 }

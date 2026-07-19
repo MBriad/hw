@@ -1,23 +1,23 @@
 /**
  * Humble View: A single day cell on the heatmap grid.
- * Renders level-based color from the skin config. Emits tap intent.
+ * Consumes DesignTokens from ThemeProvider. Emits tap intent.
  */
 import { HeatmapCell } from '../../domain/Streak';
-import { SkinConfig } from '../../domain/SkinTheme';
+import { DesignTokens } from '../../domain/SkinTheme';
 
 @Component
 export struct DayCell {
+  @Consume tokens: DesignTokens;
   @Prop cell: HeatmapCell;
-  @Prop skinConfig: SkinConfig;
   @Prop isSelected: boolean = false;
   @Prop isToday: boolean = false;
   onTap?: () => void;
 
   build() {
     Column() {
-      Text(this.cell.date.split('-')[2]) // Day number only
+      Text(this.cell.date.split('-')[2])
         .fontSize(9)
-        .fontColor(this.isSelected ? this.skinConfig.textOnPrimary : this.skinConfig.textOnSurface)
+        .fontColor(this.isSelected ? Color.White : this.tokens.textSecondary)
         .textAlign(TextAlign.Center)
     }
     .width(36)
@@ -27,10 +27,17 @@ export struct DayCell {
     .backgroundColor(this.getCellColor())
     .border({
       width: this.isSelected ? 2 : (this.isToday ? 1 : 0),
-      color: this.isSelected ? this.skinConfig.accent :
-             (this.isToday ? this.skinConfig.border : Color.Transparent),
+      color: this.isSelected ? this.tokens.brandAccent :
+             (this.isToday ? this.tokens.borderColor : Color.Transparent),
     })
     .opacity(this.cell.level > 0 ? 1.0 : 0.5)
+    .stateStyles({
+      pressed: {
+        .backgroundColor(this.tokens.bgSurfacePressed)
+        .scale({ x: 0.92, y: 0.92 })
+      }
+    })
+    .animation({ duration: 150, curve: Curve.EaseOut })
     .onClick(() => {
       if (this.onTap) {
         this.onTap();
@@ -38,11 +45,19 @@ export struct DayCell {
     })
   }
 
-  private getCellColor(): string {
-    if (this.cell.level >= 4) return this.skinConfig.primaryDark;
-    if (this.cell.level >= 3) return this.skinConfig.primary;
-    if (this.cell.level >= 2) return this.skinConfig.accent;
-    if (this.cell.level >= 1) return this.skinConfig.surfaceSecondary;
-    return this.skinConfig.cellEmpty;
+  /**
+   * Map heatmap level to design tokens:
+   *   0 (empty)     → bgSurfacePressed
+   *   1             → brandLight
+   *   2             → brandPrimary (50% opacity)
+   *   3             → brandPrimary
+   *   4             → brandActive
+   */
+  private getCellColor(): ResourceColor {
+    if (this.cell.level >= 4) return this.tokens.brandActive;
+    if (this.cell.level >= 3) return this.tokens.brandPrimary;
+    if (this.cell.level >= 2) return this.tokens.brandText;
+    if (this.cell.level >= 1) return this.tokens.brandLight;
+    return this.tokens.bgSurfacePressed;
   }
 }

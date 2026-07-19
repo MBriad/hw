@@ -1,13 +1,15 @@
 /**
- * Humble View: Check-in input area at the bottom of the heatmap page.
- * Shows selected date, text input, and "点亮" button.
+ * Humble View: Check-in input area. Consumes DesignTokens from ThemeProvider.
+ * Uses design system patterns: PrimaryButton + ThemedInput + stateStyles.
  */
-import { SkinConfig, SkinTheme } from '../../domain/SkinTheme';
+import { DesignTokens } from '../../domain/SkinTheme';
+import { Spacing } from '../../common/SpacingTokens';
+import { Radius } from '../../common/RadiusTokens';
 
 @Component
 export struct CheckInInput {
+  @Consume tokens: DesignTokens;
   @Prop selectedDate: string;
-  @Prop skinConfig: SkinConfig;
   @State inputText: string = '';
   onLightUp?: (text: string) => void;
 
@@ -16,30 +18,48 @@ export struct CheckInInput {
       // Selected date label
       Text(this.getDateLabel())
         .fontSize(14)
-        .fontColor(this.skinConfig.textOnSurface)
-        .padding({ bottom: 8 })
+        .fontColor(this.tokens.textSecondary)
+        .padding({ bottom: Spacing.xs })
 
       // Input row
       Row() {
         TextInput({ placeholder: '今天做了什么？', text: this.inputText })
           .layoutWeight(1)
           .height(44)
-          .backgroundColor(this.skinConfig.surfaceSecondary)
-          .borderRadius(8)
-          .fontColor(this.skinConfig.textOnSurface)
+          .fontSize(15)
+          .fontColor(this.tokens.textPrimary)
+          .placeholderColor(this.tokens.textPlaceholder)
+          .backgroundColor(this.tokens.bgSurface)
+          .borderRadius(Radius.md)
+          .border({ width: 1, color: this.tokens.borderColor })
+          .padding({ left: Spacing.md, right: Spacing.md })
+          .caretColor(this.tokens.brandPrimary)
+          .stateStyles({
+            focused: {
+              .border({ width: 1.5, color: this.tokens.brandPrimary })
+            }
+          })
           .onChange((value: string) => {
             this.inputText = value;
           })
 
         Button('点亮')
           .fontSize(14)
-          .fontColor(this.skinConfig.textOnPrimary)
-          .backgroundColor(this.skinConfig.primary)
-          .borderRadius(8)
+          .fontWeight(600)
+          .fontColor(Color.White)
+          .backgroundColor(this.tokens.brandPrimary)
+          .borderRadius(Radius.md)
           .height(44)
-          .padding({ left: 16, right: 16 })
-          .margin({ left: 8 })
+          .padding({ left: Spacing.md, right: Spacing.md })
+          .margin({ left: Spacing.xs })
           .enabled(this.inputText.trim().length > 0 && this.selectedDate.length > 0)
+          .stateStyles({
+            pressed: {
+              .backgroundColor(this.tokens.brandActive)
+              .scale({ x: 0.97, y: 0.97 })
+            }
+          })
+          .animation({ duration: 100 })
           .onClick(() => {
             if (this.onLightUp && this.inputText.trim().length > 0) {
               this.onLightUp(this.inputText.trim());
@@ -50,9 +70,10 @@ export struct CheckInInput {
       .width('100%')
     }
     .width('100%')
-    .padding(16)
-    .backgroundColor(this.skinConfig.surface)
-    .borderRadius({ topLeft: 16, topRight: 16 })
+    .padding(Spacing.md)
+    .backgroundColor(this.tokens.bgSurface)
+    .border({ width: { top: 0.5 }, color: this.tokens.borderColor })
+    .borderRadius({ topLeft: Radius.lg, topRight: Radius.lg })
   }
 
   private getDateLabel(): string {

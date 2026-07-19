@@ -5,43 +5,55 @@ import { SkinProviderImpl } from '../main/ets/adapters/SkinProviderImpl';
 export default function skinProviderTest() {
   describe('SkinProvider', () => {
 
-    it('returns_eva_skin_with_correct_primary', 0, () => {
+    it('getTokens_returns_light_with_correct_brandPrimary', 0, () => {
       const provider = new SkinProviderImpl();
-      const skin = provider.getSkin(SkinTheme.EVA);
-      expect(skin.primary).assertEqual('#FF6B35');
-      expect(skin.name).assertContain('EVA');
+      const tokens = provider.getTokens(SkinTheme.LIGHT);
+      expect(tokens.brandPrimary).assertEqual('#0EA5E9');
+      expect(tokens.bgBase).assertEqual('#F8FAFC');
     });
 
-    it('returns_miku_skin_with_correct_primary', 0, () => {
+    it('getTokens_returns_dark_with_correct_values', 0, () => {
       const provider = new SkinProviderImpl();
-      const skin = provider.getSkin(SkinTheme.MIKU);
-      expect(skin.primary).assertEqual('#39C5BB');
-      expect(skin.name).assertContain('初音');
+      const tokens = provider.getTokens(SkinTheme.DARK);
+      expect(tokens.brandPrimary).assertEqual('#3B82F6');
+      expect(tokens.bgBase).assertEqual('#080C10');
+      expect(tokens.brandAccent).assertEqual('#F43F5E');
     });
 
-    it('returns_cyberpunk_skin_with_correct_primary', 0, () => {
+    it('getTokens_returns_pink_with_correct_values', 0, () => {
       const provider = new SkinProviderImpl();
-      const skin = provider.getSkin(SkinTheme.CYBERPUNK);
-      expect(skin.primary).assertEqual('#00FFFF');
-      expect(skin.name).assertContain('赛博');
+      const tokens = provider.getTokens(SkinTheme.PINK);
+      expect(tokens.brandPrimary).assertEqual('#FF4D94');
     });
 
-    it('listSkins_returns_all_three', 0, () => {
+    it('getTokens_returns_pastel_with_correct_values', 0, () => {
       const provider = new SkinProviderImpl();
-      const all = provider.listSkins();
-      expect(all.length).assertEqual(3);
+      const tokens = provider.getTokens(SkinTheme.PASTEL);
+      expect(tokens.brandPrimary).assertEqual('#85A3F7');
+      expect(tokens.brandAccent).assertEqual('#FF9BAD');
     });
 
-    it('all_skins_have_required_fields', 0, () => {
+    it('listThemes_returns_all_4', 0, () => {
       const provider = new SkinProviderImpl();
-      const all = provider.listSkins();
-      for (let i = 0; i < all.length; i++) {
-        let hasPrimary: boolean = (all[i].primary.length > 0);
-        expect(hasPrimary).assertEqual(true);
-        let hasSurface: boolean = (all[i].surface.length > 0);
-        expect(hasSurface).assertEqual(true);
-        let hasCellEmpty: boolean = (all[i].cellEmpty.length > 0);
-        expect(hasCellEmpty).assertEqual(true);
+      const themes = provider.listThemes();
+      expect(themes.length).assertEqual(4);
+    });
+
+    it('all_tokens_have_13_fields', 0, () => {
+      const provider = new SkinProviderImpl();
+      const themes = provider.listThemes();
+      for (let i = 0; i < themes.length; i++) {
+        const t = provider.getTokens(themes[i]);
+        // Verify key fields exist (DesignTokens has 13 required fields)
+        let hasCore: boolean = (
+          (t.bgBase as string).length > 0 &&
+          (t.bgSurface as string).length > 0 &&
+          (t.borderColor as string).length > 0 &&
+          (t.textPrimary as string).length > 0 &&
+          (t.brandPrimary as string).length > 0 &&
+          (t.brandActive as string).length > 0
+        );
+        expect(hasCore).assertEqual(true);
       }
     });
   });

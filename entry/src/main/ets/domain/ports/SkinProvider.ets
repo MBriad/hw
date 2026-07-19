@@ -1,13 +1,14 @@
 /**
- * Port: Skin theme configuration provider.
+ * Port: Theme configuration provider.
+ * Returns DesignTokens for a given theme.
  * Pure interface — zero framework dependencies.
  */
-import { SkinTheme, SkinConfig } from '../SkinTheme';
+import { SkinTheme, DesignTokens } from '../SkinTheme';
 
 export interface SkinProvider {
-  /** Get full color config for a specific skin */
-  getSkin(id: SkinTheme): SkinConfig;
+  /** Get full DesignTokens for a specific theme */
+  getTokens(id: SkinTheme): DesignTokens;
 
-  /** List all available skins */
-  listSkins(): SkinConfig[];
+  /** List all available themes */
+  listThemes(): SkinTheme[];
 }

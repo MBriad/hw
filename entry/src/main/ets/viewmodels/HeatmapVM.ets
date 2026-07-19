@@ -4,15 +4,15 @@
  * Injects usecases and providers via constructor (DIP).
  */
 import { HeatmapCell, StreakInfo, StreakLevel } from '../domain/Streak';
-import { SkinTheme, SkinConfig } from '../domain/SkinTheme';
+import { SkinTheme, DesignTokens, ThemePalette } from '../domain/SkinTheme';
 import { ILoadHeatmap, IRecordCheckIn } from '../domain/ports/HeatmapUseCases';
 import { SkinProvider } from '../domain/ports/SkinProvider';
 
 @Observed
 export class HeatmapVM {
   cells: HeatmapCell[] = [];
-  currentSkin: SkinTheme = SkinTheme.EVA;
-  currentSkinConfig: SkinConfig;
+  currentSkin: SkinTheme = SkinTheme.LIGHT;
+  currentTokens: DesignTokens = ThemePalette[SkinTheme.LIGHT];
   selectedDate: string = '';
   streakInfo: StreakInfo = { current: 0, longest: 0, level: StreakLevel.NONE };
 
@@ -30,7 +30,6 @@ export class HeatmapVM {
     this.loadHeatmap = loadHeatmap;
     this.recordCheckIn = recordCheckIn;
     this.skinProvider = skinProvider;
-    this.currentSkinConfig = skinProvider.getSkin(SkinTheme.EVA);
   }
 
   async loadMonth(year: number, month: number): Promise<void> {
@@ -41,7 +40,6 @@ export class HeatmapVM {
 
   async doCheckIn(content: string): Promise<void> {
     await this.recordCheckIn.execute(this.selectedDate, content);
-    // Reload the current month to reflect changes
     await this.loadMonth(this.currentYear, this.currentMonth);
   }
 
@@ -51,7 +49,7 @@ export class HeatmapVM {
 
   switchSkin(theme: SkinTheme): void {
     this.currentSkin = theme;
-    this.currentSkinConfig = this.skinProvider.getSkin(theme);
+    this.currentTokens = this.skinProvider.getTokens(theme);
   }
 
   isToday(date: string): boolean {

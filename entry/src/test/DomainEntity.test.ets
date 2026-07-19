@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@ohos/hypium';
 import { CheckIn } from '../main/ets/domain/CheckIn';
-import { SkinTheme, SkinConfig } from '../main/ets/domain/SkinTheme';
+import { SkinTheme, DesignTokens, ThemePalette, ThemeNames } from '../main/ets/domain/SkinTheme';
 import { StreakLevel, StreakInfo, HeatmapCell } from '../main/ets/domain/Streak';
 import { EasterEggRule, EasterEgg } from '../main/ets/domain/EasterEgg';
 
@@ -14,31 +14,65 @@ export default function domainEntityTest() {
       expect(ci.timestamp).assertEqual(123456);
     });
 
-    it('SkinTheme_enum_values_are_correct', 0, () => {
-      // ArkTS strict mode does not allow Object.keys on enums.
-      // Verify each enum value individually instead.
-      expect(SkinTheme.EVA === 'EVA').assertEqual(true);
-      expect(SkinTheme.MIKU === 'MIKU').assertEqual(true);
-      expect(SkinTheme.CYBERPUNK === 'CYBERPUNK').assertEqual(true);
+    it('SkinTheme_enum_has_4_values', 0, () => {
+      expect(SkinTheme.LIGHT === 'light').assertEqual(true);
+      expect(SkinTheme.DARK === 'dark').assertEqual(true);
+      expect(SkinTheme.PINK === 'pink').assertEqual(true);
+      expect(SkinTheme.PASTEL === 'pastel').assertEqual(true);
     });
 
-    it('SkinConfig_interface_is_creatable', 0, () => {
-      const config: SkinConfig = {
-        id: SkinTheme.EVA,
-        name: 'EVA 绝对领域',
-        primary: '#FF6B35',
-        primaryDark: '#CC5528',
-        surface: '#1A1A2E',
-        surfaceSecondary: '#16213E',
-        accent: '#7B2D8E',
-        textOnPrimary: '#FFFFFF',
-        textOnSurface: '#E0E0E0',
-        cellEmpty: '#2A2A3E',
-        border: '#3A3A5E',
-      };
-      expect(config.id).assertEqual(SkinTheme.EVA);
-      expect(config.primary).assertEqual('#FF6B35');
-      expect(config.name).assertContain('EVA');
+    it('ThemeNames_has_labels_for_all_themes', 0, () => {
+      expect(ThemeNames[SkinTheme.LIGHT]).assertEqual('清爽浅蓝');
+      expect(ThemeNames[SkinTheme.DARK]).assertEqual('深海暗夜');
+      expect(ThemeNames[SkinTheme.PINK]).assertEqual('魔法少女粉');
+      expect(ThemeNames[SkinTheme.PASTEL]).assertEqual('马卡龙幻梦');
+    });
+
+    it('DesignTokens_class_is_creatable', 0, () => {
+      const tokens = new DesignTokens();
+      tokens.bgBase = '#F8FAFC';
+      tokens.brandPrimary = '#0EA5E9';
+      expect(tokens.bgBase).assertEqual('#F8FAFC');
+      expect(tokens.brandPrimary).assertEqual('#0EA5E9');
+    });
+
+    it('ThemePalette_light_has_correct_brand_primary', 0, () => {
+      const light = ThemePalette[SkinTheme.LIGHT];
+      expect(light.brandPrimary).assertEqual('#0EA5E9');
+      expect(light.bgBase).assertEqual('#F8FAFC');
+      expect(light.bgSurface).assertEqual('#FFFFFF');
+    });
+
+    it('ThemePalette_dark_has_correct_tokens', 0, () => {
+      const dark = ThemePalette[SkinTheme.DARK];
+      expect(dark.brandPrimary).assertEqual('#3B82F6');
+      expect(dark.bgBase).assertEqual('#080C10');
+      expect(dark.brandAccent).assertEqual('#F43F5E');
+    });
+
+    it('ThemePalette_pink_has_correct_tokens', 0, () => {
+      const pink = ThemePalette[SkinTheme.PINK];
+      expect(pink.brandPrimary).assertEqual('#FF4D94');
+      expect(pink.textPrimary).assertEqual('#4C1D95');
+    });
+
+    it('ThemePalette_pastel_has_correct_tokens', 0, () => {
+      const pastel = ThemePalette[SkinTheme.PASTEL];
+      expect(pastel.brandPrimary).assertEqual('#85A3F7');
+      expect(pastel.brandAccent).assertEqual('#FF9BAD');
+    });
+
+    it('all_4_themes_have_required_token_fields', 0, () => {
+      const themes = [SkinTheme.LIGHT, SkinTheme.DARK, SkinTheme.PINK, SkinTheme.PASTEL];
+      for (let i = 0; i < themes.length; i++) {
+        const t = ThemePalette[themes[i]];
+        let hasTokens: boolean = (
+          (t.bgBase as string).length > 0 &&
+          (t.brandPrimary as string).length > 0 &&
+          (t.textPrimary as string).length > 0
+        );
+        expect(hasTokens).assertEqual(true);
+      }
     });
 
     it('StreakLevel_enum_values_are_correct', 0, () => {

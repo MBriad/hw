@@ -2,6 +2,16 @@ import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.Ab
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 
+// === Composition Root (Phase 1+) ===
+// All dependency wiring happens here and ONLY here.
+// No component or ViewModel creates its own dependencies.
+// Layers: Adapter -> UseCase -> ViewModel -> Page
+// import { PreferencesCheckInRepo } from '../adapters/PreferencesCheckInRepo';
+// import { RecordCheckIn } from '../usecases/RecordCheckIn';
+// import { LoadHeatmap } from '../usecases/LoadHeatmap';
+// import { SkinProviderImpl } from '../adapters/SkinProviderImpl';
+// import { HeatmapVM } from '../viewmodels/HeatmapVM';
+
 const DOMAIN = 0x0000;
 
 export default class EntryAbility extends UIAbility {
@@ -11,6 +21,7 @@ export default class EntryAbility extends UIAbility {
     } catch (err) {
       hilog.error(DOMAIN, 'testTag', 'Failed to set colorMode. Cause: %{public}s', JSON.stringify(err));
     }
+    // === Composition Root — Wire dependencies here (Phase 1.5+) ===
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
   }
 

@@ -1,0 +1,38 @@
+features:
+  toast-window:
+    docs:
+      - .agent/features/toast-window/README.md
+      - .agent/features/toast-window/porting-from-trace-to-main-project-notes.md
+      - .agent/features/toast-window/window-no-activate-and-z-order-notes.md
+      - .agent/features/toast-window/window-height-calculation-and-stack-measurement.md
+    related: []
+  premium-redesign:
+    docs:
+      - .agent/features/premium-redesign/README.md
+      - .agent/features/premium-redesign/files-changed-for-premium-redesign-and-token-mappings.md
+    related:
+      - ui-design-system
+
+architecture:
+  ui-design-system:
+    docs:
+      - .agent/architecture/ui-design-system/README.md
+      - .agent/architecture/ui-design-system/design-tokens-and-component-patterns.md
+    related:
+      - premium-redesign
+
+reference: []
+
+decisions: []
+
+bugs:
+  - .agent/bugs/2026-07-15-toast-notifications-cut-off-at-top.md
+
+devlog:
+  - .agent/devlog/2026-07-15-premium-redesign-based-on-actrace-premium-redesign-html.md
+  - .agent/devlog/2026-07-15-toast-window-and-component-implementation.md
+
+current:
+  plan: .trae/documents/actrace-premium-redesign-plan.md
+  phase: documentation completed
+  next: 后续 UI 改动遵循 .agent/architecture/ui-design-system/ 中的 Premium Redesign 规范

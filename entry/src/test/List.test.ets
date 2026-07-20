@@ -5,6 +5,9 @@ import recordCheckInTest from './RecordCheckIn.test';
 import loadHeatmapTest from './LoadHeatmap.test';
 import skinProviderTest from './SkinProvider.test';
 import heatmapVMTest from './HeatmapVM.test';
+import keywordMatcherTest from './KeywordMatcher.test';
+import detectEasterEggTest from './DetectEasterEgg.test';
+import soundPlayerTest from './SoundPlayer.test';
 
 export default function testsuite() {
   localUnitTest();
@@ -14,4 +17,7 @@ export default function testsuite() {
   loadHeatmapTest();
   skinProviderTest();
   heatmapVMTest();
+  keywordMatcherTest();
+  detectEasterEggTest();
+  soundPlayerTest();
 }

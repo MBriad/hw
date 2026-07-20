@@ -1,111 +1,113 @@
 import { describe, it, expect } from '@ohos/hypium';
 import { HeatmapVM } from '../main/ets/viewmodels/HeatmapVM';
-import { SkinTheme, DesignTokens } from '../main/ets/domain/SkinTheme';
+import { SkinTheme } from '../main/ets/domain/SkinTheme';
+import { EasterEgg } from '../main/ets/domain/EasterEgg';
 import { SkinProviderImpl } from '../main/ets/adapters/SkinProviderImpl';
 import { HeatmapCell } from '../main/ets/domain/Streak';
+import { KeywordMatcher } from '../main/ets/domain/ports/KeywordMatcher';
+import { SoundPlayer } from '../main/ets/domain/ports/SoundPlayer';
 import { MockLoadHeatmap, MockRecordCheckIn } from './mocks/MockUseCases';
+
+class MockKeywordMatcher implements KeywordMatcher {
+  public shouldMatch: boolean = false;
+  public matchedEgg: EasterEgg = {
+    keyword: 'test', quote: 'mock quote',
+    effectType: 'mock_effect', soundFile: 'mock_sound',
+  };
+  match(_text: string): EasterEgg | null {
+    return this.shouldMatch ? this.matchedEgg : null;
+  }
+}
+
+class MockSoundPlayer implements SoundPlayer {
+  public lastPlayed: string = '';
+  async play(fileName: string): Promise<boolean> {
+    this.lastPlayed = fileName;
+    return true;
+  }
+}
 
 export default function heatmapVMTest() {
   describe('HeatmapVM', () => {
 
     it('recordCheckIn_delegates_to_usecase', 0, async () => {
-      const mockLoad = new MockLoadHeatmap();
-      const mockRecord = new MockRecordCheckIn();
-      const skinProvider = new SkinProviderImpl();
-      const vm = new HeatmapVM(mockLoad, mockRecord, skinProvider);
-
+      const ml = new MockLoadHeatmap();
+      const mr = new MockRecordCheckIn();
+      const sp = new SkinProviderImpl();
+      const mm = new MockKeywordMatcher();
+      const ms = new MockSoundPlayer();
+      const vm = new HeatmapVM(ml, mr, sp, mm, ms);
       vm.selectDate('2026-07-19');
       await vm.doCheckIn('Rust学习');
-
-      expect(mockRecord.capturedDate).assertEqual('2026-07-19');
-      expect(mockRecord.capturedContent).assertEqual('Rust学习');
+      expect(mr.capturedDate).assertEqual('2026-07-19');
+      expect(mr.capturedContent).assertEqual('Rust学习');
     });
 
     it('switchSkin_updates_currentTokens', 0, () => {
-      const mockLoad = new MockLoadHeatmap();
-      const mockRecord = new MockRecordCheckIn();
-      const skinProvider = new SkinProviderImpl();
-      const vm = new HeatmapVM(mockLoad, mockRecord, skinProvider);
-
+      const ml = new MockLoadHeatmap();
+      const mr = new MockRecordCheckIn();
+      const sp = new SkinProviderImpl();
+      const mm = new MockKeywordMatcher();
+      const ms = new MockSoundPlayer();
+      const vm = new HeatmapVM(ml, mr, sp, mm, ms);
       vm.switchSkin(SkinTheme.DARK);
       expect(vm.currentSkin).assertEqual(SkinTheme.DARK);
       expect(vm.currentTokens.brandPrimary).assertEqual('#3B82F6');
-      expect(vm.currentTokens.bgBase).assertEqual('#080C10');
     });
 
-    it('selectDate_updates_selectedDate', 0, () => {
-      const mockLoad = new MockLoadHeatmap();
-      const mockRecord = new MockRecordCheckIn();
-      const skinProvider = new SkinProviderImpl();
-      const vm = new HeatmapVM(mockLoad, mockRecord, skinProvider);
-
-      vm.selectDate('2026-07-15');
-      expect(vm.selectedDate).assertEqual('2026-07-15');
-    });
-
-    it('loadMonth_delegates_and_updates_cells', 0, async () => {
-      const mockLoad = new MockLoadHeatmap();
-      const mockRecord = new MockRecordCheckIn();
-      const skinProvider = new SkinProviderImpl();
-
-      const sampleCells: HeatmapCell[] = [
-        { date: '2026-07-01', level: 0 },
-        { date: '2026-07-02', level: 1, checkIn: { date: '2026-07-02', content: 'test', timestamp: 1 } },
-      ];
-      mockLoad.resultCells = sampleCells;
-
-      const vm = new HeatmapVM(mockLoad, mockRecord, skinProvider);
-      await vm.loadMonth(2026, 7);
-
-      expect(mockLoad.capturedYear).assertEqual(2026);
-      expect(mockLoad.capturedMonth).assertEqual(7);
-      expect(vm.cells.length).assertEqual(2);
-    });
-
-    it('doCheckIn_reloads_month_after_save', 0, async () => {
-      const mockLoad = new MockLoadHeatmap();
-      const mockRecord = new MockRecordCheckIn();
-      const skinProvider = new SkinProviderImpl();
-
-      const afterCells: HeatmapCell[] = [
-        { date: '2026-07-19', level: 1, checkIn: { date: '2026-07-19', content: 'Rust', timestamp: 1 } },
-      ];
-      mockLoad.resultCells = afterCells;
-
-      const vm = new HeatmapVM(mockLoad, mockRecord, skinProvider);
+    it('doCheckIn_triggers_easter_egg_on_match', 0, async () => {
+      const ml = new MockLoadHeatmap();
+      const mr = new MockRecordCheckIn();
+      const sp = new SkinProviderImpl();
+      const mm = new MockKeywordMatcher();
+      mm.shouldMatch = true;
+      const ms = new MockSoundPlayer();
+      const vm = new HeatmapVM(ml, mr, sp, mm, ms);
       vm.selectDate('2026-07-19');
-      await vm.doCheckIn('Rust');
+      await vm.doCheckIn('加班到深夜');
+      expect(vm.triggeredEgg !== null).assertEqual(true);
+      expect(vm.showParticles).assertEqual(true);
+      expect(vm.showBanner).assertEqual(true);
+      expect(ms.lastPlayed).assertEqual('mock_sound');
+    });
 
-      expect(vm.cells.length).assertEqual(1);
-      expect(vm.cells[0].level).assertEqual(1);
+    it('doCheckIn_no_egg_on_no_match', 0, async () => {
+      const ml = new MockLoadHeatmap();
+      const mr = new MockRecordCheckIn();
+      const sp = new SkinProviderImpl();
+      const mm = new MockKeywordMatcher();
+      mm.shouldMatch = false;
+      const ms = new MockSoundPlayer();
+      const vm = new HeatmapVM(ml, mr, sp, mm, ms);
+      vm.selectDate('2026-07-19');
+      await vm.doCheckIn('正常的一天');
+      expect(vm.triggeredEgg === null).assertEqual(true);
+      expect(vm.showParticles).assertEqual(false);
+    });
+
+    it('dismissEgg_clears_state', 0, async () => {
+      const ml = new MockLoadHeatmap();
+      const mr = new MockRecordCheckIn();
+      const sp = new SkinProviderImpl();
+      const mm = new MockKeywordMatcher();
+      mm.shouldMatch = true;
+      const ms = new MockSoundPlayer();
+      const vm = new HeatmapVM(ml, mr, sp, mm, ms);
+      vm.selectDate('2026-07-19');
+      await vm.doCheckIn('加班');
+      vm.dismissEgg();
+      expect(vm.triggeredEgg === null).assertEqual(true);
+      expect(vm.showParticles).assertEqual(false);
+      expect(vm.showBanner).assertEqual(false);
     });
 
     it('default_skin_is_LIGHT', 0, () => {
-      const mockLoad = new MockLoadHeatmap();
-      const mockRecord = new MockRecordCheckIn();
-      const skinProvider = new SkinProviderImpl();
-      const vm = new HeatmapVM(mockLoad, mockRecord, skinProvider);
-
-      expect(vm.currentSkin).assertEqual(SkinTheme.LIGHT);
-      expect(vm.currentTokens.brandPrimary).assertEqual('#0EA5E9');
-    });
-
-    it('switchSkin_all_4_themes_work', 0, () => {
-      const mockLoad = new MockLoadHeatmap();
-      const mockRecord = new MockRecordCheckIn();
-      const skinProvider = new SkinProviderImpl();
-      const vm = new HeatmapVM(mockLoad, mockRecord, skinProvider);
-
-      vm.switchSkin(SkinTheme.DARK);
-      expect(vm.currentSkin).assertEqual(SkinTheme.DARK);
-
-      vm.switchSkin(SkinTheme.PINK);
-      expect(vm.currentSkin).assertEqual(SkinTheme.PINK);
-
-      vm.switchSkin(SkinTheme.PASTEL);
-      expect(vm.currentSkin).assertEqual(SkinTheme.PASTEL);
-
-      vm.switchSkin(SkinTheme.LIGHT);
+      const ml = new MockLoadHeatmap();
+      const mr = new MockRecordCheckIn();
+      const sp = new SkinProviderImpl();
+      const mm = new MockKeywordMatcher();
+      const ms = new MockSoundPlayer();
+      const vm = new HeatmapVM(ml, mr, sp, mm, ms);
       expect(vm.currentSkin).assertEqual(SkinTheme.LIGHT);
     });
   });

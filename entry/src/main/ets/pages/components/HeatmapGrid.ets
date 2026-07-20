@@ -5,6 +5,10 @@
 import { HeatmapCell } from '../../domain/Streak';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { DayCell } from './DayCell';
+import { Spacing } from '../../common/SpacingTokens';
+
+const CELL_SIZE = 44;
+const CALENDAR_ROWS = 6;
 
 @Component
 export struct HeatmapGrid {
@@ -22,21 +26,23 @@ export struct HeatmapGrid {
       Row() {
         ForEach(this.dayLabels, (label: string, _index: number) => {
           Text(label)
-            .fontSize(10)
+            .fontSize(12)
+            .fontWeight(500)
             .fontColor(this.tokens.textMuted)
-            .width(40)
+            .layoutWeight(1)
             .textAlign(TextAlign.Center)
         })
       }
       .width('100%')
-      .padding({ bottom: 4 })
+      .padding({ bottom: Spacing.xs })
 
       // Calendar grid
       Grid() {
         ForEach(this.getOffsetCells(), (_: number) => {
           GridItem() {
-            Column().width(36).height(36)
+            Column().width(CELL_SIZE).height(CELL_SIZE)
           }
+          .align(Alignment.Center)
         })
 
         ForEach(this.cells, (cell: HeatmapCell) => {
@@ -52,13 +58,15 @@ export struct HeatmapGrid {
               }
             })
           }
+          .align(Alignment.Center)
         })
       }
       .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr')
-      .rowsGap(2)
-      .columnsGap(2)
+      .rowsGap(Spacing.xs)
+      .height(CALENDAR_ROWS * CELL_SIZE + (CALENDAR_ROWS - 1) * Spacing.xs)
       .width('100%')
     }
+    .width('100%')
   }
 
   private getOffsetCells(): number[] {

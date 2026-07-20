@@ -13,6 +13,8 @@ import { HeatmapGrid } from './components/HeatmapGrid';
 import { CheckInInput } from './components/CheckInInput';
 import { SkinSwitcher } from './components/SkinSwitcher';
 import { Spacing } from '../common/SpacingTokens';
+import { Radius } from '../common/RadiusTokens';
+import { GlassTheme } from '../common/GlassTheme';
 
 const PREFS_NAME = 'app_settings';
 const KEY_THEME = 'theme';
@@ -22,7 +24,7 @@ const KEY_THEME = 'theme';
 struct HeatmapPage {
   @Provide @Watch('onThemeChange') tokens: DesignTokens = ThemePalette[SkinTheme.LIGHT];
   @Provide themeName: SkinTheme = SkinTheme.LIGHT;
-  private vm: HeatmapVM | null = null;
+  @State private vm: HeatmapVM | null = null;
 
   aboutToAppear(): void {
     const repo = new PreferencesCheckInRepo(getContext(this));
@@ -80,12 +82,10 @@ struct HeatmapPage {
   build() {
     Column() {
       if (this.vm !== null) {
-        // Header
         Column() {
           Text(this.vm!.monthLabel)
-            .fontSize(20)
+            .fontSize(24)
             .fontWeight(700)
-            .letterSpacing(-0.5)
             .fontColor(this.tokens.textPrimary)
             .padding({ top: Spacing.sm, bottom: Spacing.xs })
 
@@ -96,39 +96,49 @@ struct HeatmapPage {
           })
         }
         .width('100%')
-        .backgroundColor(this.tokens.bgSurface)
         .padding({ left: Spacing.md, right: Spacing.md })
+        .backgroundColor(GlassTheme.surface(this.themeName))
+        .backdropBlur(24)
+        .border({ width: 1, color: GlassTheme.border(this.themeName) })
+        .borderRadius(Radius.lg)
+        .shadow({ radius: 18, color: GlassTheme.shadow(this.themeName), offsetY: 6 })
 
-        // Grid
-        Scroll() {
-          Column() {
-            HeatmapGrid({
-              cells: this.vm!.cells,
-              selectedDate: this.vm!.selectedDate,
-              todayString: this.vm!.todayString,
-              onCellTap: (date: string) => {
-                this.vm!.selectDate(date);
-              }
-            })
-            .padding({ left: Spacing.md, right: Spacing.md, top: Spacing.xs, bottom: Spacing.xs })
+        HeatmapGrid({
+          cells: this.vm!.cells,
+          selectedDate: this.vm!.selectedDate,
+          todayString: this.vm!.todayString,
+          onCellTap: (date: string) => {
+            this.vm!.selectDate(date);
           }
+        })
           .width('100%')
-        }
-        .layoutWeight(1)
-        .backgroundColor(this.tokens.bgSurface)
-        .scrollBar(BarState.Off)
+          .padding(Spacing.md)
+          .margin({ top: Spacing.sm })
+          .backgroundColor(GlassTheme.surface(this.themeName))
+          .backdropBlur(24)
+          .border({ width: 1, color: GlassTheme.border(this.themeName) })
+          .borderRadius(Radius.lg)
+          .shadow({ radius: 18, color: GlassTheme.shadow(this.themeName), offsetY: 6 })
 
-        // Check-in input
+        Blank()
+          .layoutWeight(1)
+
         CheckInInput({
           selectedDate: this.vm!.selectedDate,
           onLightUp: (text: string) => {
             this.vm!.doCheckIn(text);
           }
         })
+          .margin({ top: Spacing.sm })
       }
     }
     .width('100%')
     .height('100%')
+    .padding({ left: Spacing.md, right: Spacing.md, top: Spacing.xs, bottom: Spacing.sm })
     .backgroundColor(this.tokens.bgBase)
+    .linearGradient({
+      angle: 160,
+      colors: [[this.tokens.bgBase, 0.0], [this.tokens.brandLight, 0.52], [this.tokens.bgBase, 1.0]]
+    })
   }
 }

@@ -2,13 +2,15 @@
  * Humble View: Check-in input area. Consumes DesignTokens from ThemeProvider.
  * Uses design system patterns: PrimaryButton + ThemedInput + stateStyles.
  */
-import { DesignTokens } from '../../domain/SkinTheme';
+import { DesignTokens, SkinTheme } from '../../domain/SkinTheme';
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
+import { GlassTheme } from '../../common/GlassTheme';
 
 @Component
 export struct CheckInInput {
   @Consume tokens: DesignTokens;
+  @Consume themeName: SkinTheme;
   @Prop selectedDate: string;
   @State inputText: string = '';
   onLightUp?: (text: string) => void;
@@ -29,7 +31,7 @@ export struct CheckInInput {
           .fontSize(15)
           .fontColor(this.tokens.textPrimary)
           .placeholderColor(this.tokens.textPlaceholder)
-          .backgroundColor(this.tokens.bgSurface)
+          .backgroundColor(GlassTheme.surface(this.themeName))
           .borderRadius(Radius.md)
           .border({ width: 1, color: this.tokens.borderColor })
           .padding({ left: Spacing.md, right: Spacing.md })
@@ -71,9 +73,11 @@ export struct CheckInInput {
     }
     .width('100%')
     .padding(Spacing.md)
-    .backgroundColor(this.tokens.bgSurface)
-    .border({ width: { top: 0.5 }, color: this.tokens.borderColor })
-    .borderRadius({ topLeft: Radius.lg, topRight: Radius.lg })
+    .backgroundColor(GlassTheme.surface(this.themeName))
+    .backdropBlur(24)
+    .border({ width: 1, color: GlassTheme.border(this.themeName) })
+    .borderRadius(Radius.lg)
+    .shadow({ radius: 18, color: GlassTheme.shadow(this.themeName), offsetY: 6 })
   }
 
   private getDateLabel(): string {

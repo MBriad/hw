@@ -4,6 +4,9 @@
  */
 import { HeatmapCell } from '../../domain/Streak';
 import { DesignTokens } from '../../domain/SkinTheme';
+import { Radius } from '../../common/RadiusTokens';
+
+const CELL_SIZE = 44;
 
 @Component
 export struct DayCell {
@@ -16,13 +19,14 @@ export struct DayCell {
   build() {
     Column() {
       Text(this.cell.date.split('-')[2])
-        .fontSize(9)
+        .fontSize(12)
+        .fontWeight(500)
         .fontColor(this.isSelected ? Color.White : this.tokens.textSecondary)
         .textAlign(TextAlign.Center)
     }
-    .width(36)
-    .height(36)
-    .borderRadius(6)
+    .width(CELL_SIZE)
+    .height(CELL_SIZE)
+    .borderRadius(Radius.md)
     .justifyContent(FlexAlign.Center)
     .backgroundColor(this.getCellColor())
     .border({

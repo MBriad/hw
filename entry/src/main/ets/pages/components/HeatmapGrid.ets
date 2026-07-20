@@ -7,7 +7,7 @@ import { DesignTokens } from '../../domain/SkinTheme';
 import { DayCell } from './DayCell';
 import { Spacing } from '../../common/SpacingTokens';
 
-const CELL_SIZE = 44;
+const CELL_SIZE = 40;
 const CALENDAR_ROWS = 6;
 
 @Component
@@ -18,7 +18,7 @@ export struct HeatmapGrid {
   @Prop todayString: string;
   onCellTap?: (date: string) => void;
 
-  private readonly dayLabels: string[] = ['一', '二', '三', '四', '五', '六', '日'];
+  private readonly dayLabels: string[] = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
 
   build() {
     Column() {
@@ -26,9 +26,10 @@ export struct HeatmapGrid {
       Row() {
         ForEach(this.dayLabels, (label: string, _index: number) => {
           Text(label)
-            .fontSize(12)
-            .fontWeight(500)
-            .fontColor(this.tokens.textMuted)
+            .fontSize(10)
+            .fontWeight(700)
+            .fontColor(this.tokens.textSecondary)
+            .fontFamily('monospace')
             .layoutWeight(1)
             .textAlign(TextAlign.Center)
         })
@@ -62,8 +63,9 @@ export struct HeatmapGrid {
         })
       }
       .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr')
-      .rowsGap(Spacing.xs)
-      .height(CALENDAR_ROWS * CELL_SIZE + (CALENDAR_ROWS - 1) * Spacing.xs)
+      .columnsGap(Spacing.xxs)
+      .rowsGap(Spacing.xxs)
+      .height(CALENDAR_ROWS * CELL_SIZE + (CALENDAR_ROWS - 1) * Spacing.xxs)
       .width('100%')
     }
     .width('100%')

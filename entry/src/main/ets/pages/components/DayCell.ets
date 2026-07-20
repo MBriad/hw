@@ -4,9 +4,9 @@
  */
 import { HeatmapCell } from '../../domain/Streak';
 import { DesignTokens } from '../../domain/SkinTheme';
-import { Radius } from '../../common/RadiusTokens';
+import { Spacing } from '../../common/SpacingTokens';
 
-const CELL_SIZE = 44;
+const CELL_SIZE = 40;
 
 @Component
 export struct DayCell {
@@ -20,25 +20,24 @@ export struct DayCell {
     Column() {
       Text(this.cell.date.split('-')[2])
         .fontSize(12)
-        .fontWeight(500)
-        .fontColor(this.isSelected ? Color.White : this.tokens.textSecondary)
-        .textAlign(TextAlign.Center)
+        .fontWeight(700)
+        .fontColor(this.getTextColor())
+        .fontFamily('monospace')
     }
     .width(CELL_SIZE)
     .height(CELL_SIZE)
-    .borderRadius(Radius.md)
-    .justifyContent(FlexAlign.Center)
+    .padding({ left: Spacing.xxs, top: Spacing.xxs })
+    .alignItems(HorizontalAlign.Start)
     .backgroundColor(this.getCellColor())
     .border({
-      width: this.isSelected ? 2 : (this.isToday ? 1 : 0),
+      width: this.isSelected ? 2 : 1,
       color: this.isSelected ? this.tokens.brandAccent :
-             (this.isToday ? this.tokens.borderColor : Color.Transparent),
+             (this.isToday ? this.tokens.textPrimary : this.tokens.borderColor),
     })
-    .opacity(this.cell.level > 0 ? 1.0 : 0.5)
     .stateStyles({
       pressed: {
         .backgroundColor(this.tokens.bgSurfacePressed)
-        .scale({ x: 0.92, y: 0.92 })
+        .scale({ x: 0.96, y: 0.96 })
       }
     })
     .animation({ duration: 150, curve: Curve.EaseOut })
@@ -51,7 +50,7 @@ export struct DayCell {
 
   /**
    * Map heatmap level to design tokens:
-   *   0 (empty)     → bgSurfacePressed
+   *   0 (empty)     → bgSurface
    *   1             → brandLight
    *   2             → brandPrimary (50% opacity)
    *   3             → brandPrimary
@@ -62,6 +61,12 @@ export struct DayCell {
     if (this.cell.level >= 3) return this.tokens.brandPrimary;
     if (this.cell.level >= 2) return this.tokens.brandText;
     if (this.cell.level >= 1) return this.tokens.brandLight;
-    return this.tokens.bgSurfacePressed;
+    return this.tokens.bgSurface;
+  }
+
+  private getTextColor(): ResourceColor {
+    if (this.cell.level >= 2) return Color.White;
+    if (this.cell.level >= 1) return this.tokens.textPrimary;
+    return this.tokens.textMuted;
   }
 }

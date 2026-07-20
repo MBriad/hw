@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Actrace OS - Pure White</title>
+    <style>
+        /* 引入瑞士极简风格的无衬线与等宽字体 */
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;700;900&display=swap');
+
+        :root {
+            /* 绝对的白与黑 */
+            --bg-color: #FFFFFF;
+            --text-main: #000000;
+            --text-muted: #999999;
+            --grid-line: #E0E0E0;
+
+            /* 参考图片的浅蓝条纹色，但极度克制 */
+            --stripe-color: rgba(175, 205, 230, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 呼吸感斜条纹背景层 */
+        .stripe-bg {
+            position: absolute;
+            inset: -5%;
+            /* 稍微放大以配合缩放呼吸动画 */
+            width: 110%;
+            height: 110%;
+            /* 还原参考图的斜纹，使用极简的代码实现 */
+            background-image: repeating-linear-gradient(45deg,
+                    transparent,
+                    transparent 4px,
+                    var(--stripe-color) 4px,
+                    var(--stripe-color) 8px);
+            z-index: 0;
+            pointer-events: none;
+            /* 赋予它缓慢平稳的呼吸动画 */
+            animation: breathe 8s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+
+            50% {
+                transform: scale(1.02);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+        }
+
+        /* 手机主容器 */
+        .phone-container {
+            width: 100%;
+            height: 100%;
+            max-width: 430px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: max(48px, env(safe-area-inset-top)) 1.5rem max(34px, env(safe-area-inset-bottom));
+            z-index: 10;
+        }
+
+        /* 顶部终端状态栏：全黑大写 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 4rem;
+            border-bottom: 2px solid var(--text-main);
+            padding-bottom: 0.75rem;
+        }
+
+        .status-active {
+            color: var(--text-main);
+        }
+
+        /* 模块布局 */
+        .section {
+            margin-bottom: 3rem;
+            padding-bottom: 1.5rem;
+        }
+
+        .section-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .section-sub {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            margin-bottom: 1.5rem;
+        }
+
+        /* 打卡方块：透明与纯黑的极简对比 */
+        .commit-grid {
+            display: flex;
+            gap: 6px;
+        }
+
+        .commit-box {
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--text-muted);
+            /* 空白状态使用灰色细线 */
+            background: var(--bg-color);
+            transition: all 0.2s ease;
+        }
+
+        .commit-box.active {
+            background: var(--text-main);
+            /* 打卡状态为极致的纯黑方块 */
+            border-color: var(--text-main);
+        }
+
+        /* 数据展示：瑞士极简标志性的巨大粗体 */
+        .streak-display {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .streak-number {
+            font-size: 5.5rem;
+            font-weight: 900;
+            line-height: 0.8;
+            letter-spacing: -0.05em;
+            color: var(--text-main);
+        }
+
+        .streak-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .at-field {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-main);
+            letter-spacing: 0.1em;
+            background-color: var(--grid-line);
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            margin-top: 1rem;
+        }
+
+        /* 底部操作按钮：纯黑硬边色块 */
+        .action-button {
+            margin-top: auto;
+            width: 100%;
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            border: none;
+            padding: 1.25rem 0;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .action-button:active {
+            transform: scale(0.98);
+        }
+
+        /* 反色闪屏特效：致敬底层终端系统的生硬反馈 */
+        #flash-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: var(--text-main);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease-out;
+        }
+
+        #flash-overlay.flash {
+            opacity: 1;
+            transition: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 底部呼吸条纹层 -->
+    <div class="stripe-bg"></div>
+
+    <div class="phone-container">
+        <!-- 闪光特效层 -->
+        <div id="flash-overlay"></div>
+
+        <!-- 顶部终端状态 -->
+        <div class="status-bar">
+            <span>ACTRACE_OS // V.CORE</span>
+            <span class="status-active">STATUS: STABLE</span>
+        </div>
+
+        <!-- 模块 1：打卡记录 -->
+        <div class="section">
+            <div class="section-header">JULY // COMMIT_LOG</div>
+            <div class="section-sub">TRACKING DAILY REPOSITORY</div>
+
+            <div class="commit-grid" id="commitGrid">
+                <div class="commit-box active"></div>
+                <div class="commit-box active"></div>
+                <div class="commit-box"></div>
+                <div class="commit-box"></div>
+                <div class="commit-box"></div>
+                <div class="commit-box"></div>
+                <div class="commit-box"></div>
+            </div>
+        </div>
+
+        <!-- 模块 2：连续天数 -->
+        <div class="section">
+            <div class="section-header">STREAK_RECORD</div>
+            <div class="streak-display">
+                <div class="streak-number" id="streakNum">12</div>
+                <div class="streak-label">DAYS</div>
+            </div>
+
+            <!-- 极简处理的 EVA 标语 -->
+            <div class="at-field">A.T. FIELD: STABLE</div>
+        </div>
+
+        <!-- 底部提交按钮 -->
+        <button class="action-button" onclick="triggerCommit()">
+            INITIALIZE // COMMIT
+        </button>
+    </div>
+
+    <script>
+        const gridBox = document.getElementById('commitGrid');
+        const streakNum = document.getElementById('streakNum');
+        const overlay = document.getElementById('flash-overlay');
+
+        function triggerCommit() {
+            const boxes = gridBox.querySelectorAll('.commit-box');
+            let filled = false;
+
+            // 寻找第一个未打卡的方块，将其填充为极简纯黑
+            for (let box of boxes) {
+                if (!box.classList.contains('active')) {
+                    box.classList.add('active');
+                    filled = true;
+                    streakNum.textContent = parseInt(streakNum.textContent) + 1;
+                    break;
+                }
+            }
+
+            // 纯粹的终端交互感：画面瞬间反色（全黑）作为物理反馈
+            overlay.classList.add('flash');
+
+            // 震动反馈 (如果设备支持)
+            if (navigator.vibrate) {
+                navigator.vibrate([30, 40]);
+            }
+
+            setTimeout(() => {
+                overlay.classList.remove('flash');
+            }, 60); // 60ms 瞬间闭合
+        }
+    </script>
+</body>
+
+</html>

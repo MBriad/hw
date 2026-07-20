@@ -3,6 +3,8 @@
  * From .agent/architecture/ui-design-system/design-tokens-and-component-patterns.md
  */
 export class Radius {
+  /** 0vp - hard-edged technical surfaces */
+  static readonly none: number = 0;
   /** 16vp — 卡片圆角 */
   static readonly lg: number = 16;
   /** 12vp — 按钮圆角 */

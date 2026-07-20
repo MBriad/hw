@@ -1,28 +1,25 @@
-/**
- * Domain entity: keyword-triggered easter egg.
- * Pure interface — zero framework dependencies.
- */
-
-/** A single keyword → easter egg mapping rule */
-export interface EasterEggRule {
-  /** Array of trigger keywords (case-insensitive match) */
-  keywords: string[];
-  /** Anime voiceline to display */
-  quote: string;
-  /** Particle effect type identifier */
-  effectType: string;
-  /** Sound file name (in resources/rawfile/) */
-  soundFile: string;
-}
+/** Domain entities for usage-driven feedback. Pure ArkTS. */
 
 /** Result of matching a keyword against check-in text */
 export interface EasterEgg {
-  /** The matched keyword */
+  /** The user-derived pattern that reached a milestone. */
   keyword: string;
-  /** Voiceline text to display */
+  /** Feedback text to display. */
   quote: string;
-  /** Particle effect type */
+  /** Particle effect preset. */
   effectType: string;
-  /** Sound file to play */
+  /** Synthesized sound preset. */
   soundFile: string;
+}
+
+export class UsagePattern {
+  term: string;
+  count: number;
+  nextMilestone: number;
+
+  constructor(term: string, count: number, nextMilestone: number) {
+    this.term = term;
+    this.count = count;
+    this.nextMilestone = nextMilestone;
+  }
 }

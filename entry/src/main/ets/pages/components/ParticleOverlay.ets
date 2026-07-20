@@ -3,8 +3,6 @@
  * Spawns colored particles that fade and disappear over ~1.5s.
  * Non-blocking — user can still interact with the page.
  */
-import { DesignTokens } from '../../domain/SkinTheme';
-
 interface Particle {
   x: number;
   y: number;
@@ -12,19 +10,28 @@ interface Particle {
   color: string;
   vx: number;
   vy: number;
-  opacity: number;
 }
 
 @Component
 export struct ParticleOverlay {
-  @Consume tokens: DesignTokens;
   @Prop effectType: string = 'particle_sparkle';
   @State private particles: Particle[] = [];
   @State private visible: boolean = false;
+  @State private progress: number = 0;
+
+  aboutToAppear(): void {
+    this.show();
+  }
 
   show(): void {
     this.visible = true;
+    this.progress = 0;
     this.generateParticles();
+    setTimeout(() => {
+      animateTo({ duration: 1200, curve: Curve.EaseOut }, () => {
+        this.progress = 1;
+      });
+    }, 16);
     setTimeout(() => {
       this.visible = false;
       this.particles = [];
@@ -37,15 +44,14 @@ export struct ParticleOverlay {
     const p: Particle[] = [];
     for (let i = 0; i < count; i++) {
       const angle = (Math.random() * Math.PI * 2);
-      const speed = 2 + Math.random() * 4;
+      const distance = 24 + Math.random() * 20;
       p.push({
         x: 50,
-        y: 50,
+        y: 48,
         size: 4 + Math.random() * 8,
         color: colors[i % colors.length],
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 2,
-        opacity: 1.0,
+        vx: Math.cos(angle) * distance,
+        vy: Math.sin(angle) * distance - 10,
       });
     }
     this.particles = p;
@@ -72,12 +78,15 @@ export struct ParticleOverlay {
     if (this.visible) {
       Stack() {
         ForEach(this.particles, (p: Particle, index: number) => {
-          Circle()
+          Rect()
             .width(p.size)
             .height(p.size)
             .fill(p.color)
-            .opacity(p.opacity)
-            .position({ x: `${p.x}%`, y: `${p.y}%` })
+            .opacity(1.0 - this.progress)
+            .position({
+              x: `${p.x + p.vx * this.progress}%`,
+              y: `${p.y + p.vy * this.progress}%`,
+            })
         })
       }
       .width('100%')

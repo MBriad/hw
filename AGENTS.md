@@ -26,6 +26,19 @@ Target: **HarmonyOS 6.1.1 (API 24)**, stage mode, strict mode enabled. Devices: 
 
 Tests use `@ohos/hypium` (1.0.25) and `@ohos/hamock` (1.0.0). They are registered in `entry/src/test/List.test.ets` and run via `hvigorw test`. ArkTS strict mode forbids object literals for interface implementations — mock classes must be **named classes** that implement the interface.
 
+## Interactive Acceptance Testing (Required)
+
+Builds and automated tests are necessary but are **not sufficient** for UI, interaction, notification, animation, audio, or other user-visible changes. After `assembleHap` and relevant automated tests pass, Codex must launch the app on an available emulator or physical device and verify the affected workflow through actual interaction.
+
+- **Buttons and controls**: tap every affected button, theme swatch, date cell, input, toggle, and other interactive control. Verify the resulting state or navigation, pressed feedback, enabled/disabled behavior, repeated taps, and that controls do not move or resize unexpectedly.
+- **Notifications and prompts**: trigger each affected notification, toast, dialog, banner, permission prompt, or system notification. Verify that it is actually delivered and dismissed correctly, with the expected title, content, icon, timing, and no unintended duplicates.
+- **Animations, effects, and audio**: trigger each affected animation, glow, particle effect, transition, vibration, and sound. Observe its start, active, and completion states; verify it does not overlap content, remain stuck, replay incorrectly, or degrade interaction.
+- **Data workflows**: perform the complete user action rather than only invoking internal methods. For example, select a date, enter text, tap the check-in button, confirm the heatmap changes, and relaunch the app to verify persistence when applicable.
+- **Themes and layouts**: repeat affected visual workflows in all four themes. Check the target 6.8-inch phone viewport at minimum, plus tablet/2in1 when the change affects responsive layout. Confirm safe-area handling, alignment, clipping, text fit, contrast, and glass effects with screenshots.
+- **Evidence**: inspect screenshots and relevant device logs, and report exactly which device/profile and workflows were exercised. Automated UI tooling may be used, but assertions must cover visible outcomes rather than only successful tap commands.
+
+If no emulator or device is available, Codex must first make a reasonable attempt to discover or start one. If device testing remains impossible, explicitly list the unverified interactions and the blocker in the final response. Never describe the feature as fully verified based only on compilation, unit tests, mocks, or source inspection.
+
 ## Architecture
 
 ```

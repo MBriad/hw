@@ -1,60 +1,62 @@
 import { describe, it, expect } from '@ohos/hypium';
+import { CheckIn } from '../main/ets/domain/CheckIn';
+import { EasterEgg, UsagePattern } from '../main/ets/domain/EasterEgg';
+import { UsagePatternEngine } from '../main/ets/domain/ports/UsagePatternEngine';
 import { DetectEasterEgg } from '../main/ets/usecases/DetectEasterEgg';
-import { KeywordMatcher } from '../main/ets/domain/ports/KeywordMatcher';
-import { EasterEgg } from '../main/ets/domain/EasterEgg';
+import { MockCheckInRepo } from './mocks/MockCheckInRepo';
 
-/**
- * Mock KeywordMatcher for isolated usecase testing.
- * ArkTS strict mode requires named class.
- */
-class MockKeywordMatcher implements KeywordMatcher {
-  public shouldMatch: boolean = true;
-  public matchedEgg: EasterEgg = {
-    keyword: 'test',
-    quote: 'mock quote',
-    effectType: 'mock_effect',
-    soundFile: 'mock_sound',
-  };
+class MockUsagePatternEngine implements UsagePatternEngine {
+  public capturedHistoryLength: number = 0;
+  public capturedContent: string = '';
+  public result: EasterEgg | null = null;
 
-  match(_text: string): EasterEgg | null {
-    return this.shouldMatch ? this.matchedEgg : null;
+  evaluate(content: string, history: CheckIn[]): EasterEgg | null {
+    this.capturedContent = content;
+    this.capturedHistoryLength = history.length;
+    return this.result;
+  }
+
+  summarize(_history: CheckIn[]): UsagePattern[] {
+    return [];
   }
 }
 
 export default function detectEasterEggTest() {
   describe('DetectEasterEgg', () => {
-
-    it('delegates_to_KeywordMatcher_on_match', 0, () => {
-      const mock = new MockKeywordMatcher();
-      mock.shouldMatch = true;
-      const usecase = new DetectEasterEgg(mock);
-      const result = usecase.execute('Rust学习');
+    it('loads_history_and_delegates_to_engine', 0, async () => {
+      const repo = new MockCheckInRepo();
+      repo.loadAllResult = [
+        { date: '2026-07-01', content: '绘画', timestamp: 1 },
+        { date: '2026-07-02', content: '绘画', timestamp: 2 },
+      ];
+      const engine = new MockUsagePatternEngine();
+      engine.result = {
+        keyword: '绘画', quote: 'x3', effectType: 'particle_rise', soundFile: 'level_up'
+      };
+      const result = await new DetectEasterEgg(repo, engine).execute('2026-07-03', '绘画');
       expect(result !== null).assertEqual(true);
-      expect(result!.keyword).assertEqual('test');
+      expect(engine.capturedContent).assertEqual('绘画');
+      expect(engine.capturedHistoryLength).assertEqual(2);
     });
 
-    it('returns_null_when_no_match', 0, () => {
-      const mock = new MockKeywordMatcher();
-      mock.shouldMatch = false;
-      const usecase = new DetectEasterEgg(mock);
-      const result = usecase.execute('hello');
-      expect(result === null).assertEqual(true);
+    it('excludes_existing_record_for_same_date', 0, async () => {
+      const repo = new MockCheckInRepo();
+      repo.loadAllResult = [
+        { date: '2026-07-01', content: '旧内容', timestamp: 1 },
+        { date: '2026-07-02', content: '绘画', timestamp: 2 },
+      ];
+      const engine = new MockUsagePatternEngine();
+      await new DetectEasterEgg(repo, engine).execute('2026-07-01', '绘画');
+      expect(engine.capturedHistoryLength).assertEqual(1);
     });
 
-    it('returns_null_for_empty_text', 0, () => {
-      const mock = new MockKeywordMatcher();
-      mock.shouldMatch = true;
-      const usecase = new DetectEasterEgg(mock);
-      const result = usecase.execute('   ');
+    it('returns_null_without_loading_for_empty_text', 0, async () => {
+      const repo = new MockCheckInRepo();
+      repo.loadAllResult = [{ date: '2026-07-01', content: 'test', timestamp: 1 }];
+      const engine = new MockUsagePatternEngine();
+      const result = await new DetectEasterEgg(repo, engine).execute('2026-07-02', '   ');
       expect(result === null).assertEqual(true);
-    });
-
-    it('trims_and_matches_whitespace_only', 0, () => {
-      const mock = new MockKeywordMatcher();
-      mock.shouldMatch = true;
-      const usecase = new DetectEasterEgg(mock);
-      const result = usecase.execute('');
-      expect(result === null).assertEqual(true);
+      expect(engine.capturedHistoryLength).assertEqual(0);
     });
   });
 }

@@ -1,4 +1,7 @@
 import { HeatmapCell } from '../../main/ets/domain/Streak';
+import { ActivitySnapshot } from '../../main/ets/domain/ActivitySnapshot';
+import { EasterEgg } from '../../main/ets/domain/EasterEgg';
+import { IDetectEasterEgg, ILoadActivity } from '../../main/ets/domain/ports/ActivityUseCases';
 import { ILoadHeatmap, IRecordCheckIn } from '../../main/ets/domain/ports/HeatmapUseCases';
 
 /**
@@ -24,5 +27,27 @@ export class MockRecordCheckIn implements IRecordCheckIn {
   async execute(date: string, content: string): Promise<void> {
     this.capturedDate = date;
     this.capturedContent = content;
+  }
+}
+
+export class MockLoadActivity implements ILoadActivity {
+  public result: ActivitySnapshot = new ActivitySnapshot([], []);
+  public executeCount: number = 0;
+
+  async execute(): Promise<ActivitySnapshot> {
+    this.executeCount++;
+    return this.result;
+  }
+}
+
+export class MockDetectEasterEgg implements IDetectEasterEgg {
+  public result: EasterEgg | null = null;
+  public capturedDate: string = '';
+  public capturedContent: string = '';
+
+  async execute(date: string, content: string): Promise<EasterEgg | null> {
+    this.capturedDate = date;
+    this.capturedContent = content;
+    return this.result;
   }
 }

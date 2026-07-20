@@ -1,21 +1,27 @@
 /**
- * UseCase: Detect easter egg trigger from check-in text.
- * Depends on KeywordMatcher (port).
+ * Detect a usage milestone without knowing how history is stored or analyzed.
  */
+import { CheckIn } from '../domain/CheckIn';
 import { EasterEgg } from '../domain/EasterEgg';
-import { KeywordMatcher } from '../domain/ports/KeywordMatcher';
+import { IDetectEasterEgg } from '../domain/ports/ActivityUseCases';
+import { CheckInRepository } from '../domain/ports/CheckInRepository';
+import { UsagePatternEngine } from '../domain/ports/UsagePatternEngine';
 
-export class DetectEasterEgg {
-  private matcher: KeywordMatcher;
+export class DetectEasterEgg implements IDetectEasterEgg {
+  private repo: CheckInRepository;
+  private engine: UsagePatternEngine;
 
-  constructor(matcher: KeywordMatcher) {
-    this.matcher = matcher;
+  constructor(repo: CheckInRepository, engine: UsagePatternEngine) {
+    this.repo = repo;
+    this.engine = engine;
   }
 
-  execute(text: string): EasterEgg | null {
-    if (text.trim().length === 0) {
+  async execute(date: string, content: string): Promise<EasterEgg | null> {
+    if (content.trim().length === 0) {
       return null;
     }
-    return this.matcher.match(text);
+    const all = await this.repo.loadAll();
+    const history = all.filter((checkIn: CheckIn) => checkIn.date !== date);
+    return this.engine.evaluate(content, history);
   }
 }

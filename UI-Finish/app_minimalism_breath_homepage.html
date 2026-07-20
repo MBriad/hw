@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Act. - Minimalism & Grid</title>
+    <style>
+        /* 引入瑞士风格标志性的无衬线巨重字体 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+        :root {
+            /* 贯彻单一主题：极致黑白灰 */
+            --bg-color: #FBFBFA;
+            --text-main: #000000;
+            --text-sub: #888888;
+            --grid-line: #EAEAEA;
+
+            /* 程序员热力图无缝融合灰阶 */
+            --heat-0: transparent;
+            --heat-1: #DCDCDA;
+            --heat-2: #737372;
+            --heat-3: #000000;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #EAEAEA;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 完美承载 6.8 英寸修长屏幕比例的容器 */
+        .phone-container {
+            width: 380px;
+            height: 820px;
+            background-color: var(--bg-color);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 40px 90px rgba(0, 0, 0, 0.15);
+            /* 避开屏幕物理打孔与底部触控条 */
+            padding-top: max(50px, env(safe-area-inset-top));
+            padding-bottom: max(36px, env(safe-area-inset-bottom));
+        }
+
+        /* 1. 几何呼吸空间：纯白底色上的淡淡灰色拓扑线 */
+        #meshCanvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* 极简粒子交互层 */
+        #fxCanvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 90;
+            pointer-events: none;
+        }
+
+        /* 主内容框架：绝对的留白与对齐 */
+        .content {
+            position: relative;
+            z-index: 10;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 1.5rem;
+        }
+
+        /* 强悍的瑞士排版头部 */
+        header {
+            flex-shrink: 0;
+            margin-top: 1rem;
+            margin-bottom: auto;
+            border-bottom: 4px solid var(--text-main);
+            padding-bottom: 1rem;
+        }
+
+        .hero-slogan {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-sub);
+            margin-bottom: 0.5rem;
+        }
+
+        .title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            line-height: 0.9;
+        }
+
+        /* 视图切换：取消药丸圆角，改为硬朗的线条边界 */
+        .view-switcher {
+            display: flex;
+            margin: 2rem 0 1rem;
+            border-bottom: 1px solid var(--text-main);
+        }
+
+        .tab {
+            padding: 0.5rem 1rem 0.5rem 0;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            color: var(--text-main);
+            position: relative;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: calc(100% - 1rem);
+            height: 3px;
+            background: var(--text-main);
+        }
+
+        /* 严格网格日历面板：去除一切外框卡片与投影 */
+        .calendar-section {
+            flex-shrink: 0;
+            margin-bottom: auto;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-transform: uppercase;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1;
+            background-color: var(--heat-0);
+            border: 1px solid var(--grid-line);
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            padding: 0.25rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .grid-cell[data-level="1"] {
+            background-color: var(--heat-1);
+            color: var(--text-main);
+            border-color: var(--heat-1);
+        }
+
+        .grid-cell[data-level="2"] {
+            background-color: var(--heat-2);
+            color: #FFF;
+            border-color: var(--heat-2);
+        }
+
+        .grid-cell[data-level="3"] {
+            background-color: var(--heat-3);
+            color: #FFF;
+            border-color: var(--heat-3);
+        }
+
+        .grid-cell.selected {
+            border: 2px solid var(--text-main);
+            padding: calc(0.25rem - 1px);
+        }
+
+        /* 连击数据块：平铺排列，大字号聚焦核心数据 */
+        .stats-section {
+            flex-shrink: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid var(--text-main);
+            padding-top: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-sub);
+            margin-bottom: 0.2rem;
+        }
+
+        .stat-val {
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        /* 底部硬核输入区 */
+        .input-area {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-row {
+            display: flex;
+            border-bottom: 2px solid var(--text-main);
+        }
+
+        .commit-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 0.75rem 0;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .commit-input::placeholder {
+            color: #C0C0C0;
+            font-weight: 400;
+        }
+
+        .btn-commit {
+            background: transparent;
+            color: var(--text-main);
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            padding-left: 1rem;
+        }
+
+        /* EVA 式极简二次元彩蛋遮罩 */
+        #easter-egg {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        #easter-egg.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .egg-title {
+            font-size: 2.8rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            text-align: center;
+        }
+
+        .egg-subtitle {
+            margin-top: 1.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.4em;
+            color: #737372;
+            border: 1px solid #737372;
+            padding: 0.2rem 0.6rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="phone-container" id="phoneBox">
+        <!-- 动态缓动精密几何网格 Canvas -->
+        <canvas id="meshCanvas"></canvas>
+        <!-- 特效层 -->
+        <canvas id="fxCanvas"></canvas>
+
+        <div class="content">
+            <!-- 头部 -->
+            <header>
+                <div class="hero-slogan">Pure Habit Tracking Platform</div>
+                <div class="title">2026.07</div>
+            </header>
+
+            <!-- 视图切换栏 -->
+            <div class="view-switcher">
+                <button class="tab active">Calendar View</button>
+                <button class="tab">Pixel Wall</button>
+            </div>
+
+            <!-- 日历热力网格 -->
+            <div class="calendar-section">
+                <div class="weekdays">
+                    <div>Mo</div>
+                    <div>Tu</div>
+                    <div>We</div>
+                    <div>Th</div>
+                    <div>Fr</div>
+                    <div>Sa</div>
+                    <div>Su</div>
+                </div>
+                <div class="heatmap-grid" id="gridArea"></div>
+            </div>
+
+            <!-- 数据统计块 -->
+            <div class="stats-section">
+                <div class="stat-item">
+                    <span class="stat-label">Current Streak</span>
+                    <div class="stat-val">12</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Commits</span>
+                    <div class="stat-val">104</div>
+                </div>
+            </div>
+
+            <!-- 底部输入框 -->
+            <div class="input-area">
+                <div class="input-row">
+                    <input type="text" class="commit-input" id="inputBox" placeholder="LOG INSPIRATION OR CODE..." />
+                    <button class="btn-commit" onclick="triggerCommit()">Commit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 纯排版式极简彩蛋层 -->
+        <div id="easter-egg">
+            <div class="egg-title">LIMITER<br>RELEASED</div>
+            <div class="egg-subtitle">CODE AWAKENED</div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 初始化热力图数据
+        const monthData = [0, 0, 1, 2, 3, 1, 0, 1, 2, 2, 3, 3, 2, 1, 0, 1, 3, 3, 2, 1, 0, 2, 3, 3, 1, 2, 3, 0, 1, 2, 0];
+        const grid = document.getElementById('gridArea');
+        let selectedCell = null;
+
+        monthData.forEach((level, idx) => {
+            const day = idx + 1;
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.setAttribute('data-level', level);
+            cell.textContent = day < 10 ? `0${day}` : day;
+            cell.addEventListener('click', () => {
+                if (selectedCell) selectedCell.classList.remove('selected');
+                selectedCell = cell;
+                cell.classList.add('selected');
+            });
+            grid.appendChild(cell);
+        });
+
+        // 2. 永动几何网格：极简空气感几何坐标缓动 (取代彩色波浪)
+        const mCanvas = document.getElementById('meshCanvas');
+        const mCtx = mCanvas.getContext('2d');
+        mCanvas.width = 380; mCanvas.height = 820;
+        let time = 0;
+
+        function renderBreathingMesh() {
+            mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
+            // 极细的黑线，配合极低透明度，形成若隐若现的空气质感
+            mCtx.lineWidth = 0.5;
+            mCtx.strokeStyle = 'rgba(0, 0, 0, 0.03)';
+
+            const cols = 9, rows = 20;
+            const stepX = mCanvas.width / (cols - 1);
+            const stepY = mCanvas.height / (rows - 1);
+
+            // 横向波纹
+            for (let y = 0; y < rows; y++) {
+                mCtx.beginPath();
+                for (let x = 0; x < cols; x++) {
+                    const posX = x * stepX;
+                    // 正弦与余弦叠加，形成极为缓慢且平滑的网格起伏运动
+                    const posY = y * stepY + Math.sin(x * 0.5 + time) * 6 + Math.cos(y * 0.3 + time * 0.7) * 4;
+                    if (x === 0) mCtx.moveTo(posX, posY);
+                    else mCtx.lineTo(posX, posY);
+                }
+                mCtx.stroke();
+            }
+
+            // 纵向波纹
+            for (let x = 0; x < cols; x++) {
+                mCtx.beginPath();
+                for (let y = 0; y < rows; y++) {
+                    const posX = x * stepX + Math.cos(y * 0.4 + time) * 4;
+                    const posY = y * stepY;
+                    if (y === 0) mCtx.moveTo(posX, posY);
+                    else mCtx.lineTo(posX, posY);
+                }
+                mCtx.stroke();
+            }
+
+            time += 0.008; // 极其缓慢的频率，实现深呼吸的寂静感
+            requestAnimationFrame(renderBreathingMesh);
+        }
+        renderBreathingMesh();
+
+        // 3. 点击 Commit 交互与极简方块爆发特效
+        const inputBox = document.getElementById('inputBox');
+        const egg = document.getElementById('easter-egg');
+        const fxCanvas = document.getElementById('fxCanvas');
+        const fxCtx = fxCanvas.getContext('2d');
+        fxCanvas.width = 380; fxCanvas.height = 820;
+        let fxParticles = [];
+
+        function triggerCommit() {
+            if (!selectedCell) return;
+            selectedCell.setAttribute('data-level', '3');
+            inputBox.value = "";
+
+            // 触发硬核方块爆裂粒子
+            triggerFx();
+
+            // 延时弹出极致排版的二次元文字彩蛋（EVA Limiter Released 风格）
+            setTimeout(() => {
+                egg.classList.add('show');
+                if (navigator.vibrate) navigator.vibrate([40, 40]);
+
+                setTimeout(() => {
+                    egg.classList.remove('show');
+                }, 1200);
+            }, 400);
+        }
+
+        function triggerFx() {
+            const rect = selectedCell.getBoundingClientRect();
+            const pRect = document.getElementById('phoneBox').getBoundingClientRect();
+            // 计算被选中的网格相对于手机容器的中心点位置
+            const originX = rect.left - pRect.left + rect.width / 2;
+            const originY = rect.top - pRect.top + rect.height / 2;
+
+            for (let i = 0; i < 20; i++) {
+                fxParticles.push({
+                    x: originX,
+                    y: originY,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    size: Math.random() * 4 + 2,
+                    alpha: 1
+                });
+            }
+            animateFx();
+        }
+
+        function animateFx() {
+            fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+            fxParticles = fxParticles.filter(p => {
+                p.x += p.vx; p.y += p.vy; p.alpha -= 0.04;
+                if (p.alpha > 0) {
+                    fxCtx.fillStyle = `rgba(0, 0, 0, ${p.alpha})`;
+                    // 保持极简主义的绝对方正，使用 fillRect 绘制纯粹的几何方块粒子
+                    fxCtx.fillRect(p.x, p.y, p.size, p.size);
+                    return true;
+                }
+                return false;
+            });
+            if (fxParticles.length > 0) requestAnimationFrame(animateFx);
+        }
+    </script>
+</body>
+
+</html>

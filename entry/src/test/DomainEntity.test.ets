@@ -2,7 +2,7 @@ import { describe, it, expect } from '@ohos/hypium';
 import { CheckIn } from '../main/ets/domain/CheckIn';
 import { SkinTheme, DesignTokens, ThemePalette, ThemeNames } from '../main/ets/domain/SkinTheme';
 import { StreakLevel, StreakInfo, HeatmapCell } from '../main/ets/domain/Streak';
-import { EasterEggRule, EasterEgg } from '../main/ets/domain/EasterEgg';
+import { EasterEgg, UsagePattern } from '../main/ets/domain/EasterEgg';
 
 export default function domainEntityTest() {
   describe('DomainEntity', () => {
@@ -114,15 +114,11 @@ export default function domainEntityTest() {
       expect(egg.quote).assertContain('Rustacean');
     });
 
-    it('EasterEggRule_defines_trigger_mapping', 0, () => {
-      const rule: EasterEggRule = {
-        keywords: ['Rust', 'rust', 'RUST'],
-        quote: '世界线变动率：0.231492%',
-        effectType: 'eva_at_field',
-        soundFile: 'eva_alert.ogg'
-      };
-      expect(rule.keywords.length).assertEqual(3);
-      expect(rule.keywords[0]).assertEqual('Rust');
+    it('UsagePattern_tracks_learned_frequency', 0, () => {
+      const pattern = new UsagePattern('绘画', 3, 7);
+      expect(pattern.term).assertEqual('绘画');
+      expect(pattern.count).assertEqual(3);
+      expect(pattern.nextMilestone).assertEqual(7);
     });
 
     it('domain_types_compile_and_resolve', 0, () => {

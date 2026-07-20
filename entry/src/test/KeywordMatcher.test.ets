@@ -1,73 +1,72 @@
 import { describe, it, expect } from '@ohos/hypium';
-import { RegexKeywordMatcher } from '../main/ets/adapters/RegexKeywordMatcher';
+import { CheckIn } from '../main/ets/domain/CheckIn';
+import { FrequencyPatternEngine } from '../main/ets/domain/FrequencyPatternEngine';
+
+function checkIn(date: string, content: string): CheckIn {
+  return { date: date, content: content, timestamp: 1 };
+}
 
 export default function keywordMatcherTest() {
-  describe('KeywordMatcher', () => {
-
-    it('matches_Rust_keyword', 0, () => {
-      const matcher = new RegexKeywordMatcher();
-      const result = matcher.match('学了2小时Rust');
-      expect(result !== null).assertEqual(true);
-      expect(result!.quote).assertContain('世界线变动率');
-      expect(result!.effectType).assertEqual('eva_at_field');
+  describe('FrequencyPatternEngine', () => {
+    it('does_not_trigger_for_unseen_or_second_use', 0, () => {
+      const engine = new FrequencyPatternEngine();
+      expect(engine.evaluate('shader practice', []) === null).assertEqual(true);
+      const once = [checkIn('2026-07-01', 'shader practice')];
+      expect(engine.evaluate('shader practice', once) === null).assertEqual(true);
     });
 
-    it('matches_overtime_keyword', 0, () => {
-      const matcher = new RegexKeywordMatcher();
-      const result = matcher.match('加班到12点');
+    it('triggers_on_third_user_derived_occurrence', 0, () => {
+      const engine = new FrequencyPatternEngine();
+      const history = [
+        checkIn('2026-07-01', 'shader practice'),
+        checkIn('2026-07-02', 'shader practice'),
+      ];
+      const result = engine.evaluate('shader practice', history);
       expect(result !== null).assertEqual(true);
-      expect(result!.keyword).assertEqual('加班');
+      expect(result!.keyword).assertEqual('shader practice');
+      expect(result!.quote).assertContain('x3');
     });
 
-    it('matches_bug_keyword', 0, () => {
-      const matcher = new RegexKeywordMatcher();
-      const result = matcher.match('今天修Bug修了一天');
+    it('extracts_repeated_code_term_from_varied_text', 0, () => {
+      const engine = new FrequencyPatternEngine();
+      const history = [
+        checkIn('2026-07-01', 'learned arkts layout'),
+        checkIn('2026-07-02', 'fixed arkts state'),
+      ];
+      const result = engine.evaluate('tested arkts navigation', history);
       expect(result !== null).assertEqual(true);
-      expect(result!.effectType).assertEqual('particle_sparkle');
+      expect(result!.keyword).assertEqual('arkts');
     });
 
-    it('returns_null_for_no_match', 0, () => {
-      const matcher = new RegexKeywordMatcher();
-      const result = matcher.match('正常的一天');
-      expect(result === null).assertEqual(true);
+    it('does_not_use_a_built_in_trigger_vocabulary', 0, () => {
+      const engine = new FrequencyPatternEngine();
+      expect(engine.evaluate('Rust 加班 Bug', []) === null).assertEqual(true);
     });
 
-    it('case_insensitive_match', 0, () => {
-      const matcher = new RegexKeywordMatcher();
-      const result = matcher.match('RUST 真的好难');
-      expect(result !== null).assertEqual(true);
-      expect(result!.keyword).assertEqual('Rust');
+    it('summarizes_patterns_and_next_milestone', 0, () => {
+      const engine = new FrequencyPatternEngine();
+      const history = [
+        checkIn('2026-07-01', 'pixel art'),
+        checkIn('2026-07-02', 'pixel art'),
+        checkIn('2026-07-03', 'pixel art'),
+      ];
+      const patterns = engine.summarize(history);
+      expect(patterns.length > 0).assertEqual(true);
+      expect(patterns[0].term).assertEqual('pixel art');
+      expect(patterns[0].count).assertEqual(3);
+      expect(patterns[0].nextMilestone).assertEqual(7);
     });
 
-    it('first_match_wins_for_multiple_keywords', 0, () => {
-      const matcher = new RegexKeywordMatcher();
-      // '加班' appears before 'Bug' in rule list, '学习' before '加班'
-      const result = matcher.match('学习Rust到加班修Bug');
-      // 'Rust' is added first since we search for keywords in rule order:
-      // Rule 0 (Rust) -> Rule 1 (加班) -> etc. First matching keyword wins.
-      // But actually we return on the first matching rule
-      expect(result !== null).assertEqual(true);
-      // Should match the first rule's first keyword: Rust
-    });
-
-    it('matches_anime_keyword', 0, () => {
-      const matcher = new RegexKeywordMatcher();
-      const result = matcher.match('看完了约定的梦幻岛');
-      expect(result !== null).assertEqual(true);
-      expect(result!.quote).assertContain('知识 +1');
-    });
-
-    it('returns_easter_egg_with_all_fields', 0, () => {
-      const matcher = new RegexKeywordMatcher();
-      const result = matcher.match('摸鱼一整天');
-      expect(result !== null).assertEqual(true);
-      expect(result!.keyword).assertEqual('摸鱼');
-      let hasQuote: boolean = (result!.quote.length > 0);
-      expect(hasQuote).assertEqual(true);
-      let hasEffect: boolean = (result!.effectType.length > 0);
-      expect(hasEffect).assertEqual(true);
-      let hasSound: boolean = (result!.soundFile.length > 0);
-      expect(hasSound).assertEqual(true);
+    it('feedback_preset_is_stable_for_same_pattern', 0, () => {
+      const engine = new FrequencyPatternEngine();
+      const history = [
+        checkIn('2026-07-01', '绘画'),
+        checkIn('2026-07-02', '绘画'),
+      ];
+      const first = engine.evaluate('绘画', history);
+      const second = engine.evaluate('绘画', history);
+      expect(first!.effectType).assertEqual(second!.effectType);
+      expect(first!.soundFile).assertEqual(second!.soundFile);
     });
   });
 }

@@ -8,6 +8,7 @@ import heatmapVMTest from './HeatmapVM.test';
 import keywordMatcherTest from './KeywordMatcher.test';
 import detectEasterEggTest from './DetectEasterEgg.test';
 import soundPlayerTest from './SoundPlayer.test';
+import loadActivityTest from './LoadActivity.test';
 
 export default function testsuite() {
   localUnitTest();
@@ -20,4 +21,5 @@ export default function testsuite() {
   keywordMatcherTest();
   detectEasterEggTest();
   soundPlayerTest();
+  loadActivityTest();
 }

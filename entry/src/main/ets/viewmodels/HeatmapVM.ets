@@ -5,10 +5,11 @@
  */
 import { HeatmapCell, StreakInfo, StreakLevel } from '../domain/Streak';
 import { SkinTheme, DesignTokens, ThemePalette } from '../domain/SkinTheme';
-import { EasterEgg, EasterEggRule } from '../domain/EasterEgg';
+import { CheckIn } from '../domain/CheckIn';
+import { EasterEgg, UsagePattern } from '../domain/EasterEgg';
+import { IDetectEasterEgg, ILoadActivity } from '../domain/ports/ActivityUseCases';
 import { ILoadHeatmap, IRecordCheckIn } from '../domain/ports/HeatmapUseCases';
 import { SkinProvider } from '../domain/ports/SkinProvider';
-import { KeywordMatcher } from '../domain/ports/KeywordMatcher';
 import { SoundPlayer } from '../domain/ports/SoundPlayer';
 
 @Observed
@@ -18,6 +19,8 @@ export class HeatmapVM {
   currentTokens: DesignTokens = ThemePalette[SkinTheme.LIGHT];
   selectedDate: string = '';
   streakInfo: StreakInfo = { current: 0, longest: 0, level: StreakLevel.NONE };
+  checkIns: CheckIn[] = [];
+  usagePatterns: UsagePattern[] = [];
 
   // Easter egg state
   triggeredEgg: EasterEgg | null = null;
@@ -27,24 +30,32 @@ export class HeatmapVM {
 
   private loadHeatmap: ILoadHeatmap;
   private recordCheckIn: IRecordCheckIn;
+  private loadActivity: ILoadActivity;
+  private detectEasterEgg: IDetectEasterEgg;
   private skinProvider: SkinProvider;
-  private keywordMatcher: KeywordMatcher;
   private soundPlayer: SoundPlayer;
+  private eggRunId: number = 0;
   private currentYear: number = 2026;
   private currentMonth: number = 7;
 
   constructor(
     loadHeatmap: ILoadHeatmap,
     recordCheckIn: IRecordCheckIn,
+    loadActivity: ILoadActivity,
+    detectEasterEgg: IDetectEasterEgg,
     skinProvider: SkinProvider,
-    keywordMatcher: KeywordMatcher,
     soundPlayer: SoundPlayer,
   ) {
     this.loadHeatmap = loadHeatmap;
     this.recordCheckIn = recordCheckIn;
+    this.loadActivity = loadActivity;
+    this.detectEasterEgg = detectEasterEgg;
     this.skinProvider = skinProvider;
-    this.keywordMatcher = keywordMatcher;
     this.soundPlayer = soundPlayer;
+  }
+
+  async initialize(year: number, month: number): Promise<void> {
+    await Promise.all([this.loadMonth(year, month), this.refreshActivity()]);
   }
 
   async loadMonth(year: number, month: number): Promise<void> {
@@ -54,17 +65,34 @@ export class HeatmapVM {
   }
 
   async doCheckIn(content: string): Promise<void> {
+    const egg = await this.detectEasterEgg.execute(this.selectedDate, content);
     await this.recordCheckIn.execute(this.selectedDate, content);
-    await this.loadMonth(this.currentYear, this.currentMonth);
+    await Promise.all([this.loadMonth(this.currentYear, this.currentMonth), this.refreshActivity()]);
 
-    // Detect and trigger easter egg
-    const egg = this.keywordMatcher.match(content);
-    if (egg) {
+    if (egg !== null) {
+      this.triggerEasterEgg(egg);
+    }
+  }
+
+  async refreshActivity(): Promise<void> {
+    const snapshot = await this.loadActivity.execute();
+    this.checkIns = snapshot.checkIns;
+    this.usagePatterns = snapshot.patterns;
+  }
+
+  private triggerEasterEgg(egg: EasterEgg): void {
+    if (this.triggeredEgg === null) {
       this.triggeredEgg = egg;
       this.showParticles = true;
       this.showBanner = true;
       this.soundFile = egg.soundFile;
       this.soundPlayer.play(egg.soundFile);
+      const runId = ++this.eggRunId;
+      setTimeout(() => {
+        if (this.eggRunId === runId) {
+          this.dismissEgg();
+        }
+      }, 2800);
     }
   }
 
@@ -103,5 +131,31 @@ export class HeatmapVM {
     const months = ['1月', '2月', '3月', '4月', '5月', '6月',
                     '7月', '8月', '9月', '10月', '11月', '12月'];
     return `${this.currentYear}年 ${months[this.currentMonth - 1]}`;
+  }
+
+  get monthCode(): string {
+    return `${this.currentYear}.${String(this.currentMonth).padStart(2, '0')}`;
+  }
+
+  get monthCommitCount(): number {
+    return this.cells.filter((cell: HeatmapCell) => cell.level > 0).length;
+  }
+
+  get totalCommitCount(): number {
+    return this.checkIns.length;
+  }
+
+  get longestMonthStreak(): number {
+    let longest = 0;
+    let current = 0;
+    this.cells.forEach((cell: HeatmapCell) => {
+      if (cell.level > 0) {
+        current++;
+        longest = Math.max(longest, current);
+      } else {
+        current = 0;
+      }
+    });
+    return longest;
   }
 }

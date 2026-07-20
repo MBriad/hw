@@ -1,16 +1,15 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
-
-// === Composition Root (Phase 1+) ===
-// All dependency wiring happens here and ONLY here.
-// No component or ViewModel creates its own dependencies.
-// Layers: Adapter -> UseCase -> ViewModel -> Page
-// import { PreferencesCheckInRepo } from '../adapters/PreferencesCheckInRepo';
-// import { RecordCheckIn } from '../usecases/RecordCheckIn';
-// import { LoadHeatmap } from '../usecases/LoadHeatmap';
-// import { SkinProviderImpl } from '../adapters/SkinProviderImpl';
-// import { HeatmapVM } from '../viewmodels/HeatmapVM';
+import { PreferencesCheckInRepo } from '../adapters/PreferencesCheckInRepo';
+import { SkinProviderImpl } from '../adapters/SkinProviderImpl';
+import { SoundPlayerImpl } from '../adapters/SoundPlayerImpl';
+import { FrequencyPatternEngine } from '../domain/FrequencyPatternEngine';
+import { DetectEasterEgg } from '../usecases/DetectEasterEgg';
+import { LoadActivity } from '../usecases/LoadActivity';
+import { LoadHeatmap } from '../usecases/LoadHeatmap';
+import { RecordCheckIn } from '../usecases/RecordCheckIn';
+import { HeatmapVM } from '../viewmodels/HeatmapVM';
 
 const DOMAIN = 0x0000;
 
@@ -30,8 +29,18 @@ export default class EntryAbility extends UIAbility {
   }
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
-    // Main window is created, set main page for this ability
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+    const repo = new PreferencesCheckInRepo(this.context);
+    const patternEngine = new FrequencyPatternEngine();
+    const viewModel = new HeatmapVM(
+      new LoadHeatmap(repo),
+      new RecordCheckIn(repo),
+      new LoadActivity(repo, patternEngine),
+      new DetectEasterEgg(repo, patternEngine),
+      new SkinProviderImpl(),
+      new SoundPlayerImpl()
+    );
+    AppStorage.setOrCreate<HeatmapVM>('heatmapVM', viewModel);
 
     windowStage.loadContent('pages/HeatmapPage', (err) => {
       if (err.code) {

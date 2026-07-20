@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actrace System OS - Glass Navigation</title>
+    <style>
+        :root {
+            --bg-light: rgba(255, 255, 255, 0.4);
+            --text-dark: #111111;
+            --accent: #FF3300; 
+            --grid-line: rgba(0, 0, 0, 0.04);
+            --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        @keyframes breathe {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes orbMove {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        @keyframes shadowPulse {
+            0% { box-shadow: 0 10px 40px rgba(0,0,0,0.04); }
+            50% { box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
+            100% { box-shadow: 0 10px 40px rgba(0,0,0,0.04); }
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(-45deg, #e3e8ef, #f8f9fa, #e9ecef, #f1f3f5);
+            background-size: 400% 400%;
+            animation: breathe 15s ease-in-out infinite;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: var(--font-sans);
+            color: var(--text-dark);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.6;
+        }
+        
+        body::before {
+            background: rgba(255, 51, 0, 0.1);
+            top: 10%; left: 25%;
+            animation: orbMove 12s infinite alternate ease-in-out;
+        }
+        
+        body::after {
+            background: rgba(0, 0, 0, 0.05);
+            bottom: 10%; right: 25%;
+            animation: orbMove 18s infinite alternate-reverse ease-in-out;
+        }
+
+        .phone-container {
+            width: 380px;
+            height: 820px;
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            position: relative;
+            overflow: hidden;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            animation: shadowPulse 8s ease-in-out infinite;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .phone-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 24px 24px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* 顶部状态栏 */
+        .system-bar {
+            padding: 40px 30px 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            font-family: var(--font-mono);
+            color: rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 模拟页面内容 */
+        .content-area {
+            flex: 1;
+            padding: 20px 25px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .panel {
+            transform: skewX(-10deg);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 25px 30px;
+            border: 2px solid rgba(0, 0, 0, 0.85);
+            border-left: 8px solid rgba(0, 0, 0, 0.85); 
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.06); 
+            margin-bottom: 20px;
+        }
+
+        .panel-inner { transform: skewX(10deg); }
+        .title { font-size: 26px; font-weight: 900; text-transform: uppercase; line-height: 1.1; margin-bottom: 8px; color: #000; }
+        .desc { font-size: 11px; font-family: var(--font-mono); color: rgba(0, 0, 0, 0.6); text-transform: uppercase; }
+
+        /* ==========================================
+           毛玻璃极简底部导航栏
+           ========================================== */
+        .glass-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 85px;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            /* 顶部保留极简的硬朗切割线 */
+            border-top: 2px solid #000; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 35px;
+            padding-bottom: 15px; /* 适配底部安全区 */
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: rgba(0, 0, 0, 0.3);
+            text-decoration: none;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: #000;
+        }
+
+        /* 顶部激活指示器：融入平行四边形的倾斜感 */
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            top: -24px; /* 对齐导航栏黑线 */
+            width: 20px;
+            height: 4px;
+            background: var(--accent);
+            transform: skewX(-20deg);
+            box-shadow: 0 0 8px rgba(255, 51, 0, 0.4);
+        }
+
+        .nav-icon {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: square;
+            stroke-linejoin: miter;
+            transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .nav-item:hover .nav-icon {
+            transform: translateY(-2px);
+        }
+
+        /* ==========================================
+           中心觉醒/打卡按钮 (平行四边形设计)
+           ========================================== */
+        .nav-center-wrap {
+            position: relative;
+            top: -25px; /* 突破导航栏顶部 */
+        }
+
+        .nav-center-btn {
+            width: 64px;
+            height: 64px;
+            /* 按钮毛玻璃基底 */
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid #000;
+            transform: skewX(-10deg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .nav-center-btn::before {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .nav-center-inner {
+            transform: skewX(10deg); /* 内部内容回正 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .nav-center-btn svg {
+            width: 28px;
+            height: 28px;
+            stroke: #000;
+            stroke-width: 2;
+            transition: stroke 0.3s, transform 0.4s;
+        }
+
+        .nav-center-wrap:hover .nav-center-btn {
+            background: #000;
+            transform: skewX(-10deg) translateY(-4px) translateX(-2px);
+            box-shadow: 8px 10px 0px rgba(255, 51, 0, 0.25);
+            border-color: #000;
+        }
+
+        .nav-center-wrap:hover .nav-center-btn svg {
+            stroke: var(--accent);
+            transform: rotate(90deg);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        <div class="system-bar">
+            <span>ACTRACE_OS // V.CORE</span>
+            <span>STATUS: IDLE</span>
+        </div>
+
+        <div class="content-area">
+            <div class="panel">
+                <div class="panel-inner">
+                    <div class="title">Dashboard</div>
+                    <div class="desc">Awaiting Synchronization...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部毛玻璃极简导航栏 -->
+        <nav class="glass-nav">
+            <!-- 菜单项 1: Data/Heatmap -->
+            <a href="#" class="nav-item active">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>DATA</span>
+            </a>
+
+            <!-- 菜单项 2: Logs -->
+            <a href="#" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <polyline points="4 17 10 11 14 15 20 9"></polyline>
+                    <polyline points="14 9 20 9 20 15"></polyline>
+                </svg>
+                <span>LOGS</span>
+            </a>
+
+            <!-- 中心打卡/唤醒按钮 -->
+            <div class="nav-center-wrap">
+                <div class="nav-center-btn">
+                    <div class="nav-center-inner">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 菜单项 3: AT Field/Status -->
+            <a href="#" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"></polygon>
+                    <line x1="12" y1="22" x2="12" y2="12"></line>
+                    <polyline points="2 8.5 12 12 22 8.5"></polyline>
+                </svg>
+                <span>CORE</span>
+            </a>
+
+            <!-- 菜单项 4: User -->
+            <a href="#" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="7" r="4"></circle>
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                </svg>
+                <span>USER</span>
+            </a>
+        </nav>
+    </div>
+
+</body>
+</html>

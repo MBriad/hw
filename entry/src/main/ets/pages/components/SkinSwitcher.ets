@@ -1,5 +1,5 @@
 /**
- * Humble View: Theme switcher — 4 circular buttons.
+ * Humble View: Theme switcher with four compact color swatches.
  * Consumes DesignTokens + themeName from ThemeProvider.
  */
 import { SkinTheme, DesignTokens, ThemeNames, ThemePalette } from '../../domain/SkinTheme';
@@ -17,39 +17,48 @@ export struct SkinSwitcher {
 
   build() {
     Row() {
-      ForEach(this.themes, (theme: SkinTheme) => {
-        this.skinButton(theme)
-      })
+      Column() {
+        Text('THEME PROFILE')
+          .fontSize(10)
+          .fontWeight(700)
+          .fontColor(this.tokens.textMuted)
+          .fontFamily('monospace')
+
+        Text(ThemeNames[this.themeName])
+          .fontSize(13)
+          .fontWeight(700)
+          .fontColor(this.tokens.textPrimary)
+          .margin({ top: Spacing.xxs })
+      }
+      .alignItems(HorizontalAlign.Start)
+
+      Blank()
+
+      Row() {
+        ForEach(this.themes, (theme: SkinTheme) => {
+          this.skinButton(theme)
+        })
+      }
     }
-    .justifyContent(FlexAlign.Center)
-    .padding({ top: Spacing.xs, bottom: Spacing.xs })
+    .height(52)
     .width('100%')
+    .border({ width: { bottom: 1 }, color: this.tokens.borderColor })
   }
 
   @Builder
   skinButton(theme: SkinTheme) {
-    Column() {
-      Column()
-        .width(28)
-        .height(28)
-        .borderRadius(14)
-        .backgroundColor(ThemePalette[theme].brandPrimary)
-        .border({
-          width: this.themeName === theme ? 3 : 0,
-          color: this.tokens.textPrimary,
-        })
-
-      Text(ThemeNames[theme])
-        .fontSize(10)
-        .fontColor(this.tokens.textMuted)
-        .margin({ top: 4 })
-        .maxLines(1)
-    }
-    .alignItems(HorizontalAlign.Center)
-    .margin({ left: Spacing.xs, right: Spacing.xs })
+    Column()
+      .width(24)
+      .height(24)
+      .backgroundColor(ThemePalette[theme].brandPrimary)
+      .border({
+        width: this.themeName === theme ? 2 : 1,
+        color: this.themeName === theme ? this.tokens.textPrimary : this.tokens.borderColor,
+      })
+    .margin({ left: Spacing.xs })
     .stateStyles({
       pressed: {
-        .scale({ x: 0.92, y: 0.92 })
+        .scale({ x: 0.88, y: 0.88 })
       }
     })
     .animation({ duration: 150, curve: Curve.EaseOut })

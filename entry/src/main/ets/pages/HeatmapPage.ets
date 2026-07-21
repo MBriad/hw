@@ -2,17 +2,17 @@
 import { preferences } from '@kit.ArkData';
 import { Spacing } from '../common/SpacingTokens';
 import { AppSection } from '../domain/AppSection';
-import { CheckIn } from '../domain/CheckIn';
-import { UsagePattern } from '../domain/EasterEgg';
-import { DesignTokens, SkinTheme, ThemeNames, ThemePalette } from '../domain/SkinTheme';
+import { DesignTokens, SkinTheme, ThemePalette } from '../domain/SkinTheme';
 import { HeatmapVM } from '../viewmodels/HeatmapVM';
 import { CheckInInput } from './components/CheckInInput';
 import { GridBackdrop } from './components/GridBackdrop';
-import { HeatmapGrid } from './components/HeatmapGrid';
 import { HorizontalNavigation } from './components/HorizontalNavigation';
 import { ParticleOverlay } from './components/ParticleOverlay';
 import { QuoteBanner } from './components/QuoteBanner';
-import { SkinSwitcher } from './components/SkinSwitcher';
+import { CalendarSection } from './sections/CalendarSection';
+import { LogsSection } from './sections/LogsSection';
+import { PatternsSection } from './sections/PatternsSection';
+import { ProfileSection } from './sections/ProfileSection';
 
 const PREFS_NAME = 'app_settings';
 const KEY_THEME = 'theme';
@@ -109,386 +109,41 @@ struct HeatmapPage {
   }
 
   @Builder
-  private dataPage() {
-    Scroll() {
-      Column() {
-        Row() {
-          Text('CALENDAR VIEW')
-            .fontSize(11)
-            .fontWeight(700)
-            .fontColor(this.tokens.textPrimary)
-            .fontFamily('monospace')
-
-          Blank()
-
-          Text(`${this.vm!.cells.length} DAYS`)
-            .fontSize(10)
-            .fontWeight(700)
-            .fontColor(this.tokens.textMuted)
-            .fontFamily('monospace')
-        }
-        .width('100%')
-        .height(38)
-        .border({ width: { bottom: 1 }, color: this.tokens.textPrimary })
-
-        HeatmapGrid({
-          cells: this.vm!.cells,
-          selectedDate: this.vm!.selectedDate,
-          todayString: this.vm!.todayString,
-          onCellTap: (date: string) => {
-            this.vm!.selectDate(date);
-          }
-        })
-          .width('100%')
-          .margin({ top: Spacing.sm })
-
-        Row() {
-          Column() {
-            Text('BEST RUN')
-              .fontSize(10)
-              .fontWeight(700)
-              .fontColor(this.tokens.textMuted)
-              .fontFamily('monospace')
-
-            Row() {
-              Text(`${this.vm!.longestMonthStreak}`)
-                .fontSize(42)
-                .fontWeight(900)
-                .fontColor(this.tokens.textPrimary)
-
-              Text('DAYS')
-                .fontSize(10)
-                .fontWeight(700)
-                .fontColor(this.tokens.textMuted)
-                .fontFamily('monospace')
-                .margin({ left: Spacing.xxs, bottom: Spacing.xs })
-            }
-            .alignItems(VerticalAlign.Bottom)
-          }
-          .layoutWeight(1)
-          .alignItems(HorizontalAlign.Start)
-
-          Column() {
-            Text('MONTH COMMITS')
-              .fontSize(10)
-              .fontWeight(700)
-              .fontColor(this.tokens.textMuted)
-              .fontFamily('monospace')
-
-            Text(`${this.vm!.monthCommitCount}`)
-              .fontSize(42)
-              .fontWeight(900)
-              .fontColor(this.tokens.textPrimary)
-          }
-          .layoutWeight(1)
-          .alignItems(HorizontalAlign.Start)
-        }
-        .width('100%')
-        .padding({ top: Spacing.sm, bottom: Spacing.lg })
-        .margin({ top: Spacing.sm })
-        .border({ width: { top: 1 }, color: this.tokens.textPrimary })
-      }
-      .width('100%')
-    }
-    .width('100%')
-    .height('100%')
-    .scrollBar(BarState.Off)
-  }
-
-  @Builder
-  private logsPage() {
-    Scroll() {
-      Column() {
-        Row() {
-          Column() {
-            Text('COMMIT_LOG')
-              .fontSize(28)
-              .fontWeight(900)
-              .fontColor(this.tokens.textPrimary)
-              .fontFamily('monospace')
-
-            Text('LOCAL ACTIVITY STREAM')
-              .fontSize(9)
-              .fontWeight(700)
-              .fontColor(this.tokens.textMuted)
-              .fontFamily('monospace')
-          }
-          .alignItems(HorizontalAlign.Start)
-
-          Blank()
-
-          Text(`${this.vm!.totalCommitCount}`)
-            .fontSize(38)
-            .fontWeight(900)
-            .fontColor(this.tokens.textPrimary)
-        }
-        .width('100%')
-        .padding({ top: Spacing.lg, bottom: Spacing.md })
-        .border({ width: { bottom: 4 }, color: this.tokens.textPrimary })
-
-        if (this.vm!.checkIns.length === 0) {
-          Text('AWAITING FIRST COMMIT...')
-            .width('100%')
-            .fontSize(11)
-            .fontWeight(700)
-            .fontColor(this.tokens.textMuted)
-            .fontFamily('monospace')
-            .padding({ top: Spacing.xl, bottom: Spacing.xl })
-        } else {
-          ForEach(this.vm!.checkIns, (checkIn: CheckIn, index: number) => {
-            Row() {
-              Column() {
-                Text(checkIn.date.replace(/-/g, '.'))
-                  .fontSize(10)
-                  .fontWeight(700)
-                  .fontColor(this.tokens.textMuted)
-                  .fontFamily('monospace')
-
-                Text(checkIn.content)
-                  .fontSize(15)
-                  .fontWeight(600)
-                  .fontColor(this.tokens.textPrimary)
-                  .maxLines(2)
-                  .textOverflow({ overflow: TextOverflow.Ellipsis })
-                  .margin({ top: Spacing.xxs })
-              }
-              .layoutWeight(1)
-              .alignItems(HorizontalAlign.Start)
-
-              Text(String(this.vm!.checkIns.length - index).padStart(3, '0'))
-                .fontSize(12)
-                .fontWeight(700)
-                .fontColor(this.tokens.brandPrimary)
-                .fontFamily('monospace')
-            }
-            .width('100%')
-            .padding({ top: Spacing.sm, bottom: Spacing.sm })
-            .border({ width: { bottom: 1 }, color: this.tokens.borderColor })
-          }, (checkIn: CheckIn) => `${checkIn.date}-${checkIn.timestamp}`)
-        }
-      }
-      .width('100%')
-    }
-    .width('100%')
-    .height('100%')
-    .scrollBar(BarState.Off)
-  }
-
-  @Builder
-  private corePage() {
-    Scroll() {
-      Column() {
-        Column() {
-          Text('USAGE_CORE')
-            .fontSize(28)
-            .fontWeight(900)
-            .fontColor(this.tokens.textPrimary)
-            .fontFamily('monospace')
-
-          Text('LOCAL PATTERN ENGINE // NO FIXED KEYWORDS')
-            .fontSize(9)
-            .fontWeight(700)
-            .fontColor(this.tokens.textMuted)
-            .fontFamily('monospace')
-        }
-        .width('100%')
-        .alignItems(HorizontalAlign.Start)
-        .padding({ top: Spacing.lg, bottom: Spacing.md })
-        .border({ width: { bottom: 4 }, color: this.tokens.textPrimary })
-
-        Row() {
-          Column() {
-            Text('LEARNED PATTERNS')
-              .fontSize(10)
-              .fontWeight(700)
-              .fontColor(this.tokens.textMuted)
-              .fontFamily('monospace')
-            Text(`${this.vm!.usagePatterns.length}`)
-              .fontSize(42)
-              .fontWeight(900)
-              .fontColor(this.tokens.textPrimary)
-          }
-          .layoutWeight(1)
-          .alignItems(HorizontalAlign.Start)
-
-          Column() {
-            Text('MILESTONES')
-              .fontSize(10)
-              .fontWeight(700)
-              .fontColor(this.tokens.textMuted)
-              .fontFamily('monospace')
-            Text('03 / 07 / 14 / 30')
-              .fontSize(12)
-              .fontWeight(700)
-              .fontColor(this.tokens.textPrimary)
-              .fontFamily('monospace')
-              .margin({ top: Spacing.sm })
-          }
-          .layoutWeight(1)
-          .alignItems(HorizontalAlign.Start)
-        }
-        .width('100%')
-        .padding({ top: Spacing.md, bottom: Spacing.md })
-        .border({ width: { bottom: 1 }, color: this.tokens.textPrimary })
-
-        if (this.vm!.usagePatterns.length === 0) {
-          Text('SIGNAL: LISTENING...')
-            .width('100%')
-            .fontSize(11)
-            .fontWeight(700)
-            .fontColor(this.tokens.textMuted)
-            .fontFamily('monospace')
-            .padding({ top: Spacing.xl, bottom: Spacing.xl })
-        } else {
-          ForEach(this.vm!.usagePatterns, (pattern: UsagePattern) => {
-            Row() {
-              Column() {
-                Text(pattern.term.toUpperCase())
-                  .fontSize(15)
-                  .fontWeight(800)
-                  .fontColor(this.tokens.textPrimary)
-                  .maxLines(1)
-                  .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-                Text(pattern.nextMilestone > 0 ? `NEXT // ${pattern.nextMilestone}` : 'LEVEL // MAX')
-                  .fontSize(9)
-                  .fontWeight(700)
-                  .fontColor(this.tokens.textMuted)
-                  .fontFamily('monospace')
-                  .margin({ top: Spacing.xxs })
-              }
-              .layoutWeight(1)
-              .alignItems(HorizontalAlign.Start)
-
-              Text(`x${pattern.count}`)
-                .fontSize(24)
-                .fontWeight(900)
-                .fontColor(this.tokens.brandPrimary)
-                .fontFamily('monospace')
-            }
-            .width('100%')
-            .padding({ top: Spacing.sm, bottom: Spacing.sm })
-            .border({ width: { bottom: 1 }, color: this.tokens.borderColor })
-          }, (pattern: UsagePattern) => pattern.term)
-        }
-      }
-      .width('100%')
-    }
-    .width('100%')
-    .height('100%')
-    .scrollBar(BarState.Off)
-  }
-
-  @Builder
-  private userPage() {
-    Scroll() {
-      Column() {
-        Column() {
-          Text('USER_PROFILE')
-            .fontSize(28)
-            .fontWeight(900)
-            .fontColor(this.tokens.textPrimary)
-            .fontFamily('monospace')
-
-          Text('LOCAL FIRST // PRIVATE BY DEFAULT')
-            .fontSize(9)
-            .fontWeight(700)
-            .fontColor(this.tokens.textMuted)
-            .fontFamily('monospace')
-        }
-        .width('100%')
-        .alignItems(HorizontalAlign.Start)
-        .padding({ top: Spacing.lg, bottom: Spacing.md })
-        .border({ width: { bottom: 4 }, color: this.tokens.textPrimary })
-
-        Row() {
-          Text('THEME PROFILE')
-            .fontSize(10)
-            .fontWeight(700)
-            .fontColor(this.tokens.textMuted)
-            .fontFamily('monospace')
-          Blank()
-          Text(ThemeNames[this.themeName])
-            .fontSize(12)
-            .fontWeight(800)
-            .fontColor(this.tokens.textPrimary)
-        }
-        .width('100%')
-        .padding({ top: Spacing.md })
-
-        SkinSwitcher({
-          onSwitch: (theme: SkinTheme) => {
-            this.switchTheme(theme);
-          }
-        })
-          .margin({ bottom: Spacing.lg })
-
-        Row() {
-          Text('STORAGE')
-            .fontSize(10)
-            .fontWeight(700)
-            .fontColor(this.tokens.textMuted)
-            .fontFamily('monospace')
-          Blank()
-          Text('ON DEVICE')
-            .fontSize(11)
-            .fontWeight(700)
-            .fontColor(this.tokens.textPrimary)
-            .fontFamily('monospace')
-        }
-        .width('100%')
-        .padding({ top: Spacing.md, bottom: Spacing.md })
-        .border({ width: { top: 1, bottom: 1 }, color: this.tokens.textPrimary })
-
-        Row() {
-          Column() {
-            Text('TOTAL COMMITS')
-              .fontSize(10)
-              .fontWeight(700)
-              .fontColor(this.tokens.textMuted)
-              .fontFamily('monospace')
-            Text(`${this.vm!.totalCommitCount}`)
-              .fontSize(42)
-              .fontWeight(900)
-              .fontColor(this.tokens.textPrimary)
-          }
-          .layoutWeight(1)
-          .alignItems(HorizontalAlign.Start)
-
-          Column() {
-            Text('PATTERNS')
-              .fontSize(10)
-              .fontWeight(700)
-              .fontColor(this.tokens.textMuted)
-              .fontFamily('monospace')
-            Text(`${this.vm!.usagePatterns.length}`)
-              .fontSize(42)
-              .fontWeight(900)
-              .fontColor(this.tokens.textPrimary)
-          }
-          .layoutWeight(1)
-          .alignItems(HorizontalAlign.Start)
-        }
-        .width('100%')
-        .padding({ top: Spacing.lg })
-      }
-      .width('100%')
-    }
-    .width('100%')
-    .height('100%')
-    .scrollBar(BarState.Off)
-  }
-
-  @Builder
   private activePage() {
     if (this.activeSection === AppSection.LOGS) {
-      this.logsPage()
+      LogsSection({
+        checkIns: this.vm!.checkIns,
+        totalCommitCount: this.vm!.totalCommitCount,
+      })
+        .width('100%')
+        .height('100%')
     } else if (this.activeSection === AppSection.CORE) {
-      this.corePage()
+      PatternsSection({ usagePatterns: this.vm!.usagePatterns })
+        .width('100%')
+        .height('100%')
     } else if (this.activeSection === AppSection.USER) {
-      this.userPage()
+      ProfileSection({
+        totalCommitCount: this.vm!.totalCommitCount,
+        patternCount: this.vm!.usagePatterns.length,
+        onThemeSwitch: (theme: SkinTheme) => {
+          this.switchTheme(theme);
+        }
+      })
+        .width('100%')
+        .height('100%')
     } else {
-      this.dataPage()
+      CalendarSection({
+        cells: this.vm!.cells,
+        selectedDate: this.vm!.selectedDate,
+        todayString: this.vm!.todayString,
+        longestMonthStreak: this.vm!.longestMonthStreak,
+        monthCommitCount: this.vm!.monthCommitCount,
+        onCellTap: (date: string) => {
+          this.vm!.selectDate(date);
+        }
+      })
+        .width('100%')
+        .height('100%')
     }
   }
 
@@ -516,6 +171,7 @@ struct HeatmapPage {
               }
               .width('100%')
               .layoutWeight(1)
+              .justifyContent(FlexAlign.Start)
 
               CheckInInput({
                 selectedDate: this.vm!.selectedDate,

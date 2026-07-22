@@ -47,7 +47,7 @@ struct HeatmapPage {
   private calendarMonthHeader() {
     Column() {
       Text(this.vm!.monthCode)
-        .fontSize(46)
+        .fontSize(28)
         .fontWeight(900)
         .fontColor(this.tokens.textPrimary)
         .fontFamily('sans-serif')
@@ -55,8 +55,8 @@ struct HeatmapPage {
     }
     .width('100%')
     .alignItems(HorizontalAlign.Start)
-    .padding({ top: Spacing.md, bottom: Spacing.sm })
-    .border({ width: { bottom: 4 }, color: this.tokens.textPrimary })
+    .padding({ top: Spacing.xs, bottom: Spacing.xs })
+    .border({ width: { bottom: 3 }, color: this.tokens.textPrimary })
   }
 
   @Builder

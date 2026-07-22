@@ -7,7 +7,7 @@ import { HeatmapVM } from '../../viewmodels/HeatmapVM';
 export struct DebugPanel {
   @StorageLink('heatmapVM') private vm: HeatmapVM | null = null;
   @Consume tokens: DesignTokens;
-  @State private expanded: boolean = true;
+  @State private expanded: boolean = false;
 
   build() {
     Column() {

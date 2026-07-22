@@ -1,13 +1,12 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
-import { DesignTokens, SkinTheme, ThemeNames } from '../../domain/SkinTheme';
+import { DesignTokens, SkinTheme } from '../../domain/SkinTheme';
 import { DebugPanel } from '../components/DebugPanel';
 import { SkinSwitcher } from '../components/SkinSwitcher';
 
 @Component
 export struct ProfileSection {
   @Consume tokens: DesignTokens;
-  @Consume themeName: SkinTheme;
   @Prop totalCommitCount: number;
   @Prop patternCount: number;
   onThemeSwitch?: (theme: SkinTheme) => void;
@@ -74,7 +73,7 @@ export struct ProfileSection {
         this.sectionLabel('01', 'APPEARANCE')
 
         Column() {
-          this.settingRow('THEME', 'COLOR SYSTEM', ThemeNames[this.themeName])
+          this.settingRow('THEME', 'COLOR SYSTEM', '')
 
           Divider()
             .color(this.tokens.borderColor)
@@ -122,8 +121,10 @@ export struct ProfileSection {
           .width('100%')
       }
       .width('100%')
+      .constraintSize({ minHeight: '100%' })
       .padding({ top: Spacing.lg, bottom: Spacing.xl })
       .alignItems(HorizontalAlign.Start)
+      .justifyContent(FlexAlign.Start)
     }
     .width('100%')
     .height('100%')

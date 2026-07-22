@@ -1,5 +1,6 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { DesignTokens, SkinTheme, ThemeNames } from '../../domain/SkinTheme';
+import { DebugPanel } from '../components/DebugPanel';
 import { SkinSwitcher } from '../components/SkinSwitcher';
 
 @Component
@@ -103,6 +104,10 @@ export struct ProfileSection {
         }
         .width('100%')
         .padding({ top: Spacing.lg })
+
+        DebugPanel()
+          .width('100%')
+          .margin({ top: Spacing.lg })
       }
       .width('100%')
       .height('100%')

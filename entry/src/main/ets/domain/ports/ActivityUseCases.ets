@@ -8,3 +8,7 @@ export interface ILoadActivity {
 export interface IDetectEasterEgg {
   execute(date: string, content: string): Promise<EasterEgg | null>;
 }
+
+export interface IPlaySound {
+  execute(soundFile: string): Promise<boolean>;
+}

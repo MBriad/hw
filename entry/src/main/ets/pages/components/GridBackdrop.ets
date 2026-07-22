@@ -18,7 +18,7 @@ export struct GridBackdrop {
           .color(this.tokens.borderColor)
           .opacity(0.32)
           .position({ x: `${index * 12.5}%`, y: 0 })
-      })
+      }, (index: number) => `${index}_${this.tokens.borderColor}`)
 
       ForEach(this.horizontalLines, (index: number) => {
         Divider()
@@ -27,7 +27,7 @@ export struct GridBackdrop {
           .color(this.tokens.borderColor)
           .opacity(0.32)
           .position({ x: 0, y: `${index * 6.25}%` })
-      })
+      }, (index: number) => `${index}_${this.tokens.borderColor}`)
     }
     .width('100%')
     .height('100%')

@@ -1,4 +1,4 @@
-﻿# Actrace Clean Architecture 与导航内容组件化审查报告
+# Actrace Clean Architecture 与导航内容组件化审查报告
 
 - 审查日期：2026-07-21
 - 审查依据：`skill/clean-arch-app/SKILL.md`、仓库根目录 `AGENTS.md`

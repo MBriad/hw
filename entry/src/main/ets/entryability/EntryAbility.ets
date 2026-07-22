@@ -2,13 +2,17 @@ import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.Ab
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { PreferencesCheckInRepo } from '../adapters/PreferencesCheckInRepo';
+import { PreferencesThemeRepository } from '../adapters/PreferencesThemeRepository';
 import { SkinProviderImpl } from '../adapters/SkinProviderImpl';
 import { SoundPlayerImpl } from '../adapters/SoundPlayerImpl';
 import { FrequencyPatternEngine } from '../domain/FrequencyPatternEngine';
 import { DetectEasterEgg } from '../usecases/DetectEasterEgg';
 import { LoadActivity } from '../usecases/LoadActivity';
 import { LoadHeatmap } from '../usecases/LoadHeatmap';
+import { PlaySound } from '../usecases/PlaySound';
+import { ProcessCheckIn } from '../usecases/ProcessCheckIn';
 import { RecordCheckIn } from '../usecases/RecordCheckIn';
+import { LoadPersistedTheme, SwitchTheme } from '../usecases/ThemeOperations';
 import { HeatmapVM } from '../viewmodels/HeatmapVM';
 
 const DOMAIN = 0x0000;
@@ -32,13 +36,22 @@ export default class EntryAbility extends UIAbility {
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
     const repo = new PreferencesCheckInRepo(this.context);
     const patternEngine = new FrequencyPatternEngine();
+    const skinProvider = new SkinProviderImpl();
+    const themeRepo = new PreferencesThemeRepository(this.context);
+    const loadHeatmap = new LoadHeatmap(repo);
+    const loadActivity = new LoadActivity(repo, patternEngine);
     const viewModel = new HeatmapVM(
-      new LoadHeatmap(repo),
-      new RecordCheckIn(repo),
-      new LoadActivity(repo, patternEngine),
-      new DetectEasterEgg(repo, patternEngine),
-      new SkinProviderImpl(),
-      new SoundPlayerImpl()
+      loadHeatmap,
+      loadActivity,
+      new ProcessCheckIn(
+        new DetectEasterEgg(repo, patternEngine),
+        new RecordCheckIn(repo),
+        loadHeatmap,
+        loadActivity,
+      ),
+      new LoadPersistedTheme(skinProvider, themeRepo),
+      new SwitchTheme(skinProvider, themeRepo),
+      new PlaySound(new SoundPlayerImpl())
     );
     AppStorage.setOrCreate<HeatmapVM>('heatmapVM', viewModel);
 

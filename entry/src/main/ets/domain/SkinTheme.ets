@@ -114,3 +114,14 @@ export const ThemePalette: Record<SkinTheme, DesignTokens> = {
     brandAccent: '#FF9BAD',
   } as DesignTokens,
 } as Record<SkinTheme, DesignTokens>;
+
+/** Result from LoadPersistedTheme usecase — named class for ArkTS strict mode */
+export class ThemeResult {
+  theme: SkinTheme = SkinTheme.LIGHT;
+  tokens: DesignTokens = ThemePalette[SkinTheme.LIGHT];
+
+  constructor(theme: SkinTheme, tokens: DesignTokens) {
+    this.theme = theme;
+    this.tokens = tokens;
+  }
+}

@@ -1,5 +1,4 @@
 /** Entry page for the Actrace technical activity workspace. */
-import { preferences } from '@kit.ArkData';
 import { Spacing } from '../common/SpacingTokens';
 import { AppSection } from '../domain/AppSection';
 import { DesignTokens, SkinTheme, ThemePalette } from '../domain/SkinTheme';
@@ -14,8 +13,6 @@ import { LogsSection } from './sections/LogsSection';
 import { PatternsSection } from './sections/PatternsSection';
 import { ProfileSection } from './sections/ProfileSection';
 
-const PREFS_NAME = 'app_settings';
-const KEY_THEME = 'theme';
 const CONTENT_MAX_WIDTH = 420;
 
 @Entry
@@ -25,6 +22,7 @@ struct HeatmapPage {
   @Provide themeName: SkinTheme = SkinTheme.LIGHT;
   @StorageLink('heatmapVM') private vm: HeatmapVM | null = null;
   @State private activeSection: AppSection = AppSection.DATA;
+  @State private tokenVersion: number = 0;
 
   aboutToAppear(): void {
     const now = new Date();
@@ -37,10 +35,24 @@ struct HeatmapPage {
   onThemeChange(): void {
   }
 
-  private switchTheme(name: SkinTheme): void {
-    this.themeName = name;
-    this.tokens = ThemePalette[name];
-    this.persistTheme(name);
+  private async switchTheme(name: SkinTheme): Promise<void> {
+    const viewModel = this.vm;
+    if (viewModel === null) {
+      return;
+    }
+
+    // switchSkin updates its observable state synchronously, before persistence awaits.
+    const pendingSwitch = viewModel.switchSkin(name);
+    this.themeName = viewModel.currentSkin;
+    this.tokens = viewModel.currentTokens;
+    this.tokenVersion++;
+
+    await pendingSwitch;
+    if (this.vm === viewModel && viewModel.currentSkin === name) {
+      this.themeName = viewModel.currentSkin;
+      this.tokens = viewModel.currentTokens;
+      this.tokenVersion++;
+    }
   }
 
   private sectionLabel(): string {
@@ -217,38 +229,17 @@ struct HeatmapPage {
     .width('100%')
     .height('100%')
     .backgroundColor(this.tokens.bgBase)
+    .id(`heatmap_v${this.tokenVersion}`)
   }
 
-  private loadPersistedTheme(): void {
-    try {
-      preferences.getPreferences(getContext(this), PREFS_NAME, (err, pref) => {
-        if (!err) {
-          pref.get(KEY_THEME, SkinTheme.LIGHT, (_e, value) => {
-            const saved = value as string;
-            if (saved === SkinTheme.LIGHT || saved === SkinTheme.DARK ||
-                saved === SkinTheme.PINK || saved === SkinTheme.PASTEL) {
-              this.themeName = saved;
-              this.tokens = ThemePalette[saved];
-            }
-          });
-        }
-      });
-    } catch (_e) {
+  private async loadPersistedTheme(): Promise<void> {
+    const viewModel = this.vm;
+    if (viewModel === null) {
+      return;
     }
-  }
-
-  private persistTheme(name: SkinTheme): void {
-    try {
-      preferences.getPreferences(getContext(this), PREFS_NAME, (err, pref) => {
-        if (!err) {
-          pref.put(KEY_THEME, name, (e) => {
-            if (!e) {
-              pref.flush();
-            }
-          });
-        }
-      });
-    } catch (_e) {
-    }
+    await viewModel.loadPersistedSkin();
+    this.themeName = viewModel.currentSkin;
+    this.tokens = viewModel.currentTokens;
+    this.tokenVersion++;
   }
 }

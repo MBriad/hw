@@ -1,27 +1,17 @@
 import { describe, it, expect } from '@ohos/hypium';
 import { ActivitySnapshot } from '../main/ets/domain/ActivitySnapshot';
+import { CheckInResult } from '../main/ets/domain/CheckInResult';
 import { HeatmapCell } from '../main/ets/domain/Streak';
-import { SkinTheme } from '../main/ets/domain/SkinTheme';
-import { SkinProviderImpl } from '../main/ets/adapters/SkinProviderImpl';
-import { SoundPlayer } from '../main/ets/domain/ports/SoundPlayer';
+import { SkinTheme, ThemePalette, ThemeResult } from '../main/ets/domain/SkinTheme';
 import { HeatmapVM } from '../main/ets/viewmodels/HeatmapVM';
 import {
-  MockDetectEasterEgg,
   MockLoadActivity,
   MockLoadHeatmap,
-  MockRecordCheckIn,
+  MockLoadPersistedTheme,
+  MockPlaySound,
+  MockProcessCheckIn,
+  MockSwitchTheme,
 } from './mocks/MockUseCases';
-
-class MockSoundPlayer implements SoundPlayer {
-  public lastPlayed: string = '';
-  public playCount: number = 0;
-
-  async play(fileName: string): Promise<boolean> {
-    this.lastPlayed = fileName;
-    this.playCount++;
-    return true;
-  }
-}
 
 class TestHeatmapCell implements HeatmapCell {
   date: string;
@@ -35,17 +25,18 @@ class TestHeatmapCell implements HeatmapCell {
 
 class VMFixture {
   loadHeatmap: MockLoadHeatmap = new MockLoadHeatmap();
-  record: MockRecordCheckIn = new MockRecordCheckIn();
   loadActivity: MockLoadActivity = new MockLoadActivity();
-  detect: MockDetectEasterEgg = new MockDetectEasterEgg();
-  sound: MockSoundPlayer = new MockSoundPlayer();
+  processCheckIn: MockProcessCheckIn = new MockProcessCheckIn();
+  loadPersistedTheme: MockLoadPersistedTheme = new MockLoadPersistedTheme();
+  switchTheme: MockSwitchTheme = new MockSwitchTheme();
+  playSound: MockPlaySound = new MockPlaySound();
   vm: HeatmapVM = new HeatmapVM(
     this.loadHeatmap,
-    this.record,
     this.loadActivity,
-    this.detect,
-    new SkinProviderImpl(),
-    this.sound
+    this.processCheckIn,
+    this.loadPersistedTheme,
+    this.switchTheme,
+    this.playSound
   );
 }
 
@@ -55,11 +46,8 @@ export default function heatmapVMTest() {
       const fixture = new VMFixture();
       fixture.vm.selectDate('2026-07-19');
       await fixture.vm.doCheckIn('shader practice');
-      expect(fixture.detect.capturedDate).assertEqual('2026-07-19');
-      expect(fixture.detect.capturedContent).assertEqual('shader practice');
-      expect(fixture.record.capturedDate).assertEqual('2026-07-19');
-      expect(fixture.record.capturedContent).assertEqual('shader practice');
-      expect(fixture.loadActivity.executeCount).assertEqual(1);
+      expect(fixture.processCheckIn.capturedDate).assertEqual('2026-07-19');
+      expect(fixture.processCheckIn.capturedContent).assertEqual('shader practice');
     });
 
     it('initialize_loads_month_and_activity', 0, async () => {
@@ -91,16 +79,18 @@ export default function heatmapVMTest() {
 
     it('doCheckIn_shows_usage_milestone_feedback', 0, async () => {
       const fixture = new VMFixture();
-      fixture.detect.result = {
-        keyword: '绘画', quote: 'PATTERN LOCKED // 绘画 x3',
-        effectType: 'particle_rise', soundFile: 'level_up'
-      };
+      fixture.processCheckIn.result = new CheckInResult(
+        [], [], [], {
+          keyword: '绘画', quote: 'PATTERN LOCKED // 绘画 x3',
+          effectType: 'particle_rise', soundFile: 'level_up'
+        }
+      );
       fixture.vm.selectDate('2026-07-19');
       await fixture.vm.doCheckIn('绘画');
       expect(fixture.vm.triggeredEgg !== null).assertEqual(true);
       expect(fixture.vm.showParticles).assertEqual(true);
       expect(fixture.vm.showBanner).assertEqual(true);
-      expect(fixture.sound.lastPlayed).assertEqual('level_up');
+      expect(fixture.playSound.lastSoundFile).assertEqual('level_up');
     });
 
     it('doCheckIn_has_no_feedback_without_milestone', 0, async () => {
@@ -113,24 +103,39 @@ export default function heatmapVMTest() {
 
     it('active_feedback_does_not_stack_and_can_be_dismissed', 0, async () => {
       const fixture = new VMFixture();
-      fixture.detect.result = {
-        keyword: '绘画', quote: 'x3', effectType: 'particle_rise', soundFile: 'level_up'
-      };
+      fixture.processCheckIn.result = new CheckInResult(
+        [], [], [], {
+          keyword: '绘画', quote: 'x3', effectType: 'particle_rise', soundFile: 'level_up'
+        }
+      );
       fixture.vm.selectDate('2026-07-19');
       await fixture.vm.doCheckIn('绘画');
       await fixture.vm.doCheckIn('绘画');
-      expect(fixture.sound.playCount).assertEqual(1);
+      expect(fixture.playSound.playCount).assertEqual(1);
       fixture.vm.dismissEgg();
       expect(fixture.vm.triggeredEgg === null).assertEqual(true);
       expect(fixture.vm.showParticles).assertEqual(false);
       expect(fixture.vm.showBanner).assertEqual(false);
     });
 
-    it('switchSkin_updates_currentTokens', 0, () => {
+    it('loadPersistedSkin_restores_saved_theme', 0, async () => {
       const fixture = new VMFixture();
-      fixture.vm.switchSkin(SkinTheme.DARK);
+      fixture.loadPersistedTheme.result = new ThemeResult(SkinTheme.PINK, ThemePalette[SkinTheme.PINK]);
+      await fixture.vm.loadPersistedSkin();
+      expect(fixture.vm.currentSkin).assertEqual(SkinTheme.PINK);
+      expect(fixture.vm.currentTokens.brandPrimary).assertEqual('#FF4D94');
+    });
+
+    it('switchSkin_updates_tokens_and_persists_theme', 0, async () => {
+      const fixture = new VMFixture();
+      fixture.switchTheme.resultTokens = ThemePalette[SkinTheme.DARK];
+      const pendingSwitch = fixture.vm.switchSkin(SkinTheme.DARK);
       expect(fixture.vm.currentSkin).assertEqual(SkinTheme.DARK);
       expect(fixture.vm.currentTokens.brandPrimary).assertEqual('#3B82F6');
+      await pendingSwitch;
+      expect(fixture.vm.currentSkin).assertEqual(SkinTheme.DARK);
+      expect(fixture.vm.currentTokens.brandPrimary).assertEqual('#3B82F6');
+      expect(fixture.switchTheme.capturedTheme).assertEqual(SkinTheme.DARK);
     });
   });
 }

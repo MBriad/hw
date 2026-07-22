@@ -13,7 +13,6 @@ import { SkinProvider } from '../domain/ports/SkinProvider';
 import { SoundPlayer } from '../domain/ports/SoundPlayer';
 
 const EGG_DISPLAY_MS = 2800;
-const EGG_DEBUG_REPLAY_MS = 3200;
 
 @Observed
 export class HeatmapVM {
@@ -76,7 +75,7 @@ export class HeatmapVM {
     await Promise.all([this.loadMonth(this.currentYear, this.currentMonth), this.refreshActivity()]);
 
     if (egg !== null) {
-      this.triggerEasterEgg(egg);
+      this.presentEasterEgg(egg);
     }
   }
 
@@ -86,7 +85,7 @@ export class HeatmapVM {
     this.usagePatterns = snapshot.patterns;
   }
 
-  private triggerEasterEgg(egg: EasterEgg): void {
+  presentEasterEgg(egg: EasterEgg): void {
     if (this.triggeredEgg === null) {
       this.triggeredEgg = egg;
       this.showParticles = true;
@@ -165,94 +164,10 @@ export class HeatmapVM {
     return longest;
   }
 
-  async debugUseCaseLoadHeatmap(): Promise<string> {
-    try {
-      const cells = await this.loadHeatmap.execute(this.currentYear, this.currentMonth);
-      const active = cells.filter((cell: HeatmapCell) => cell.level > 0).length;
-      return `OK | cells=${active}/${cells.length}`;
-    } catch (error) {
-      return `FAIL | ${JSON.stringify(error)}`;
-    }
-  }
-
-  async debugUseCaseLoadActivity(): Promise<string> {
-    try {
-      const snapshot = await this.loadActivity.execute();
-      return `OK | checkIns=${snapshot.checkIns.length} | patterns=${snapshot.patterns.length}`;
-    } catch (error) {
-      return `FAIL | ${JSON.stringify(error)}`;
-    }
-  }
-
-  async debugUseCaseDetectEgg(): Promise<string> {
-    try {
-      const egg = await this.detectEasterEgg.execute(this.todayString, 'debug_probe');
-      if (egg === null) {
-        return 'OK | no match';
-      }
-      return `OK | keyword=${egg.keyword} | effect=${egg.effectType}`;
-    } catch (error) {
-      return `FAIL | ${JSON.stringify(error)}`;
-    }
-  }
-
-  debugPlayEasterEgg(effectType: string, soundFile: string, quote: string): void {
+  async clearAllRecords(): Promise<void> {
+    await this.clearCheckIns.execute();
+    this.selectedDate = '';
     this.dismissEgg();
-    this.triggerEasterEgg({
-      keyword: 'debug',
-      quote: quote,
-      effectType: effectType,
-      soundFile: soundFile,
-    });
-  }
-
-  debugPlayBlockedRetrigger(): void {
-    this.debugPlayEasterEgg('particle_dark', 'jojo_menace', 'DEBUG // FIRST SIGNAL');
-    this.triggerEasterEgg({
-      keyword: 'debug_blocked',
-      quote: 'DEBUG // THIS SIGNAL MUST BE BLOCKED',
-      effectType: 'particle_sakura',
-      soundFile: 'anime_sparkle',
-    });
-  }
-
-  debugPlayRapidTaps(): void {
-    this.debugPlayEasterEgg('particle_rise', 'level_up', 'DEBUG // RAPID INPUT LOCKED');
-    for (let i = 0; i < 4; i++) {
-      this.triggerEasterEgg({
-        keyword: 'debug_rapid',
-        quote: 'DEBUG // DUPLICATE SIGNAL',
-        effectType: 'particle_bubble',
-        soundFile: 'wind_chime',
-      });
-    }
-  }
-
-  debugPlayAfterEnd(): void {
-    this.debugPlayEasterEgg('particle_sparkle', 'level_up', 'DEBUG // SIGNAL ONE');
-    setTimeout(() => {
-      this.triggerEasterEgg({
-        keyword: 'debug_replay',
-        quote: 'DEBUG // SIGNAL TWO',
-        effectType: 'eva_at_field',
-        soundFile: 'eva_alert',
-      });
-    }, EGG_DEBUG_REPLAY_MS);
-  }
-
-  debugTokenSnapshot(): string {
-    return `OK | theme=${this.currentSkin} | primary=${this.currentTokens.brandPrimary}`;
-  }
-
-  async debugClearAllRecords(): Promise<string> {
-    try {
-      await this.clearCheckIns.execute();
-      this.selectedDate = '';
-      this.dismissEgg();
-      await Promise.all([this.loadMonth(this.currentYear, this.currentMonth), this.refreshActivity()]);
-      return 'OK | records cleared';
-    } catch (error) {
-      return `FAIL | ${JSON.stringify(error)}`;
-    }
+    await Promise.all([this.loadMonth(this.currentYear, this.currentMonth), this.refreshActivity()]);
   }
 }

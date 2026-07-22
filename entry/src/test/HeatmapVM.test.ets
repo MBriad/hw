@@ -2,27 +2,7 @@ import { describe, it, expect } from '@ohos/hypium';
 import { ActivitySnapshot } from '../main/ets/domain/ActivitySnapshot';
 import { HeatmapCell } from '../main/ets/domain/Streak';
 import { SkinTheme } from '../main/ets/domain/SkinTheme';
-import { SkinProviderImpl } from '../main/ets/adapters/SkinProviderImpl';
-import { SoundPlayer } from '../main/ets/domain/ports/SoundPlayer';
-import { HeatmapVM } from '../main/ets/viewmodels/HeatmapVM';
-import {
-  MockDetectEasterEgg,
-  MockClearCheckIns,
-  MockLoadActivity,
-  MockLoadHeatmap,
-  MockRecordCheckIn,
-} from './mocks/MockUseCases';
-
-class MockSoundPlayer implements SoundPlayer {
-  public lastPlayed: string = '';
-  public playCount: number = 0;
-
-  async play(fileName: string): Promise<boolean> {
-    this.lastPlayed = fileName;
-    this.playCount++;
-    return true;
-  }
-}
+import { VMFixture } from './mocks/VMFixture';
 
 class TestHeatmapCell implements HeatmapCell {
   date: string;
@@ -32,24 +12,6 @@ class TestHeatmapCell implements HeatmapCell {
     this.date = date;
     this.level = level;
   }
-}
-
-class VMFixture {
-  loadHeatmap: MockLoadHeatmap = new MockLoadHeatmap();
-  record: MockRecordCheckIn = new MockRecordCheckIn();
-  clear: MockClearCheckIns = new MockClearCheckIns();
-  loadActivity: MockLoadActivity = new MockLoadActivity();
-  detect: MockDetectEasterEgg = new MockDetectEasterEgg();
-  sound: MockSoundPlayer = new MockSoundPlayer();
-  vm: HeatmapVM = new HeatmapVM(
-    this.loadHeatmap,
-    this.record,
-    this.clear,
-    this.loadActivity,
-    this.detect,
-    new SkinProviderImpl(),
-    this.sound
-  );
 }
 
 export default function heatmapVMTest() {
@@ -136,49 +98,16 @@ export default function heatmapVMTest() {
       expect(fixture.vm.currentTokens.brandPrimary).assertEqual('#3B82F6');
     });
 
-    it('debugClearAllRecords_clears_and_refreshes_visible_state', 0, async () => {
+    it('clearAllRecords_clears_and_refreshes_visible_state', 0, async () => {
       const fixture = new VMFixture();
       fixture.vm.selectDate('2026-07-19');
       await fixture.vm.loadMonth(2026, 7);
-      const result = await fixture.vm.debugClearAllRecords();
-      expect(result).assertEqual('OK | records cleared');
+      await fixture.vm.clearAllRecords();
       expect(fixture.clear.executeCount).assertEqual(1);
       expect(fixture.vm.selectedDate).assertEqual('');
       expect(fixture.loadHeatmap.capturedYear).assertEqual(2026);
       expect(fixture.loadHeatmap.capturedMonth).assertEqual(7);
       expect(fixture.loadActivity.executeCount).assertEqual(1);
-    });
-
-    it('debugPlayEasterEgg_uses_live_feedback_pipeline', 0, () => {
-      const fixture = new VMFixture();
-      fixture.vm.debugPlayEasterEgg('particle_sakura', 'anime_sparkle', 'DEBUG // SAKURA SIGNAL');
-      expect(fixture.vm.triggeredEgg !== null).assertEqual(true);
-      expect(fixture.vm.showParticles).assertEqual(true);
-      expect(fixture.vm.showBanner).assertEqual(true);
-      expect(fixture.sound.lastPlayed).assertEqual('anime_sparkle');
-      if (fixture.vm.triggeredEgg !== null) {
-        expect(fixture.vm.triggeredEgg.effectType).assertEqual('particle_sakura');
-        expect(fixture.vm.triggeredEgg.quote).assertEqual('DEBUG // SAKURA SIGNAL');
-      }
-    });
-
-    it('debugPlayBlockedRetrigger_keeps_first_signal', 0, () => {
-      const fixture = new VMFixture();
-      fixture.vm.debugPlayBlockedRetrigger();
-      expect(fixture.sound.playCount).assertEqual(1);
-      if (fixture.vm.triggeredEgg !== null) {
-        expect(fixture.vm.triggeredEgg.effectType).assertEqual('particle_dark');
-        expect(fixture.vm.triggeredEgg.quote).assertEqual('DEBUG // FIRST SIGNAL');
-      }
-    });
-
-    it('debugPlayRapidTaps_does_not_stack_feedback', 0, () => {
-      const fixture = new VMFixture();
-      fixture.vm.debugPlayRapidTaps();
-      expect(fixture.sound.playCount).assertEqual(1);
-      if (fixture.vm.triggeredEgg !== null) {
-        expect(fixture.vm.triggeredEgg.effectType).assertEqual('particle_rise');
-      }
     });
   });
 }

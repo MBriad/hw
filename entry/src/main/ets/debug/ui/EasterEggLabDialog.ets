@@ -1,20 +1,7 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
 import { DesignTokens } from '../../domain/SkinTheme';
-
-export enum EggDebugScenario {
-  SPARKLE = 'SPARKLE',
-  DARK = 'DARK',
-  BUBBLE = 'BUBBLE',
-  SAKURA = 'SAKURA',
-  RISE = 'RISE',
-  AT_FIELD = 'AT_FIELD',
-  AUTO_DISMISS = 'AUTO_DISMISS',
-  TAP_DISMISS = 'TAP_DISMISS',
-  RETRIGGER_BLOCKED = 'RETRIGGER_BLOCKED',
-  RAPID_TAPS = 'RAPID_TAPS',
-  AFTER_END = 'AFTER_END',
-}
+import { EggDebugScenario } from '../DebugRuntime';
 
 @CustomDialog
 export struct EasterEggLabDialog {

@@ -1,7 +1,7 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
 import { DesignTokens, SkinTheme } from '../../domain/SkinTheme';
-import { DebugPanel } from '../components/DebugPanel';
+import { DebugPanel } from '../../debug/ui/DebugPanel';
 import { SkinSwitcher } from '../components/SkinSwitcher';
 
 @Component

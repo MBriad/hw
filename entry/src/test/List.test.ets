@@ -9,6 +9,7 @@ import keywordMatcherTest from './KeywordMatcher.test';
 import detectEasterEggTest from './DetectEasterEgg.test';
 import soundPlayerTest from './SoundPlayer.test';
 import loadActivityTest from './LoadActivity.test';
+import debugRuntimeTest from './DebugRuntime.test';
 
 export default function testsuite() {
   localUnitTest();
@@ -22,4 +23,5 @@ export default function testsuite() {
   detectEasterEggTest();
   soundPlayerTest();
   loadActivityTest();
+  debugRuntimeTest();
 }

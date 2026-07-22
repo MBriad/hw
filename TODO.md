@@ -66,6 +66,17 @@
 - [x] `TOKEN SNAPSHOT`
 - [x] `CLEAR RECORDS`
 
+### 独立调试层架构
+
+- [x] 调试代码统一放在 `entry/src/main/ets/debug/`，不混入 Domain、UseCase、Adapter 或 ViewModel。
+- [x] 调试依赖方向固定为 `debug/ui -> debug/DebugRuntime -> 生产层公开 API`。
+- [x] ViewModel 不再提供 `debug*` 方法；调试场景通过 `presentEasterEgg()`、`clearAllRecords()` 等真实业务 API 验证正式链路。
+- [x] Profile 只保留一个 `DEV DEBUG PANEL` 入口，并分为 `QUICK TESTS` 与 `FEATURE LABS`。
+- [x] 简单、独立、一次点击即可判断结果的功能放入 `QUICK TESTS`。
+- [x] 有多个状态、场景或生命周期的复杂功能使用独立 Lab 窗口，不压缩为单个小按钮。
+- [ ] 后续按实际功能进度增加 `STREAK LAB`、`GACHA LAB`、`AI PATTERN LAB`，禁止加入尚未实现的空入口。
+- [ ] 每个 Lab 的场景按钮必须调用真实生产 API 并产生可见结果，日志只能作为辅助证据。
+
 ## 部分完成：在现有实现上补齐
 
 ### Easter Egg Lab 调试窗口

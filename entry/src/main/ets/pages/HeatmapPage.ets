@@ -124,13 +124,15 @@ struct HeatmapPage {
               .layoutWeight(1)
               .justifyContent(FlexAlign.Start)
 
-              CheckInInput({
-                selectedDate: this.vm!.selectedDate,
-                onLightUp: (text: string) => {
-                  this.vm!.doCheckIn(text);
-                }
-              })
-                .margin({ top: Spacing.xs, bottom: Spacing.sm })
+              if (this.activeSection === AppSection.DATA) {
+                CheckInInput({
+                  selectedDate: this.vm!.selectedDate,
+                  onLightUp: (text: string) => {
+                    this.vm!.doCheckIn(text);
+                  }
+                })
+                  .margin({ top: Spacing.xs, bottom: Spacing.sm })
+              }
             } else {
               Text('INITIALIZING // ACTRACE')
                 .fontSize(12)

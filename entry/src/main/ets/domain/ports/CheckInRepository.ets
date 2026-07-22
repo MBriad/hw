@@ -14,4 +14,7 @@ export interface CheckInRepository {
 
   /** Load check-ins for a specific month (1-indexed) */
   loadByMonth(year: number, month: number): Promise<CheckIn[]>;
+
+  /** Remove all persisted check-in records */
+  clear(): Promise<void>;
 }

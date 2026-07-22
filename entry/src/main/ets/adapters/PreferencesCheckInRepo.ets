@@ -51,4 +51,10 @@ export class PreferencesCheckInRepo implements CheckInRepository {
     const prefix = `${year}-${String(month).padStart(2, '0')}`;
     return all.filter((c: CheckIn) => c.date.startsWith(prefix));
   }
+
+  async clear(): Promise<void> {
+    const store = await this.getStore();
+    await store.put(KEY_CHECKINS, '[]');
+    await store.flush();
+  }
 }

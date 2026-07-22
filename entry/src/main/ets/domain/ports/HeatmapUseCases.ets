@@ -11,3 +11,7 @@ export interface ILoadHeatmap {
 export interface IRecordCheckIn {
   execute(date: string, content: string): Promise<void>;
 }
+
+export interface IClearCheckIns {
+  execute(): Promise<void>;
+}

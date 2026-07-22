@@ -5,6 +5,7 @@ import { PreferencesCheckInRepo } from '../adapters/PreferencesCheckInRepo';
 import { SkinProviderImpl } from '../adapters/SkinProviderImpl';
 import { SoundPlayerImpl } from '../adapters/SoundPlayerImpl';
 import { FrequencyPatternEngine } from '../domain/FrequencyPatternEngine';
+import { ClearCheckIns } from '../usecases/ClearCheckIns';
 import { DetectEasterEgg } from '../usecases/DetectEasterEgg';
 import { LoadActivity } from '../usecases/LoadActivity';
 import { LoadHeatmap } from '../usecases/LoadHeatmap';
@@ -35,6 +36,7 @@ export default class EntryAbility extends UIAbility {
     const viewModel = new HeatmapVM(
       new LoadHeatmap(repo),
       new RecordCheckIn(repo),
+      new ClearCheckIns(repo),
       new LoadActivity(repo, patternEngine),
       new DetectEasterEgg(repo, patternEngine),
       new SkinProviderImpl(),

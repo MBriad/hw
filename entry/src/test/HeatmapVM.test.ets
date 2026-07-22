@@ -7,6 +7,7 @@ import { SoundPlayer } from '../main/ets/domain/ports/SoundPlayer';
 import { HeatmapVM } from '../main/ets/viewmodels/HeatmapVM';
 import {
   MockDetectEasterEgg,
+  MockClearCheckIns,
   MockLoadActivity,
   MockLoadHeatmap,
   MockRecordCheckIn,
@@ -36,12 +37,14 @@ class TestHeatmapCell implements HeatmapCell {
 class VMFixture {
   loadHeatmap: MockLoadHeatmap = new MockLoadHeatmap();
   record: MockRecordCheckIn = new MockRecordCheckIn();
+  clear: MockClearCheckIns = new MockClearCheckIns();
   loadActivity: MockLoadActivity = new MockLoadActivity();
   detect: MockDetectEasterEgg = new MockDetectEasterEgg();
   sound: MockSoundPlayer = new MockSoundPlayer();
   vm: HeatmapVM = new HeatmapVM(
     this.loadHeatmap,
     this.record,
+    this.clear,
     this.loadActivity,
     this.detect,
     new SkinProviderImpl(),
@@ -131,6 +134,19 @@ export default function heatmapVMTest() {
       fixture.vm.switchSkin(SkinTheme.DARK);
       expect(fixture.vm.currentSkin).assertEqual(SkinTheme.DARK);
       expect(fixture.vm.currentTokens.brandPrimary).assertEqual('#3B82F6');
+    });
+
+    it('debugClearAllRecords_clears_and_refreshes_visible_state', 0, async () => {
+      const fixture = new VMFixture();
+      fixture.vm.selectDate('2026-07-19');
+      await fixture.vm.loadMonth(2026, 7);
+      const result = await fixture.vm.debugClearAllRecords();
+      expect(result).assertEqual('OK | records cleared');
+      expect(fixture.clear.executeCount).assertEqual(1);
+      expect(fixture.vm.selectedDate).assertEqual('');
+      expect(fixture.loadHeatmap.capturedYear).assertEqual(2026);
+      expect(fixture.loadHeatmap.capturedMonth).assertEqual(7);
+      expect(fixture.loadActivity.executeCount).assertEqual(1);
     });
   });
 }

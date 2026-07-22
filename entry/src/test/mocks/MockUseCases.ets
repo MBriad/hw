@@ -2,7 +2,7 @@ import { HeatmapCell } from '../../main/ets/domain/Streak';
 import { ActivitySnapshot } from '../../main/ets/domain/ActivitySnapshot';
 import { EasterEgg } from '../../main/ets/domain/EasterEgg';
 import { IDetectEasterEgg, ILoadActivity } from '../../main/ets/domain/ports/ActivityUseCases';
-import { ILoadHeatmap, IRecordCheckIn } from '../../main/ets/domain/ports/HeatmapUseCases';
+import { IClearCheckIns, ILoadHeatmap, IRecordCheckIn } from '../../main/ets/domain/ports/HeatmapUseCases';
 
 /**
  * Mock usecases for ViewModel testing.
@@ -27,6 +27,14 @@ export class MockRecordCheckIn implements IRecordCheckIn {
   async execute(date: string, content: string): Promise<void> {
     this.capturedDate = date;
     this.capturedContent = content;
+  }
+}
+
+export class MockClearCheckIns implements IClearCheckIns {
+  public executeCount: number = 0;
+
+  async execute(): Promise<void> {
+    this.executeCount++;
   }
 }
 

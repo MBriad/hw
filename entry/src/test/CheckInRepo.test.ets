@@ -37,6 +37,10 @@ class MockCheckInRepo implements CheckInRepository {
     }
     return result;
   }
+
+  async clear(): Promise<void> {
+    this.store.clear();
+  }
 }
 
 export default function checkInRepoTest() {
@@ -92,6 +96,15 @@ export default function checkInRepoTest() {
       await repo.save({ date: '2026-07-12', content: 'C', timestamp: 3 });
       const all = await repo.loadAll();
       expect(all.length).assertEqual(3);
+    });
+
+    it('clear_removes_all_checkins', 0, async () => {
+      const repo = new MockCheckInRepo();
+      await repo.save({ date: '2026-07-10', content: 'A', timestamp: 1 });
+      await repo.save({ date: '2026-08-11', content: 'B', timestamp: 2 });
+      await repo.clear();
+      expect((await repo.loadAll()).length).assertEqual(0);
+      expect((await repo.loadByMonth(2026, 7)).length).assertEqual(0);
     });
   });
 }

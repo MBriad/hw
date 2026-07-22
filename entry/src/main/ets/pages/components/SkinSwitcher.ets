@@ -2,7 +2,7 @@
  * Humble View: Theme switcher with four compact color swatches.
  * Consumes DesignTokens + themeName from ThemeProvider.
  */
-import { SkinTheme, DesignTokens, ThemeNames, ThemePalette } from '../../domain/SkinTheme';
+import { SkinTheme, DesignTokens, ThemePalette } from '../../domain/SkinTheme';
 import { Spacing } from '../../common/SpacingTokens';
 
 @Component
@@ -15,49 +15,60 @@ export struct SkinSwitcher {
     SkinTheme.LIGHT, SkinTheme.DARK, SkinTheme.PINK, SkinTheme.PASTEL
   ];
 
+  private themeLabel(theme: SkinTheme): string {
+    if (theme === SkinTheme.DARK) {
+      return 'DARK';
+    }
+    if (theme === SkinTheme.PINK) {
+      return 'PINK';
+    }
+    if (theme === SkinTheme.PASTEL) {
+      return 'PASTEL';
+    }
+    return 'LIGHT';
+  }
+
   build() {
     Row() {
-      Column() {
-        Text('THEME PROFILE')
-          .fontSize(10)
-          .fontWeight(700)
-          .fontColor(this.tokens.textMuted)
-          .fontFamily('monospace')
-
-        Text(ThemeNames[this.themeName])
-          .fontSize(13)
-          .fontWeight(700)
-          .fontColor(this.tokens.textPrimary)
-          .margin({ top: Spacing.xxs })
-      }
-      .alignItems(HorizontalAlign.Start)
-
-      Blank()
-
-      Row() {
-        ForEach(this.themes, (theme: SkinTheme) => {
-          this.skinButton(theme)
-        })
-      }
+      ForEach(this.themes, (theme: SkinTheme) => {
+        this.skinButton(theme)
+      })
     }
-    .height(52)
+    .height(64)
     .width('100%')
-    .border({ width: { bottom: 1 }, color: this.tokens.borderColor })
   }
 
   @Builder
   skinButton(theme: SkinTheme) {
-    Column()
-      .width(24)
-      .height(24)
-      .backgroundColor(ThemePalette[theme].brandPrimary)
-      .border({
-        width: this.themeName === theme ? 2 : 1,
-        color: this.themeName === theme ? this.tokens.textPrimary : this.tokens.borderColor,
-      })
-    .margin({ left: Spacing.xs })
+    Column() {
+      Column()
+        .width(22)
+        .height(22)
+        .backgroundColor(ThemePalette[theme].brandPrimary)
+        .border({
+          width: this.themeName === theme ? 2 : 1,
+          color: this.themeName === theme ? this.tokens.textPrimary : this.tokens.borderColor,
+        })
+
+      Text(this.themeLabel(theme))
+        .fontSize(8)
+        .fontWeight(this.themeName === theme ? 800 : 600)
+        .fontColor(this.themeName === theme ? this.tokens.textPrimary : this.tokens.textMuted)
+        .fontFamily('monospace')
+        .margin({ top: Spacing.xxs })
+        .maxLines(1)
+    }
+    .layoutWeight(1)
+    .height(64)
+    .justifyContent(FlexAlign.Center)
+    .backgroundColor(this.themeName === theme ? this.tokens.brandLight : this.tokens.bgSurface)
     .stateStyles({
+      normal: {
+        .backgroundColor(this.themeName === theme ? this.tokens.brandLight : this.tokens.bgSurface)
+        .scale({ x: 1, y: 1 })
+      },
       pressed: {
+        .backgroundColor(this.tokens.bgSurfacePressed)
         .scale({ x: 0.88, y: 0.88 })
       }
     })

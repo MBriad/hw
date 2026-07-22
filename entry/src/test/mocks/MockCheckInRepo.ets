@@ -31,4 +31,10 @@ export class MockCheckInRepo implements CheckInRepository {
   async loadByMonth(_year: number, _month: number): Promise<CheckIn[]> {
     return this.loadByMonthResult;
   }
+
+  async clear(): Promise<void> {
+    this.savedCheckIns = [];
+    this.loadAllResult = [];
+    this.loadByMonthResult = [];
+  }
 }

@@ -8,7 +8,7 @@ import { SkinTheme, DesignTokens, ThemePalette } from '../domain/SkinTheme';
 import { CheckIn } from '../domain/CheckIn';
 import { EasterEgg, UsagePattern } from '../domain/EasterEgg';
 import { IDetectEasterEgg, ILoadActivity } from '../domain/ports/ActivityUseCases';
-import { ILoadHeatmap, IRecordCheckIn } from '../domain/ports/HeatmapUseCases';
+import { IClearCheckIns, ILoadHeatmap, IRecordCheckIn } from '../domain/ports/HeatmapUseCases';
 import { SkinProvider } from '../domain/ports/SkinProvider';
 import { SoundPlayer } from '../domain/ports/SoundPlayer';
 
@@ -30,6 +30,7 @@ export class HeatmapVM {
 
   private loadHeatmap: ILoadHeatmap;
   private recordCheckIn: IRecordCheckIn;
+  private clearCheckIns: IClearCheckIns;
   private loadActivity: ILoadActivity;
   private detectEasterEgg: IDetectEasterEgg;
   private skinProvider: SkinProvider;
@@ -41,6 +42,7 @@ export class HeatmapVM {
   constructor(
     loadHeatmap: ILoadHeatmap,
     recordCheckIn: IRecordCheckIn,
+    clearCheckIns: IClearCheckIns,
     loadActivity: ILoadActivity,
     detectEasterEgg: IDetectEasterEgg,
     skinProvider: SkinProvider,
@@ -48,6 +50,7 @@ export class HeatmapVM {
   ) {
     this.loadHeatmap = loadHeatmap;
     this.recordCheckIn = recordCheckIn;
+    this.clearCheckIns = clearCheckIns;
     this.loadActivity = loadActivity;
     this.detectEasterEgg = detectEasterEgg;
     this.skinProvider = skinProvider;
@@ -157,5 +160,52 @@ export class HeatmapVM {
       }
     });
     return longest;
+  }
+
+  async debugUseCaseLoadHeatmap(): Promise<string> {
+    try {
+      const cells = await this.loadHeatmap.execute(this.currentYear, this.currentMonth);
+      const active = cells.filter((cell: HeatmapCell) => cell.level > 0).length;
+      return `OK | cells=${active}/${cells.length}`;
+    } catch (error) {
+      return `FAIL | ${JSON.stringify(error)}`;
+    }
+  }
+
+  async debugUseCaseLoadActivity(): Promise<string> {
+    try {
+      const snapshot = await this.loadActivity.execute();
+      return `OK | checkIns=${snapshot.checkIns.length} | patterns=${snapshot.patterns.length}`;
+    } catch (error) {
+      return `FAIL | ${JSON.stringify(error)}`;
+    }
+  }
+
+  async debugUseCaseDetectEgg(): Promise<string> {
+    try {
+      const egg = await this.detectEasterEgg.execute(this.todayString, 'debug_probe');
+      if (egg === null) {
+        return 'OK | no match';
+      }
+      return `OK | keyword=${egg.keyword} | effect=${egg.effectType}`;
+    } catch (error) {
+      return `FAIL | ${JSON.stringify(error)}`;
+    }
+  }
+
+  debugTokenSnapshot(): string {
+    return `OK | theme=${this.currentSkin} | primary=${this.currentTokens.brandPrimary}`;
+  }
+
+  async debugClearAllRecords(): Promise<string> {
+    try {
+      await this.clearCheckIns.execute();
+      this.selectedDate = '';
+      this.dismissEgg();
+      await Promise.all([this.loadMonth(this.currentYear, this.currentMonth), this.refreshActivity()]);
+      return 'OK | records cleared';
+    } catch (error) {
+      return `FAIL | ${JSON.stringify(error)}`;
+    }
   }
 }

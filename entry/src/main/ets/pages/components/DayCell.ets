@@ -31,8 +31,7 @@ export struct DayCell {
     .backgroundColor(this.getCellColor())
     .border({
       width: this.isSelected ? 2 : 1,
-      color: this.isSelected ? this.tokens.brandAccent :
-             (this.isToday ? this.tokens.textPrimary : this.tokens.borderColor),
+      color: this.isSelected ? this.tokens.brandAccent : this.tokens.borderColor,
     })
     .stateStyles({
       pressed: {
@@ -61,12 +60,14 @@ export struct DayCell {
     if (this.cell.level >= 3) return this.tokens.brandPrimary;
     if (this.cell.level >= 2) return this.tokens.brandText;
     if (this.cell.level >= 1) return this.tokens.brandLight;
+    if (this.isToday) return this.tokens.brandLight;
     return this.tokens.bgSurface;
   }
 
   private getTextColor(): ResourceColor {
     if (this.cell.level >= 2) return Color.White;
     if (this.cell.level >= 1) return this.tokens.textPrimary;
+    if (this.isToday) return this.tokens.brandText;
     return this.tokens.textMuted;
   }
 }

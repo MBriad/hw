@@ -2,12 +2,23 @@ import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { HeatmapVM } from '../../viewmodels/HeatmapVM';
+import { EasterEggLabDialog, EggDebugScenario } from './EasterEggLabDialog';
 
 @Component
 export struct DebugPanel {
   @StorageLink('heatmapVM') private vm: HeatmapVM | null = null;
   @Consume tokens: DesignTokens;
   @State private expanded: boolean = false;
+  private eggLabController: CustomDialogController = new CustomDialogController({
+    builder: EasterEggLabDialog({
+      onRun: (scenario: EggDebugScenario) => {
+        this.runEggScenario(scenario);
+      }
+    }),
+    autoCancel: true,
+    customStyle: true,
+    alignment: DialogAlignment.Center,
+  });
 
   build() {
     Column() {
@@ -71,10 +82,8 @@ export struct DebugPanel {
           .width('100%')
 
           Row() {
-            this.debugButton('DETECT EGG', () => {
-              this.vm!.debugUseCaseDetectEgg().then((result: string) => {
-                this.showResult('DETECT EGG', result);
-              });
+            this.debugButton('EASTER EGG LAB', () => {
+              this.eggLabController.open();
             })
             Blank().width(Spacing.xs)
             this.debugButton('RELOAD MONTH', () => {
@@ -143,6 +152,35 @@ export struct DebugPanel {
         },
       },
     });
+  }
+
+  private runEggScenario(scenario: EggDebugScenario): void {
+    if (this.vm === null) {
+      return;
+    }
+    if (scenario === EggDebugScenario.SPARKLE) {
+      this.vm.debugPlayEasterEgg('particle_sparkle', 'level_up', 'DEBUG // SPARKLE SIGNAL');
+    } else if (scenario === EggDebugScenario.DARK) {
+      this.vm.debugPlayEasterEgg('particle_dark', 'wind_chime', 'DEBUG // DARK SIGNAL');
+    } else if (scenario === EggDebugScenario.BUBBLE) {
+      this.vm.debugPlayEasterEgg('particle_bubble', 'healing_bell', 'DEBUG // BUBBLE SIGNAL');
+    } else if (scenario === EggDebugScenario.SAKURA) {
+      this.vm.debugPlayEasterEgg('particle_sakura', 'anime_sparkle', 'DEBUG // SAKURA SIGNAL');
+    } else if (scenario === EggDebugScenario.RISE) {
+      this.vm.debugPlayEasterEgg('particle_rise', 'jojo_menace', 'DEBUG // RISE SIGNAL');
+    } else if (scenario === EggDebugScenario.AT_FIELD) {
+      this.vm.debugPlayEasterEgg('eva_at_field', 'eva_alert', 'DEBUG // A.T. FIELD SIGNAL');
+    } else if (scenario === EggDebugScenario.AUTO_DISMISS) {
+      this.vm.debugPlayEasterEgg('particle_sparkle', 'level_up', 'DEBUG // AUTO DISMISS');
+    } else if (scenario === EggDebugScenario.TAP_DISMISS) {
+      this.vm.debugPlayEasterEgg('particle_sakura', 'anime_sparkle', 'DEBUG // TAP TO DISMISS');
+    } else if (scenario === EggDebugScenario.RETRIGGER_BLOCKED) {
+      this.vm.debugPlayBlockedRetrigger();
+    } else if (scenario === EggDebugScenario.RAPID_TAPS) {
+      this.vm.debugPlayRapidTaps();
+    } else if (scenario === EggDebugScenario.AFTER_END) {
+      this.vm.debugPlayAfterEnd();
+    }
   }
 
   @Builder

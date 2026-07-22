@@ -12,6 +12,9 @@ import { IClearCheckIns, ILoadHeatmap, IRecordCheckIn } from '../domain/ports/He
 import { SkinProvider } from '../domain/ports/SkinProvider';
 import { SoundPlayer } from '../domain/ports/SoundPlayer';
 
+const EGG_DISPLAY_MS = 2800;
+const EGG_DEBUG_REPLAY_MS = 3200;
+
 @Observed
 export class HeatmapVM {
   cells: HeatmapCell[] = [];
@@ -95,7 +98,7 @@ export class HeatmapVM {
         if (this.eggRunId === runId) {
           this.dismissEgg();
         }
-      }, 2800);
+      }, EGG_DISPLAY_MS);
     }
   }
 
@@ -191,6 +194,50 @@ export class HeatmapVM {
     } catch (error) {
       return `FAIL | ${JSON.stringify(error)}`;
     }
+  }
+
+  debugPlayEasterEgg(effectType: string, soundFile: string, quote: string): void {
+    this.dismissEgg();
+    this.triggerEasterEgg({
+      keyword: 'debug',
+      quote: quote,
+      effectType: effectType,
+      soundFile: soundFile,
+    });
+  }
+
+  debugPlayBlockedRetrigger(): void {
+    this.debugPlayEasterEgg('particle_dark', 'jojo_menace', 'DEBUG // FIRST SIGNAL');
+    this.triggerEasterEgg({
+      keyword: 'debug_blocked',
+      quote: 'DEBUG // THIS SIGNAL MUST BE BLOCKED',
+      effectType: 'particle_sakura',
+      soundFile: 'anime_sparkle',
+    });
+  }
+
+  debugPlayRapidTaps(): void {
+    this.debugPlayEasterEgg('particle_rise', 'level_up', 'DEBUG // RAPID INPUT LOCKED');
+    for (let i = 0; i < 4; i++) {
+      this.triggerEasterEgg({
+        keyword: 'debug_rapid',
+        quote: 'DEBUG // DUPLICATE SIGNAL',
+        effectType: 'particle_bubble',
+        soundFile: 'wind_chime',
+      });
+    }
+  }
+
+  debugPlayAfterEnd(): void {
+    this.debugPlayEasterEgg('particle_sparkle', 'level_up', 'DEBUG // SIGNAL ONE');
+    setTimeout(() => {
+      this.triggerEasterEgg({
+        keyword: 'debug_replay',
+        quote: 'DEBUG // SIGNAL TWO',
+        effectType: 'eva_at_field',
+        soundFile: 'eva_alert',
+      });
+    }, EGG_DEBUG_REPLAY_MS);
   }
 
   debugTokenSnapshot(): string {

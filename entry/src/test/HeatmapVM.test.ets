@@ -148,5 +148,37 @@ export default function heatmapVMTest() {
       expect(fixture.loadHeatmap.capturedMonth).assertEqual(7);
       expect(fixture.loadActivity.executeCount).assertEqual(1);
     });
+
+    it('debugPlayEasterEgg_uses_live_feedback_pipeline', 0, () => {
+      const fixture = new VMFixture();
+      fixture.vm.debugPlayEasterEgg('particle_sakura', 'anime_sparkle', 'DEBUG // SAKURA SIGNAL');
+      expect(fixture.vm.triggeredEgg !== null).assertEqual(true);
+      expect(fixture.vm.showParticles).assertEqual(true);
+      expect(fixture.vm.showBanner).assertEqual(true);
+      expect(fixture.sound.lastPlayed).assertEqual('anime_sparkle');
+      if (fixture.vm.triggeredEgg !== null) {
+        expect(fixture.vm.triggeredEgg.effectType).assertEqual('particle_sakura');
+        expect(fixture.vm.triggeredEgg.quote).assertEqual('DEBUG // SAKURA SIGNAL');
+      }
+    });
+
+    it('debugPlayBlockedRetrigger_keeps_first_signal', 0, () => {
+      const fixture = new VMFixture();
+      fixture.vm.debugPlayBlockedRetrigger();
+      expect(fixture.sound.playCount).assertEqual(1);
+      if (fixture.vm.triggeredEgg !== null) {
+        expect(fixture.vm.triggeredEgg.effectType).assertEqual('particle_dark');
+        expect(fixture.vm.triggeredEgg.quote).assertEqual('DEBUG // FIRST SIGNAL');
+      }
+    });
+
+    it('debugPlayRapidTaps_does_not_stack_feedback', 0, () => {
+      const fixture = new VMFixture();
+      fixture.vm.debugPlayRapidTaps();
+      expect(fixture.sound.playCount).assertEqual(1);
+      if (fixture.vm.triggeredEgg !== null) {
+        expect(fixture.vm.triggeredEgg.effectType).assertEqual('particle_rise');
+      }
+    });
   });
 }

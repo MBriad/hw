@@ -43,58 +43,9 @@ struct HeatmapPage {
     this.persistTheme(name);
   }
 
-  private sectionLabel(): string {
-    if (this.activeSection === AppSection.LOGS) {
-      return 'LOG STREAM';
-    }
-    if (this.activeSection === AppSection.CORE) {
-      return 'CORE LEARNING';
-    }
-    if (this.activeSection === AppSection.USER) {
-      return 'USER PROFILE';
-    }
-    return 'DATA ACTIVE';
-  }
-
   @Builder
-  private systemHeader() {
-    Row() {
-      Text('ACTRACE_OS // V.CORE')
-        .fontSize(9)
-        .fontWeight(700)
-        .fontColor(this.tokens.textMuted)
-        .fontFamily('monospace')
-
-      Blank()
-
-      Row() {
-        Column()
-          .width(6)
-          .height(6)
-          .backgroundColor(this.tokens.brandPrimary)
-          .margin({ right: Spacing.xxs })
-
-        Text(`STATUS: ${this.sectionLabel()}`)
-          .fontSize(9)
-          .fontWeight(700)
-          .fontColor(this.tokens.textPrimary)
-          .fontFamily('monospace')
-      }
-    }
-    .width('100%')
-    .height(28)
-    .border({ width: { bottom: 1 }, color: this.tokens.textPrimary })
-  }
-
-  @Builder
-  private workspaceHeader() {
+  private calendarMonthHeader() {
     Column() {
-      Text('PERSONAL ACTIVITY MATRIX')
-        .fontSize(10)
-        .fontWeight(700)
-        .fontColor(this.tokens.textMuted)
-        .fontFamily('monospace')
-
       Text(this.vm!.monthCode)
         .fontSize(46)
         .fontWeight(900)
@@ -154,17 +105,17 @@ struct HeatmapPage {
       Column() {
         Row() {
           Column() {
-            this.systemHeader()
-
             if (this.vm !== null) {
-              this.workspaceHeader()
-
               HorizontalNavigation({
                 active: this.activeSection,
                 onNavigate: (section: AppSection) => {
                   this.activeSection = section;
                 }
               })
+
+              if (this.activeSection === AppSection.DATA) {
+                this.calendarMonthHeader()
+              }
 
               Column() {
                 this.activePage()

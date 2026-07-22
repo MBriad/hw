@@ -45,18 +45,87 @@ struct HeatmapPage {
 
   @Builder
   private calendarMonthHeader() {
-    Column() {
-      Text(this.vm!.monthCode)
-        .fontSize(28)
+    Row() {
+      Text(this.vm!.monthHeaderLabel)
+        .layoutWeight(1)
+        .fontSize(26)
         .fontWeight(900)
         .fontColor(this.tokens.textPrimary)
         .fontFamily('sans-serif')
+        .textAlign(TextAlign.Start)
         .maxLines(1)
+
+      Row() {
+        this.monthNavigationButton($r('sys.symbol.chevron_left'), () => {
+          this.vm!.previousMonth();
+        })
+
+        Text('TODAY')
+          .width(56)
+          .height(40)
+          .fontSize(9)
+          .fontWeight(800)
+          .fontColor(this.tokens.textPrimary)
+          .fontFamily('monospace')
+          .textAlign(TextAlign.Center)
+          .backgroundColor(this.tokens.bgBase)
+          .enabled(!this.vm!.isMonthLoading)
+          .opacity(this.vm!.isMonthLoading ? 0.45 : 1)
+          .stateStyles({
+            normal: {
+              .backgroundColor(this.tokens.bgBase)
+            },
+            pressed: {
+              .backgroundColor(this.tokens.brandPrimary)
+              .fontColor(this.tokens.brandText)
+            }
+          })
+          .onClick(() => {
+            this.vm!.returnToCurrentMonth();
+          })
+
+        this.monthNavigationButton($r('sys.symbol.chevron_right'), () => {
+          this.vm!.nextMonth();
+        })
+      }
+      .width(144)
+      .height(44)
+      .alignItems(VerticalAlign.Center)
+      .justifyContent(FlexAlign.SpaceBetween)
     }
     .width('100%')
-    .alignItems(HorizontalAlign.Start)
+    .height(62)
+    .alignItems(VerticalAlign.Center)
     .padding({ top: Spacing.xs, bottom: Spacing.xs })
     .border({ width: { bottom: 3 }, color: this.tokens.textPrimary })
+  }
+
+  @Builder
+  private monthNavigationButton(symbol: Resource, action: () => void) {
+    Stack() {
+      SymbolGlyph(symbol)
+        .fontSize(20)
+        .fontWeight(700)
+        .fontColor([this.tokens.textPrimary])
+    }
+      .width(44)
+      .height(44)
+      .alignContent(Alignment.Center)
+      .backgroundColor(this.tokens.bgBase)
+      .border({ width: 1, color: this.tokens.borderColor })
+      .enabled(!this.vm!.isMonthLoading)
+      .opacity(this.vm!.isMonthLoading ? 0.45 : 1)
+      .stateStyles({
+        normal: {
+          .backgroundColor(this.tokens.bgBase)
+        },
+        pressed: {
+          .backgroundColor(this.tokens.bgSurfacePressed)
+          .scale({ x: 0.94, y: 0.94 })
+        }
+      })
+      .animation({ duration: 100, curve: Curve.EaseOut })
+      .onClick(action)
   }
 
   @Builder

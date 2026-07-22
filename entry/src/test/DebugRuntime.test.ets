@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@ohos/hypium';
-import { DebugRuntime } from '../main/ets/debug/DebugRuntime';
+import { CalendarDebugScenario, DebugRuntime } from '../main/ets/debug/DebugRuntime';
 import { VMFixture } from './mocks/VMFixture';
 
 export default function debugRuntimeTest() {
@@ -59,6 +59,21 @@ export default function debugRuntimeTest() {
       if (fixture.vm.triggeredEgg !== null) {
         expect(fixture.vm.triggeredEgg.effectType).assertEqual('particle_rise');
       }
+    });
+
+    it('calendarLab_runs_standard_and_cross_year_workflows', 0, async () => {
+      const fixture = new VMFixture();
+      const runtime = new DebugRuntime(fixture.vm);
+      await fixture.vm.loadMonth(2026, 7);
+
+      const previous = await runtime.runCalendarScenario(CalendarDebugScenario.PREVIOUS_MONTH);
+      expect(previous.startsWith('OK | month=2026.06')).assertEqual(true);
+
+      const forwardBoundary = await runtime.runCalendarScenario(CalendarDebugScenario.DECEMBER_TO_JANUARY);
+      expect(forwardBoundary.startsWith('OK | month=2027.01')).assertEqual(true);
+
+      const backwardBoundary = await runtime.runCalendarScenario(CalendarDebugScenario.JANUARY_TO_DECEMBER);
+      expect(backwardBoundary.startsWith('OK | month=2025.12')).assertEqual(true);
     });
   });
 }

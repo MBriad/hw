@@ -12,10 +12,14 @@ export class MockLoadHeatmap implements ILoadHeatmap {
   public capturedYear: number = 0;
   public capturedMonth: number = 0;
   public resultCells: HeatmapCell[] = [];
+  public shouldFail: boolean = false;
 
   async execute(year: number, month: number): Promise<HeatmapCell[]> {
     this.capturedYear = year;
     this.capturedMonth = month;
+    if (this.shouldFail) {
+      throw new Error('load failed');
+    }
     return this.resultCells;
   }
 }

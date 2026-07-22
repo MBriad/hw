@@ -2,7 +2,8 @@ import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { HeatmapVM } from '../../viewmodels/HeatmapVM';
-import { DebugRuntime, EggDebugScenario } from '../DebugRuntime';
+import { CalendarDebugScenario, DebugRuntime, EggDebugScenario } from '../DebugRuntime';
+import { CalendarLabDialog } from './CalendarLabDialog';
 import { EasterEggLabDialog } from './EasterEggLabDialog';
 
 @Component
@@ -14,6 +15,16 @@ export struct DebugPanel {
     builder: EasterEggLabDialog({
       onRun: (scenario: EggDebugScenario) => {
         this.runEggScenario(scenario);
+      }
+    }),
+    autoCancel: true,
+    customStyle: true,
+    alignment: DialogAlignment.Center,
+  });
+  private calendarLabController: CustomDialogController = new CustomDialogController({
+    builder: CalendarLabDialog({
+      onRun: (scenario: CalendarDebugScenario) => {
+        this.runCalendarScenario(scenario);
       }
     }),
     autoCancel: true,
@@ -108,6 +119,16 @@ export struct DebugPanel {
           this.sectionLabel('FEATURE LABS')
 
           this.featureLabButton(
+            'CALENDAR LAB',
+            'NAVIGATION / YEAR BOUNDARIES',
+            () => {
+              this.calendarLabController.open();
+            }
+          )
+
+          Blank().height(Spacing.xs)
+
+          this.featureLabButton(
             'EASTER EGG LAB',
             'PRESETS / LIFECYCLE / LIVE EFFECTS',
             () => {
@@ -162,6 +183,10 @@ export struct DebugPanel {
     if (runtime !== null) {
       runtime.runEasterEggScenario(scenario);
     }
+  }
+
+  private runCalendarScenario(scenario: CalendarDebugScenario): void {
+    this.runAsync('CALENDAR LAB', (runtime: DebugRuntime) => runtime.runCalendarScenario(scenario));
   }
 
   @Builder

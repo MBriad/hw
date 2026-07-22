@@ -18,6 +18,14 @@ export enum EggDebugScenario {
   AFTER_END = 'AFTER_END',
 }
 
+export enum CalendarDebugScenario {
+  PREVIOUS_MONTH = 'PREVIOUS_MONTH',
+  NEXT_MONTH = 'NEXT_MONTH',
+  CURRENT_MONTH = 'CURRENT_MONTH',
+  DECEMBER_TO_JANUARY = 'DECEMBER_TO_JANUARY',
+  JANUARY_TO_DECEMBER = 'JANUARY_TO_DECEMBER',
+}
+
 export class DebugRuntime {
   private vm: HeatmapVM;
 
@@ -72,6 +80,27 @@ export class DebugRuntime {
     try {
       await this.vm.clearAllRecords();
       return 'OK | records cleared';
+    } catch (error) {
+      return this.failure(error);
+    }
+  }
+
+  async runCalendarScenario(scenario: CalendarDebugScenario): Promise<string> {
+    try {
+      if (scenario === CalendarDebugScenario.PREVIOUS_MONTH) {
+        await this.vm.previousMonth();
+      } else if (scenario === CalendarDebugScenario.NEXT_MONTH) {
+        await this.vm.nextMonth();
+      } else if (scenario === CalendarDebugScenario.CURRENT_MONTH) {
+        await this.vm.returnToCurrentMonth();
+      } else if (scenario === CalendarDebugScenario.DECEMBER_TO_JANUARY) {
+        await this.vm.loadMonth(2026, 12);
+        await this.vm.nextMonth();
+      } else if (scenario === CalendarDebugScenario.JANUARY_TO_DECEMBER) {
+        await this.vm.loadMonth(2026, 1);
+        await this.vm.previousMonth();
+      }
+      return `OK | month=${this.vm.monthCode} | selected=${this.vm.selectedDate || 'none'}`;
     } catch (error) {
       return this.failure(error);
     }

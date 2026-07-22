@@ -23,6 +23,7 @@ export class HeatmapVM {
   streakInfo: StreakInfo = { current: 0, longest: 0, level: StreakLevel.NONE };
   checkIns: CheckIn[] = [];
   usagePatterns: UsagePattern[] = [];
+  isMonthLoading: boolean = false;
 
   // Easter egg state
   triggeredEgg: EasterEgg | null = null;
@@ -64,9 +65,31 @@ export class HeatmapVM {
   }
 
   async loadMonth(year: number, month: number): Promise<void> {
+    const cells = await this.loadHeatmap.execute(year, month);
     this.currentYear = year;
     this.currentMonth = month;
-    this.cells = await this.loadHeatmap.execute(year, month);
+    this.cells = cells;
+  }
+
+  async previousMonth(): Promise<void> {
+    await this.navigateMonth(-1);
+  }
+
+  async nextMonth(): Promise<void> {
+    await this.navigateMonth(1);
+  }
+
+  async returnToCurrentMonth(now: Date = new Date()): Promise<void> {
+    if (this.isMonthLoading) {
+      return;
+    }
+    this.isMonthLoading = true;
+    try {
+      await this.loadMonth(now.getFullYear(), now.getMonth() + 1);
+      this.selectedDate = this.formatDate(now);
+    } finally {
+      this.isMonthLoading = false;
+    }
   }
 
   async doCheckIn(content: string): Promise<void> {
@@ -142,6 +165,12 @@ export class HeatmapVM {
     return `${this.currentYear}.${String(this.currentMonth).padStart(2, '0')}`;
   }
 
+  get monthHeaderLabel(): string {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[this.currentMonth - 1]} ${this.currentYear}`;
+  }
+
   get monthCommitCount(): number {
     return this.cells.filter((cell: HeatmapCell) => cell.level > 0).length;
   }
@@ -169,5 +198,35 @@ export class HeatmapVM {
     this.selectedDate = '';
     this.dismissEgg();
     await Promise.all([this.loadMonth(this.currentYear, this.currentMonth), this.refreshActivity()]);
+  }
+
+  private async navigateMonth(offset: number): Promise<void> {
+    if (this.isMonthLoading) {
+      return;
+    }
+    let year = this.currentYear;
+    let month = this.currentMonth + offset;
+    if (month < 1) {
+      year--;
+      month = 12;
+    } else if (month > 12) {
+      year++;
+      month = 1;
+    }
+
+    this.isMonthLoading = true;
+    try {
+      await this.loadMonth(year, month);
+      this.selectedDate = '';
+    } finally {
+      this.isMonthLoading = false;
+    }
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

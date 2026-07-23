@@ -3,6 +3,7 @@ import { ActivitySnapshot } from '../main/ets/domain/ActivitySnapshot';
 import { HeatmapCell } from '../main/ets/domain/Streak';
 import { SkinTheme } from '../main/ets/domain/SkinTheme';
 import { VMFixture } from './mocks/VMFixture';
+import { MockPatternLearning } from './mocks/MockUseCases';
 
 class TestHeatmapCell implements HeatmapCell {
   date: string;
@@ -16,12 +17,12 @@ class TestHeatmapCell implements HeatmapCell {
 
 export default function heatmapVMTest() {
   describe('HeatmapVM', () => {
-    it('recordCheckIn_runs_detector_save_and_refresh', 0, async () => {
+    it('recordCheckIn_runs_pattern_match_save_and_refresh', 0, async () => {
       const fixture = new VMFixture();
       fixture.vm.selectDate('2026-07-19');
       await fixture.vm.doCheckIn('shader practice');
-      expect(fixture.detect.capturedDate).assertEqual('2026-07-19');
-      expect(fixture.detect.capturedContent).assertEqual('shader practice');
+      const learning = fixture.patternLearning as MockPatternLearning;
+      expect(learning.capturedContent).assertEqual('shader practice');
       expect(fixture.record.capturedDate).assertEqual('2026-07-19');
       expect(fixture.record.capturedContent).assertEqual('shader practice');
       expect(fixture.loadActivity.executeCount).assertEqual(1);
@@ -54,9 +55,10 @@ export default function heatmapVMTest() {
       expect(fixture.vm.longestMonthStreak).assertEqual(3);
     });
 
-    it('doCheckIn_shows_usage_milestone_feedback', 0, async () => {
+    it('doCheckIn_shows_mature_pattern_feedback', 0, async () => {
       const fixture = new VMFixture();
-      fixture.detect.result = {
+      const learning = fixture.patternLearning as MockPatternLearning;
+      learning.matchResult = {
         keyword: '绘画', quote: 'PATTERN LOCKED // 绘画 x3',
         effectType: 'particle_rise', soundFile: 'level_up'
       };
@@ -68,7 +70,7 @@ export default function heatmapVMTest() {
       expect(fixture.sound.lastPlayed).assertEqual('level_up');
     });
 
-    it('doCheckIn_has_no_feedback_without_milestone', 0, async () => {
+    it('doCheckIn_has_no_feedback_without_mature_match', 0, async () => {
       const fixture = new VMFixture();
       fixture.vm.selectDate('2026-07-19');
       await fixture.vm.doCheckIn('ordinary note');
@@ -78,7 +80,8 @@ export default function heatmapVMTest() {
 
     it('active_feedback_does_not_stack_and_can_be_dismissed', 0, async () => {
       const fixture = new VMFixture();
-      fixture.detect.result = {
+      const learning = fixture.patternLearning as MockPatternLearning;
+      learning.matchResult = {
         keyword: '绘画', quote: 'x3', effectType: 'particle_rise', soundFile: 'level_up'
       };
       fixture.vm.selectDate('2026-07-19');

@@ -1,5 +1,8 @@
 import { describe, it, expect } from '@ohos/hypium';
-import { DebugRuntime } from '../main/ets/debug/DebugRuntime';
+import { DebugRuntime, PatternDebugScenario } from '../main/ets/debug/DebugRuntime';
+import { LearnedPatternPolicy } from '../main/ets/domain/LearnedPatternPolicy';
+import { ManageLearnedPatterns } from '../main/ets/usecases/ManageLearnedPatterns';
+import { MockLearnedPatternRepo } from './mocks/MockLearnedPatternRepo';
 import { VMFixture } from './mocks/VMFixture';
 
 export default function debugRuntimeTest() {
@@ -59,6 +62,41 @@ export default function debugRuntimeTest() {
       if (fixture.vm.triggeredEgg !== null) {
         expect(fixture.vm.triggeredEgg.effectType).assertEqual('particle_rise');
       }
+    });
+
+    it('patternLab_reaches_observing_candidate_and_mature_through_live_usecase', 0, async () => {
+      const repo = new MockLearnedPatternRepo();
+      const fixture = new VMFixture(new ManageLearnedPatterns(repo, new LearnedPatternPolicy()));
+      const runtime = new DebugRuntime(fixture.vm);
+      expect(await runtime.runPatternScenario(PatternDebugScenario.OBSERVING))
+        .assertEqual('OK | stage=OBSERVING | count=1 | days=1');
+      expect(await runtime.runPatternScenario(PatternDebugScenario.CANDIDATE))
+        .assertEqual('OK | stage=CANDIDATE | count=3 | days=3');
+      expect(await runtime.runPatternScenario(PatternDebugScenario.MATURE))
+        .assertEqual('OK | stage=MATURE | count=5 | days=5');
+    });
+
+    it('patternLab_similar_match_uses_live_feedback_pipeline', 0, async () => {
+      const repo = new MockLearnedPatternRepo();
+      const fixture = new VMFixture(new ManageLearnedPatterns(repo, new LearnedPatternPolicy()));
+      const runtime = new DebugRuntime(fixture.vm);
+      const result = await runtime.runPatternScenario(PatternDebugScenario.SIMILAR_MATCH);
+      expect(result).assertEqual('OK | matched=creative flow');
+      expect(fixture.vm.triggeredEgg !== null).assertEqual(true);
+      expect(fixture.sound.lastPlayed).assertEqual('level_up');
+    });
+
+    it('patternLab_no_match_cooldown_and_reset_are_real_state_changes', 0, async () => {
+      const repo = new MockLearnedPatternRepo();
+      const fixture = new VMFixture(new ManageLearnedPatterns(repo, new LearnedPatternPolicy()));
+      const runtime = new DebugRuntime(fixture.vm);
+      const noMatch = await runtime.runPatternScenario(PatternDebugScenario.NO_MATCH);
+      expect(noMatch).assertEqual('OK | no match | stage=MATURE');
+      const cooldown = await runtime.runPatternScenario(PatternDebugScenario.COOLDOWN);
+      expect(cooldown.startsWith('OK | stage=COOLDOWN')).assertEqual(true);
+      const reset = await runtime.runPatternScenario(PatternDebugScenario.RESET_SAMPLE);
+      expect(reset).assertEqual('OK | patterns=0');
+      expect(repo.patterns.length).assertEqual(0);
     });
   });
 }

@@ -7,8 +7,10 @@ import { HeatmapCell, StreakInfo, StreakLevel } from '../domain/Streak';
 import { SkinTheme, DesignTokens, ThemePalette } from '../domain/SkinTheme';
 import { CheckIn } from '../domain/CheckIn';
 import { EasterEgg, UsagePattern } from '../domain/EasterEgg';
-import { IDetectEasterEgg, ILoadActivity } from '../domain/ports/ActivityUseCases';
+import { LearnedPattern, PatternSuggestion } from '../domain/LearnedPattern';
+import { ILoadActivity } from '../domain/ports/ActivityUseCases';
 import { IClearCheckIns, ILoadHeatmap, IRecordCheckIn } from '../domain/ports/HeatmapUseCases';
+import { PatternLearningApi } from '../domain/ports/PatternLearningApi';
 import { SkinProvider } from '../domain/ports/SkinProvider';
 import { SoundPlayer } from '../domain/ports/SoundPlayer';
 
@@ -23,6 +25,7 @@ export class HeatmapVM {
   streakInfo: StreakInfo = { current: 0, longest: 0, level: StreakLevel.NONE };
   checkIns: CheckIn[] = [];
   usagePatterns: UsagePattern[] = [];
+  learnedPatterns: LearnedPattern[] = [];
 
   // Easter egg state
   triggeredEgg: EasterEgg | null = null;
@@ -34,7 +37,7 @@ export class HeatmapVM {
   private recordCheckIn: IRecordCheckIn;
   private clearCheckIns: IClearCheckIns;
   private loadActivity: ILoadActivity;
-  private detectEasterEgg: IDetectEasterEgg;
+  private patternLearning: PatternLearningApi;
   private skinProvider: SkinProvider;
   private soundPlayer: SoundPlayer;
   private eggRunId: number = 0;
@@ -46,7 +49,7 @@ export class HeatmapVM {
     recordCheckIn: IRecordCheckIn,
     clearCheckIns: IClearCheckIns,
     loadActivity: ILoadActivity,
-    detectEasterEgg: IDetectEasterEgg,
+    patternLearning: PatternLearningApi,
     skinProvider: SkinProvider,
     soundPlayer: SoundPlayer,
   ) {
@@ -54,13 +57,13 @@ export class HeatmapVM {
     this.recordCheckIn = recordCheckIn;
     this.clearCheckIns = clearCheckIns;
     this.loadActivity = loadActivity;
-    this.detectEasterEgg = detectEasterEgg;
+    this.patternLearning = patternLearning;
     this.skinProvider = skinProvider;
     this.soundPlayer = soundPlayer;
   }
 
   async initialize(year: number, month: number): Promise<void> {
-    await Promise.all([this.loadMonth(year, month), this.refreshActivity()]);
+    await Promise.all([this.loadMonth(year, month), this.refreshActivity(), this.refreshLearnedPatterns()]);
   }
 
   async loadMonth(year: number, month: number): Promise<void> {
@@ -70,9 +73,13 @@ export class HeatmapVM {
   }
 
   async doCheckIn(content: string): Promise<void> {
-    const egg = await this.detectEasterEgg.execute(this.selectedDate, content);
     await this.recordCheckIn.execute(this.selectedDate, content);
-    await Promise.all([this.loadMonth(this.currentYear, this.currentMonth), this.refreshActivity()]);
+    const egg = await this.patternLearning.match(content, Date.now());
+    await Promise.all([
+      this.loadMonth(this.currentYear, this.currentMonth),
+      this.refreshActivity(),
+      this.refreshLearnedPatterns(),
+    ]);
 
     if (egg !== null) {
       this.presentEasterEgg(egg);
@@ -162,6 +169,35 @@ export class HeatmapVM {
       }
     });
     return longest;
+  }
+
+  async refreshLearnedPatterns(): Promise<void> {
+    this.learnedPatterns = await this.patternLearning.load();
+  }
+
+  async observeLearnedPattern(
+    suggestion: PatternSuggestion,
+    date: string,
+    now: number,
+  ): Promise<LearnedPattern> {
+    const pattern = await this.patternLearning.observe(suggestion, date, now);
+    await this.refreshLearnedPatterns();
+    return pattern;
+  }
+
+  async matchLearnedPattern(content: string, now: number): Promise<EasterEgg | null> {
+    const egg = await this.patternLearning.match(content, now);
+    await this.refreshLearnedPatterns();
+    if (egg !== null) {
+      this.presentEasterEgg(egg);
+    }
+    return egg;
+  }
+
+  async resetLearnedPatterns(): Promise<void> {
+    await this.patternLearning.clear();
+    this.learnedPatterns = [];
+    this.dismissEgg();
   }
 
   async clearAllRecords(): Promise<void> {

@@ -1,8 +1,10 @@
 import { HeatmapCell } from '../../main/ets/domain/Streak';
 import { ActivitySnapshot } from '../../main/ets/domain/ActivitySnapshot';
 import { EasterEgg } from '../../main/ets/domain/EasterEgg';
+import { LearnedPattern, PatternSuggestion } from '../../main/ets/domain/LearnedPattern';
 import { IDetectEasterEgg, ILoadActivity } from '../../main/ets/domain/ports/ActivityUseCases';
 import { IClearCheckIns, ILoadHeatmap, IRecordCheckIn } from '../../main/ets/domain/ports/HeatmapUseCases';
+import { PatternLearningApi } from '../../main/ets/domain/ports/PatternLearningApi';
 
 /**
  * Mock usecases for ViewModel testing.
@@ -57,5 +59,45 @@ export class MockDetectEasterEgg implements IDetectEasterEgg {
     this.capturedDate = date;
     this.capturedContent = content;
     return this.result;
+  }
+}
+
+export class MockPatternLearning implements PatternLearningApi {
+  public loadResult: LearnedPattern[] = [];
+  public matchResult: EasterEgg | null = null;
+  public capturedContent: string = '';
+  public capturedNow: number = 0;
+  public loadCount: number = 0;
+  public clearCount: number = 0;
+
+  async load(): Promise<LearnedPattern[]> {
+    this.loadCount++;
+    return this.loadResult;
+  }
+
+  async observe(suggestion: PatternSuggestion, date: string, now: number): Promise<LearnedPattern> {
+    const pattern = new LearnedPattern(suggestion.topic.toLowerCase(), suggestion.topic);
+    pattern.aliases = suggestion.aliases;
+    pattern.occurrenceCount = 1;
+    pattern.distinctDateCount = 1;
+    pattern.observedDates = [date];
+    pattern.confidence = suggestion.confidence;
+    pattern.quote = suggestion.quote;
+    pattern.effectType = suggestion.effectType;
+    pattern.soundFile = suggestion.soundFile;
+    pattern.updatedAt = now;
+    this.loadResult = [pattern];
+    return pattern;
+  }
+
+  async match(content: string, now: number): Promise<EasterEgg | null> {
+    this.capturedContent = content;
+    this.capturedNow = now;
+    return this.matchResult;
+  }
+
+  async clear(): Promise<void> {
+    this.clearCount++;
+    this.loadResult = [];
   }
 }

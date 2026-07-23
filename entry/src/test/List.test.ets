@@ -10,6 +10,8 @@ import detectEasterEggTest from './DetectEasterEgg.test';
 import soundPlayerTest from './SoundPlayer.test';
 import loadActivityTest from './LoadActivity.test';
 import debugRuntimeTest from './DebugRuntime.test';
+import learnedPatternPolicyTest from './LearnedPatternPolicy.test';
+import manageLearnedPatternsTest from './ManageLearnedPatterns.test';
 
 export default function testsuite() {
   localUnitTest();
@@ -24,4 +26,6 @@ export default function testsuite() {
   soundPlayerTest();
   loadActivityTest();
   debugRuntimeTest();
+  learnedPatternPolicyTest();
+  manageLearnedPatternsTest();
 }

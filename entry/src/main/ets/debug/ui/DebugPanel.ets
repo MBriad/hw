@@ -2,8 +2,9 @@ import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { HeatmapVM } from '../../viewmodels/HeatmapVM';
-import { DebugRuntime, EggDebugScenario } from '../DebugRuntime';
+import { DebugRuntime, EggDebugScenario, PatternDebugScenario } from '../DebugRuntime';
 import { EasterEggLabDialog } from './EasterEggLabDialog';
+import { PatternLearningLabDialog } from './PatternLearningLabDialog';
 
 @Component
 export struct DebugPanel {
@@ -14,6 +15,16 @@ export struct DebugPanel {
     builder: EasterEggLabDialog({
       onRun: (scenario: EggDebugScenario) => {
         this.runEggScenario(scenario);
+      }
+    }),
+    autoCancel: true,
+    customStyle: true,
+    alignment: DialogAlignment.Center,
+  });
+  private patternLabController: CustomDialogController = new CustomDialogController({
+    builder: PatternLearningLabDialog({
+      onRun: (scenario: PatternDebugScenario) => {
+        this.runPatternScenario(scenario);
       }
     }),
     autoCancel: true,
@@ -114,6 +125,16 @@ export struct DebugPanel {
               this.eggLabController.open();
             }
           )
+
+          Blank().height(Spacing.xs)
+
+          this.featureLabButton(
+            'PATTERN LEARNING LAB',
+            'STAGES / MATCHING / COOLDOWN',
+            () => {
+              this.patternLabController.open();
+            }
+          )
         }
         .width('100%')
         .padding({ left: Spacing.md, right: Spacing.md, bottom: Spacing.md })
@@ -162,6 +183,19 @@ export struct DebugPanel {
     if (runtime !== null) {
       runtime.runEasterEggScenario(scenario);
     }
+  }
+
+  private runPatternScenario(scenario: PatternDebugScenario): void {
+    const runtime = this.runtime();
+    if (runtime === null) {
+      return;
+    }
+    runtime.runPatternScenario(scenario).then((result: string) => {
+      if (scenario === PatternDebugScenario.SIMILAR_MATCH && result.startsWith('OK | matched=')) {
+        return;
+      }
+      this.showResult('PATTERN LEARNING', result);
+    });
   }
 
   @Builder

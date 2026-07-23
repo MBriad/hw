@@ -2,14 +2,16 @@ import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.Ab
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { PreferencesCheckInRepo } from '../adapters/PreferencesCheckInRepo';
+import { PreferencesLearnedPatternRepo } from '../adapters/PreferencesLearnedPatternRepo';
 import { SkinProviderImpl } from '../adapters/SkinProviderImpl';
 import { SoundPlayerImpl } from '../adapters/SoundPlayerImpl';
 import { FrequencyPatternEngine } from '../domain/FrequencyPatternEngine';
+import { LearnedPatternPolicy } from '../domain/LearnedPatternPolicy';
 import { ClearCheckIns } from '../usecases/ClearCheckIns';
-import { DetectEasterEgg } from '../usecases/DetectEasterEgg';
 import { LoadActivity } from '../usecases/LoadActivity';
 import { LoadHeatmap } from '../usecases/LoadHeatmap';
 import { RecordCheckIn } from '../usecases/RecordCheckIn';
+import { ManageLearnedPatterns } from '../usecases/ManageLearnedPatterns';
 import { HeatmapVM } from '../viewmodels/HeatmapVM';
 
 const DOMAIN = 0x0000;
@@ -32,13 +34,14 @@ export default class EntryAbility extends UIAbility {
   onWindowStageCreate(windowStage: window.WindowStage): void {
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
     const repo = new PreferencesCheckInRepo(this.context);
+    const learnedPatternRepo = new PreferencesLearnedPatternRepo(this.context);
     const patternEngine = new FrequencyPatternEngine();
     const viewModel = new HeatmapVM(
       new LoadHeatmap(repo),
       new RecordCheckIn(repo),
       new ClearCheckIns(repo),
       new LoadActivity(repo, patternEngine),
-      new DetectEasterEgg(repo, patternEngine),
+      new ManageLearnedPatterns(learnedPatternRepo, new LearnedPatternPolicy()),
       new SkinProviderImpl(),
       new SoundPlayerImpl()
     );

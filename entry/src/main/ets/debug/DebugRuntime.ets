@@ -1,4 +1,5 @@
 import { EasterEgg } from '../domain/EasterEgg';
+import { LearnedPattern, PatternStage, PatternSuggestion } from '../domain/LearnedPattern';
 import { HeatmapCell } from '../domain/Streak';
 import { HeatmapVM } from '../viewmodels/HeatmapVM';
 
@@ -16,6 +17,16 @@ export enum EggDebugScenario {
   RETRIGGER_BLOCKED = 'RETRIGGER_BLOCKED',
   RAPID_TAPS = 'RAPID_TAPS',
   AFTER_END = 'AFTER_END',
+}
+
+export enum PatternDebugScenario {
+  OBSERVING = 'OBSERVING',
+  CANDIDATE = 'CANDIDATE',
+  MATURE = 'MATURE',
+  SIMILAR_MATCH = 'SIMILAR_MATCH',
+  NO_MATCH = 'NO_MATCH',
+  COOLDOWN = 'COOLDOWN',
+  RESET_SAMPLE = 'RESET_SAMPLE',
 }
 
 export class DebugRuntime {
@@ -72,6 +83,41 @@ export class DebugRuntime {
     try {
       await this.vm.clearAllRecords();
       return 'OK | records cleared';
+    } catch (error) {
+      return this.failure(error);
+    }
+  }
+
+  async runPatternScenario(scenario: PatternDebugScenario): Promise<string> {
+    try {
+      if (scenario === PatternDebugScenario.OBSERVING) {
+        return this.patternStatus(await this.seedPattern(1, 0.35));
+      } else if (scenario === PatternDebugScenario.CANDIDATE) {
+        return this.patternStatus(await this.seedPattern(3, 0.65));
+      } else if (scenario === PatternDebugScenario.MATURE) {
+        return this.patternStatus(await this.seedPattern(5, 0.9));
+      } else if (scenario === PatternDebugScenario.SIMILAR_MATCH) {
+        await this.seedPattern(5, 0.9);
+        const egg = await this.vm.matchLearnedPattern('evening sketch practice', 20000);
+        return egg === null ? 'FAIL | similar alias did not match' : `OK | matched=${egg.keyword}`;
+      } else if (scenario === PatternDebugScenario.NO_MATCH) {
+        const pattern = await this.seedPattern(5, 0.9);
+        const egg = await this.vm.matchLearnedPattern('strength training plan', 20000);
+        return egg === null ? `OK | no match | stage=${pattern.stage}` : 'FAIL | unrelated text matched';
+      } else if (scenario === PatternDebugScenario.COOLDOWN) {
+        await this.seedPattern(5, 0.9);
+        await this.vm.matchLearnedPattern('drawing session', 20000);
+        this.vm.dismissEgg();
+        const patterns = this.vm.learnedPatterns;
+        if (patterns.length === 0) {
+          return 'FAIL | pattern missing after match';
+        }
+        return `OK | stage=${patterns[0].stage} | blockedUntil=${patterns[0].cooldownUntil}`;
+      } else if (scenario === PatternDebugScenario.RESET_SAMPLE) {
+        await this.vm.resetLearnedPatterns();
+        return `OK | patterns=${this.vm.learnedPatterns.length}`;
+      }
+      return 'FAIL | unsupported scenario';
     } catch (error) {
       return this.failure(error);
     }
@@ -140,6 +186,28 @@ export class DebugRuntime {
         'eva_alert'
       ));
     }, EGG_DEBUG_REPLAY_MS);
+  }
+
+  private async seedPattern(count: number, confidence: number): Promise<LearnedPattern> {
+    await this.vm.resetLearnedPatterns();
+    const suggestion = new PatternSuggestion(
+      'creative flow',
+      ['sketch practice', 'drawing session', 'illustration study'],
+      confidence,
+      'PATTERN MATURE // CREATIVE FLOW',
+      'particle_rise',
+      'level_up'
+    );
+    let pattern = await this.vm.observeLearnedPattern(suggestion, '2026-07-01', 1000);
+    for (let i = 1; i < count; i++) {
+      const day = String(i + 1).padStart(2, '0');
+      pattern = await this.vm.observeLearnedPattern(suggestion, `2026-07-${day}`, 1000 + i);
+    }
+    return pattern;
+  }
+
+  private patternStatus(pattern: LearnedPattern): string {
+    return `OK | stage=${pattern.stage} | count=${pattern.occurrenceCount} | days=${pattern.distinctDateCount}`;
   }
 
   private egg(keyword: string, quote: string, effectType: string, soundFile: string): EasterEgg {

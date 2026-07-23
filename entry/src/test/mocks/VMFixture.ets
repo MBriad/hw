@@ -1,11 +1,12 @@
 import { SkinProviderImpl } from '../../main/ets/adapters/SkinProviderImpl';
 import { SoundPlayer } from '../../main/ets/domain/ports/SoundPlayer';
 import { HeatmapVM } from '../../main/ets/viewmodels/HeatmapVM';
+import { PatternLearningApi } from '../../main/ets/domain/ports/PatternLearningApi';
 import {
   MockClearCheckIns,
-  MockDetectEasterEgg,
   MockLoadActivity,
   MockLoadHeatmap,
+  MockPatternLearning,
   MockRecordCheckIn,
 } from './MockUseCases';
 
@@ -25,15 +26,20 @@ export class VMFixture {
   record: MockRecordCheckIn = new MockRecordCheckIn();
   clear: MockClearCheckIns = new MockClearCheckIns();
   loadActivity: MockLoadActivity = new MockLoadActivity();
-  detect: MockDetectEasterEgg = new MockDetectEasterEgg();
+  patternLearning: PatternLearningApi;
   sound: MockSoundPlayer = new MockSoundPlayer();
-  vm: HeatmapVM = new HeatmapVM(
-    this.loadHeatmap,
-    this.record,
-    this.clear,
-    this.loadActivity,
-    this.detect,
-    new SkinProviderImpl(),
-    this.sound
-  );
+  vm: HeatmapVM;
+
+  constructor(patternLearning?: PatternLearningApi) {
+    this.patternLearning = patternLearning ?? new MockPatternLearning();
+    this.vm = new HeatmapVM(
+      this.loadHeatmap,
+      this.record,
+      this.clear,
+      this.loadActivity,
+      this.patternLearning,
+      new SkinProviderImpl(),
+      this.sound
+    );
+  }
 }

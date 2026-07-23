@@ -120,6 +120,18 @@ export class UILabels {
   aiAnalyzeSample: string;
   aiTimeout: string;
   aiInvalidResponse: string;
+  // ── Calendar navigation and lab
+  today: string;
+  calendarLab: string;
+  calendarLabSub: string;
+  monthNavigationPipeline: string;
+  calendarStandard: string;
+  calendarYearBoundaries: string;
+  previousMonth: string;
+  nextMonth: string;
+  currentMonth: string;
+  decemberToJanuary: string;
+  januaryToDecember: string;
   // ── Language toggle
   langZh: string;
   langEn: string;
@@ -151,6 +163,10 @@ export class UILabels {
     observing: string, candidate: string, mature: string, similarMatch: string, noMatch: string,
     cooldown: string, observationStatus: string, resetSample: string,
     aiPing: string, aiAnalyzeSample: string, aiTimeout: string, aiInvalidResponse: string,
+    today: string, calendarLab: string, calendarLabSub: string, monthNavigationPipeline: string,
+    calendarStandard: string, calendarYearBoundaries: string,
+    previousMonth: string, nextMonth: string, currentMonth: string,
+    decemberToJanuary: string, januaryToDecember: string,
     langZh: string, langEn: string,
   ) {
     this.tabCalendar = tabCalendar; this.tabLogs = tabLogs; this.tabPatterns = tabPatterns; this.tabProfile = tabProfile;
@@ -179,6 +195,11 @@ export class UILabels {
     this.observing = observing; this.candidate = candidate; this.mature = mature; this.similarMatch = similarMatch; this.noMatch = noMatch;
     this.cooldown = cooldown; this.observationStatus = observationStatus; this.resetSample = resetSample;
     this.aiPing = aiPing; this.aiAnalyzeSample = aiAnalyzeSample; this.aiTimeout = aiTimeout; this.aiInvalidResponse = aiInvalidResponse;
+    this.today = today; this.calendarLab = calendarLab; this.calendarLabSub = calendarLabSub;
+    this.monthNavigationPipeline = monthNavigationPipeline;
+    this.calendarStandard = calendarStandard; this.calendarYearBoundaries = calendarYearBoundaries;
+    this.previousMonth = previousMonth; this.nextMonth = nextMonth; this.currentMonth = currentMonth;
+    this.decemberToJanuary = decemberToJanuary; this.januaryToDecember = januaryToDecember;
     this.langZh = langZh; this.langEn = langEn;
   }
 }
@@ -218,6 +239,9 @@ export const CHINESE_UI_LABELS: UILabels = new UILabels(
   '真实学习管线', '阶段', '匹配', '数据', 'AI',
   '观察中', '候选', '已成熟', '相似匹配', '无匹配', '冷却中', '观察状态', '重置样本',
   'AI 探活', 'AI 分析样本', 'AI 超时', 'AI 无效响应',
+  // Calendar navigation and lab
+  '本月', '日历实验室', '月份导航 / 跨年边界', '月份导航管线', '常规', '跨年边界',
+  '上一月', '下一月', '本月', '十二月 > 一月', '一月 > 十二月',
   // Language toggle
   '中', '英',
 );
@@ -259,6 +283,9 @@ export const ENGLISH_UI_LABELS: UILabels = new UILabels(
   'OBSERVING', 'CANDIDATE', 'MATURE', 'SIMILAR MATCH', 'NO MATCH', 'COOLDOWN',
   'OBSERVATION STATUS', 'RESET SAMPLE',
   'AI PING', 'AI ANALYZE SAMPLE', 'AI TIMEOUT', 'AI INVALID RESPONSE',
+  // Calendar navigation and lab
+  'TODAY', 'CALENDAR LAB', 'NAVIGATION / YEAR BOUNDARIES', 'SYSTEM / MONTH NAVIGATION',
+  'STANDARD', 'YEAR BOUNDARIES', 'PREVIOUS', 'NEXT', 'CURRENT', 'DEC > JAN', 'JAN > DEC',
   // Language toggle
   'ZH', 'EN',
 );

@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@ohos/hypium';
-import { DebugRuntime, PatternDebugScenario } from '../main/ets/debug/DebugRuntime';
+import { CalendarDebugScenario, DebugRuntime, PatternDebugScenario } from '../main/ets/debug/DebugRuntime';
 import { LearnedPatternPolicy } from '../main/ets/domain/LearnedPatternPolicy';
 import { ManageLearnedPatterns } from '../main/ets/usecases/ManageLearnedPatterns';
 import { MockLearnedPatternRepo } from './mocks/MockLearnedPatternRepo';
@@ -111,6 +111,21 @@ export default function debugRuntimeTest() {
       expect(reset).assertEqual('OK | patterns=0 | pending=0');
       expect(repo.patterns.length).assertEqual(0);
       expect(observations.observations.length).assertEqual(0);
+    });
+
+    it('calendarLab_runs_standard_and_cross_year_workflows', 0, async () => {
+      const fixture = new VMFixture();
+      const runtime = makeRuntime(fixture);
+      await fixture.calendarVM.loadMonth(2026, 7);
+
+      const previous = await runtime.runCalendarScenario(CalendarDebugScenario.PREVIOUS_MONTH);
+      expect(previous.startsWith('OK | month=2026.06')).assertEqual(true);
+
+      const forwardBoundary = await runtime.runCalendarScenario(CalendarDebugScenario.DECEMBER_TO_JANUARY);
+      expect(forwardBoundary.startsWith('OK | month=2027.01')).assertEqual(true);
+
+      const backwardBoundary = await runtime.runCalendarScenario(CalendarDebugScenario.JANUARY_TO_DECEMBER);
+      expect(backwardBoundary.startsWith('OK | month=2025.12')).assertEqual(true);
     });
   });
 }

@@ -37,6 +37,58 @@ export default function heatmapVMTest() {
       expect(fixture.calendarVM.longestMonthStreak).assertEqual(3);
     });
 
+    it('month_navigation_moves_within_year_and_clears_selection', 0, async () => {
+      const fixture = new VMFixture();
+      await fixture.calendarVM.loadMonth(2026, 7);
+      fixture.calendarVM.selectDate('2026-07-19');
+      await fixture.calendarVM.previousMonth();
+      expect(fixture.calendarVM.monthCode).assertEqual('2026.06');
+      expect(fixture.calendarVM.selectedDate).assertEqual('');
+      await fixture.calendarVM.nextMonth();
+      expect(fixture.calendarVM.monthCode).assertEqual('2026.07');
+    });
+
+    it('month_navigation_handles_both_year_boundaries', 0, async () => {
+      const fixture = new VMFixture();
+      await fixture.calendarVM.loadMonth(2026, 12);
+      await fixture.calendarVM.nextMonth();
+      expect(fixture.calendarVM.monthCode).assertEqual('2027.01');
+      expect(fixture.loadHeatmap.capturedYear).assertEqual(2027);
+      expect(fixture.loadHeatmap.capturedMonth).assertEqual(1);
+
+      await fixture.calendarVM.previousMonth();
+      expect(fixture.calendarVM.monthCode).assertEqual('2026.12');
+      await fixture.calendarVM.loadMonth(2026, 1);
+      await fixture.calendarVM.previousMonth();
+      expect(fixture.calendarVM.monthCode).assertEqual('2025.12');
+    });
+
+    it('returnToCurrentMonth_loads_supplied_date_and_selects_today', 0, async () => {
+      const fixture = new VMFixture();
+      await fixture.calendarVM.loadMonth(2025, 12);
+      await fixture.calendarVM.returnToCurrentMonth(new Date(2026, 6, 22));
+      expect(fixture.calendarVM.monthCode).assertEqual('2026.07');
+      expect(fixture.calendarVM.selectedDate).assertEqual('2026-07-22');
+      expect(fixture.calendarVM.isMonthLoading).assertEqual(false);
+    });
+
+    it('month_navigation_failure_preserves_visible_state', 0, async () => {
+      const fixture = new VMFixture();
+      await fixture.calendarVM.loadMonth(2026, 7);
+      fixture.calendarVM.selectDate('2026-07-19');
+      fixture.loadHeatmap.shouldFail = true;
+      let failed = false;
+      try {
+        await fixture.calendarVM.nextMonth();
+      } catch (_error) {
+        failed = true;
+      }
+      expect(failed).assertEqual(true);
+      expect(fixture.calendarVM.monthCode).assertEqual('2026.07');
+      expect(fixture.calendarVM.selectedDate).assertEqual('2026-07-19');
+      expect(fixture.calendarVM.isMonthLoading).assertEqual(false);
+    });
+
     it('doCheckIn_returns_egg_when_pattern_matches', 0, async () => {
       const fixture = new VMFixture();
       const learning = fixture.patternLearning as MockPatternLearning;

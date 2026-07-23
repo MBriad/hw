@@ -4,8 +4,15 @@ import { DesignTokens } from '../../domain/SkinTheme';
 import { CalendarVM } from '../../viewmodels/CalendarVM';
 import { ActivityVM } from '../../viewmodels/ActivityVM';
 import { EasterEggVM } from '../../viewmodels/EasterEggVM';
-import { DebugRuntime, EggDebugScenario, PatternDebugScenario, AiDebugScenario } from '../DebugRuntime';
+import {
+  AiDebugScenario,
+  CalendarDebugScenario,
+  DebugRuntime,
+  EggDebugScenario,
+  PatternDebugScenario,
+} from '../DebugRuntime';
 import { UILabels } from '../../common/UILabels';
+import { CalendarLabDialog } from './CalendarLabDialog';
 import { EasterEggLabDialog } from './EasterEggLabDialog';
 import { PatternLearningLabDialog } from './PatternLearningLabDialog';
 
@@ -23,6 +30,7 @@ enum DebugActionKind {
 }
 
 enum DebugLabKind {
+  CALENDAR = 'calendar',
   EASTER_EGG = 'easter_egg',
   PATTERN_LEARNING = 'pattern_learning',
 }
@@ -40,6 +48,16 @@ export struct DebugPanel {
     builder: EasterEggLabDialog({
       onRun: (scenario: EggDebugScenario) => {
         this.runEggScenario(scenario);
+      }
+    }),
+    autoCancel: true,
+    customStyle: true,
+    alignment: DialogAlignment.Center,
+  });
+  private calendarLabController: CustomDialogController = new CustomDialogController({
+    builder: CalendarLabDialog({
+      onRun: (scenario: CalendarDebugScenario) => {
+        this.runCalendarScenario(scenario);
       }
     }),
     autoCancel: true,
@@ -142,6 +160,15 @@ export struct DebugPanel {
           this.sectionLabel(DebugSectionKind.FEATURE_LABS)
 
           this.featureLabButton(
+            DebugLabKind.CALENDAR,
+            () => {
+              this.calendarLabController.open();
+            }
+          )
+
+          Blank().height(Spacing.xs)
+
+          this.featureLabButton(
             DebugLabKind.EASTER_EGG,
             () => {
               this.eggLabController.open();
@@ -204,6 +231,10 @@ export struct DebugPanel {
     if (runtime !== null) {
       runtime.runEasterEggScenario(scenario);
     }
+  }
+
+  private runCalendarScenario(scenario: CalendarDebugScenario): void {
+    this.runAsync(this.uiLabels.calendarLab, (runtime: DebugRuntime) => runtime.runCalendarScenario(scenario));
   }
 
   private runPatternScenario(scenario: PatternDebugScenario): void {
@@ -289,7 +320,9 @@ export struct DebugPanel {
     Row() {
       Column() {
         Text() {
-          if (kind === DebugLabKind.EASTER_EGG) {
+          if (kind === DebugLabKind.CALENDAR) {
+            Span(this.uiLabels.calendarLab)
+          } else if (kind === DebugLabKind.EASTER_EGG) {
             Span(this.uiLabels.easterEggLab)
           } else {
             Span(this.uiLabels.patternLearningLab)
@@ -301,7 +334,9 @@ export struct DebugPanel {
           .fontFamily('monospace')
 
         Text() {
-          if (kind === DebugLabKind.EASTER_EGG) {
+          if (kind === DebugLabKind.CALENDAR) {
+            Span(this.uiLabels.calendarLabSub)
+          } else if (kind === DebugLabKind.EASTER_EGG) {
             Span(this.uiLabels.easterEggLabSub)
           } else {
             Span(this.uiLabels.patternLearningLabSub)

@@ -32,6 +32,14 @@ export enum PatternDebugScenario {
   RESET_SAMPLE = 'RESET_SAMPLE',
 }
 
+export enum CalendarDebugScenario {
+  PREVIOUS_MONTH = 'PREVIOUS_MONTH',
+  NEXT_MONTH = 'NEXT_MONTH',
+  CURRENT_MONTH = 'CURRENT_MONTH',
+  DECEMBER_TO_JANUARY = 'DECEMBER_TO_JANUARY',
+  JANUARY_TO_DECEMBER = 'JANUARY_TO_DECEMBER',
+}
+
 export enum AiDebugScenario {
   AI_PING = 'AI_PING',
   AI_ANALYZE_SAMPLE = 'AI_ANALYZE_SAMPLE',
@@ -136,6 +144,27 @@ export class DebugRuntime {
         return `OK | patterns=${this.activityVM.learnedPatterns.length} | pending=${this.activityVM.pendingLearningObservations}`;
       }
       return 'FAIL | unsupported scenario';
+    } catch (error) {
+      return this.failure(error);
+    }
+  }
+
+  async runCalendarScenario(scenario: CalendarDebugScenario): Promise<string> {
+    try {
+      if (scenario === CalendarDebugScenario.PREVIOUS_MONTH) {
+        await this.calendarVM.previousMonth();
+      } else if (scenario === CalendarDebugScenario.NEXT_MONTH) {
+        await this.calendarVM.nextMonth();
+      } else if (scenario === CalendarDebugScenario.CURRENT_MONTH) {
+        await this.calendarVM.returnToCurrentMonth();
+      } else if (scenario === CalendarDebugScenario.DECEMBER_TO_JANUARY) {
+        await this.calendarVM.loadMonth(2026, 12);
+        await this.calendarVM.nextMonth();
+      } else if (scenario === CalendarDebugScenario.JANUARY_TO_DECEMBER) {
+        await this.calendarVM.loadMonth(2026, 1);
+        await this.calendarVM.previousMonth();
+      }
+      return `OK | month=${this.calendarVM.monthCode} | selected=${this.calendarVM.selectedDate || 'none'}`;
     } catch (error) {
       return this.failure(error);
     }

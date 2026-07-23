@@ -11,6 +11,7 @@ import { PatternLearningApi } from '../domain/ports/PatternLearningApi';
 export class CalendarVM {
   cells: HeatmapCell[] = [];
   selectedDate: string = '';
+  isMonthLoading: boolean = false;
 
   private loadHeatmap: ILoadHeatmap;
   private recordCheckIn: IRecordCheckIn;
@@ -32,9 +33,31 @@ export class CalendarVM {
   }
 
   async loadMonth(year: number, month: number): Promise<void> {
+    const cells = await this.loadHeatmap.execute(year, month);
     this.currentYear = year;
     this.currentMonth = month;
-    this.cells = await this.loadHeatmap.execute(year, month);
+    this.cells = cells;
+  }
+
+  async previousMonth(): Promise<void> {
+    await this.navigateMonth(-1);
+  }
+
+  async nextMonth(): Promise<void> {
+    await this.navigateMonth(1);
+  }
+
+  async returnToCurrentMonth(now: Date = new Date()): Promise<void> {
+    if (this.isMonthLoading) {
+      return;
+    }
+    this.isMonthLoading = true;
+    try {
+      await this.loadMonth(now.getFullYear(), now.getMonth() + 1);
+      this.selectedDate = this.formatDate(now);
+    } finally {
+      this.isMonthLoading = false;
+    }
   }
 
   async doCheckIn(content: string): Promise<EasterEgg | null> {
@@ -98,5 +121,35 @@ export class CalendarVM {
       }
     });
     return longest;
+  }
+
+  private async navigateMonth(offset: number): Promise<void> {
+    if (this.isMonthLoading) {
+      return;
+    }
+    let year = this.currentYear;
+    let month = this.currentMonth + offset;
+    if (month < 1) {
+      year--;
+      month = 12;
+    } else if (month > 12) {
+      year++;
+      month = 1;
+    }
+
+    this.isMonthLoading = true;
+    try {
+      await this.loadMonth(year, month);
+      this.selectedDate = '';
+    } finally {
+      this.isMonthLoading = false;
+    }
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

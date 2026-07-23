@@ -28,6 +28,7 @@ export class MockSoundPlayer implements SoundPlayer {
 export class MockSkinProvider implements SkinProvider {
   persistedTheme: SkinTheme = SkinTheme.LIGHT;
   persistedCount: number = 0;
+  persistedLocale: string = 'zh';
 
   getTokens(id: SkinTheme): DesignTokens {
     return ThemePalette[id];
@@ -44,6 +45,14 @@ export class MockSkinProvider implements SkinProvider {
   async persist(id: SkinTheme): Promise<void> {
     this.persistedTheme = id;
     this.persistedCount++;
+  }
+
+  async loadLocale(): Promise<string> {
+    return this.persistedLocale;
+  }
+
+  async persistLocale(locale: string): Promise<void> {
+    this.persistedLocale = locale;
   }
 }
 

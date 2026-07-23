@@ -1,4 +1,5 @@
 import { Spacing } from '../../common/SpacingTokens';
+import { UILabels, labelsForLocale } from '../../common/UILabels';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { HeatmapCell } from '../../domain/Streak';
 import { HeatmapGrid } from '../components/HeatmapGrid';
@@ -6,6 +7,7 @@ import { HeatmapGrid } from '../components/HeatmapGrid';
 @Component
 export struct CalendarSection {
   @Consume tokens: DesignTokens;
+  @Consume locale: string;
   @Prop cells: HeatmapCell[];
   @Prop selectedDate: string;
   @Prop todayString: string;
@@ -13,11 +15,15 @@ export struct CalendarSection {
   @Prop monthCommitCount: number;
   onCellTap?: (date: string) => void;
 
+  private labels(): UILabels {
+    return labelsForLocale(this.locale);
+  }
+
   build() {
     Scroll() {
       Column() {
         Row() {
-          Text('CALENDAR VIEW')
+          Text(this.labels().calendarView)
             .fontSize(11)
             .fontWeight(700)
             .fontColor(this.tokens.textPrimary)
@@ -25,7 +31,7 @@ export struct CalendarSection {
 
           Blank()
 
-          Text(`${this.cells.length} DAYS`)
+          Text(`${this.cells.length} ${this.labels().daysUnit}`)
             .fontSize(10)
             .fontWeight(700)
             .fontColor(this.tokens.textMuted)
@@ -50,7 +56,7 @@ export struct CalendarSection {
 
         Row() {
           Column() {
-            Text('BEST RUN')
+            Text(this.labels().bestRun)
               .fontSize(10)
               .fontWeight(700)
               .fontColor(this.tokens.textMuted)
@@ -62,7 +68,7 @@ export struct CalendarSection {
                 .fontWeight(900)
                 .fontColor(this.tokens.textPrimary)
 
-              Text('DAYS')
+              Text(this.labels().daysUnit)
                 .fontSize(10)
                 .fontWeight(700)
                 .fontColor(this.tokens.textMuted)
@@ -75,7 +81,7 @@ export struct CalendarSection {
           .alignItems(HorizontalAlign.Start)
 
           Column() {
-            Text('MONTH COMMITS')
+            Text(this.labels().monthCommits)
               .fontSize(10)
               .fontWeight(700)
               .fontColor(this.tokens.textMuted)

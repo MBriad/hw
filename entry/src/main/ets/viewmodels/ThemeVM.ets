@@ -26,6 +26,14 @@ export class ThemeVM {
     return this.skinProvider.persist(theme);
   }
 
+  async loadLocale(): Promise<string> {
+    return this.skinProvider.loadLocale();
+  }
+
+  async persistLocale(locale: string): Promise<void> {
+    return this.skinProvider.persistLocale(locale);
+  }
+
   private applySkin(theme: SkinTheme): void {
     this.currentSkin = theme;
     this.currentTokens = this.skinProvider.getTokens(theme);

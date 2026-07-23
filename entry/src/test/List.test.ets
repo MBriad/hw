@@ -12,6 +12,7 @@ import debugRuntimeTest from './DebugRuntime.test';
 import learnedPatternPolicyTest from './LearnedPatternPolicy.test';
 import manageLearnedPatternsTest from './ManageLearnedPatterns.test';
 import analyzePendingObservationsTest from './AnalyzePendingObservations.test';
+import uiLabelsTest from './UILabels.test';
 
 export default function testsuite() {
   localUnitTest();
@@ -28,4 +29,5 @@ export default function testsuite() {
   learnedPatternPolicyTest();
   manageLearnedPatternsTest();
   analyzePendingObservationsTest();
+  uiLabelsTest();
 }

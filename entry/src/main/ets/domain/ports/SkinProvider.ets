@@ -17,4 +17,10 @@ export interface SkinProvider {
 
   /** Persist the selected theme. */
   persist(id: SkinTheme): Promise<void>;
+
+  /** Load persisted locale, falling back to 'zh'. */
+  loadLocale(): Promise<string>;
+
+  /** Persist locale preference. */
+  persistLocale(locale: string): Promise<void>;
 }

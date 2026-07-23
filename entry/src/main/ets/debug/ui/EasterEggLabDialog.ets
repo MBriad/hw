@@ -1,27 +1,31 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
-import { DebugLabels } from '../../common/DebugLabels';
+import { UILabels, labelsForLocale } from '../../common/UILabels';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { EggDebugScenario } from '../DebugRuntime';
 
 @CustomDialog
 export struct EasterEggLabDialog {
   @Consume tokens: DesignTokens;
-  @Consume debugLabels: DebugLabels;
+  @Consume locale: string;
   controller: CustomDialogController;
   onRun?: (scenario: EggDebugScenario) => void;
+
+  private labels(): UILabels {
+    return labelsForLocale(this.locale);
+  }
 
   build() {
     Column() {
       Row() {
         Column() {
-          Text(this.debugLabels.easterEggLab)
+          Text(this.labels().easterEggLab)
             .fontSize(14)
             .fontWeight(800)
             .fontColor(this.tokens.textPrimary)
             .fontFamily('monospace')
 
-          Text(this.debugLabels.liveEffectPipeline)
+          Text(this.labels().liveEffectPipeline)
             .fontSize(9)
             .fontWeight(600)
             .fontColor(this.tokens.textMuted)
@@ -62,50 +66,50 @@ export struct EasterEggLabDialog {
 
       Scroll() {
         Column() {
-          this.sectionLabel('01', this.debugLabels.presets)
+          this.sectionLabel('01', this.labels().presets)
 
           Row() {
-            this.labButton(this.debugLabels.sparkle, EggDebugScenario.SPARKLE)
+            this.labButton(this.labels().sparkle, EggDebugScenario.SPARKLE)
             Blank().width(Spacing.xs)
-            this.labButton(this.debugLabels.dark, EggDebugScenario.DARK)
+            this.labButton(this.labels().darkEgg, EggDebugScenario.DARK)
           }
           .width('100%')
 
           Row() {
-            this.labButton(this.debugLabels.bubble, EggDebugScenario.BUBBLE)
+            this.labButton(this.labels().bubble, EggDebugScenario.BUBBLE)
             Blank().width(Spacing.xs)
-            this.labButton(this.debugLabels.sakura, EggDebugScenario.SAKURA)
-          }
-          .width('100%')
-          .margin({ top: Spacing.xs })
-
-          Row() {
-            this.labButton(this.debugLabels.rise, EggDebugScenario.RISE)
-            Blank().width(Spacing.xs)
-            this.labButton(this.debugLabels.atField, EggDebugScenario.AT_FIELD)
-          }
-          .width('100%')
-          .margin({ top: Spacing.xs })
-
-          this.sectionLabel('02', this.debugLabels.lifecycle)
-
-          Row() {
-            this.labButton(this.debugLabels.autoDismiss, EggDebugScenario.AUTO_DISMISS)
-            Blank().width(Spacing.xs)
-            this.labButton(this.debugLabels.tapDismiss, EggDebugScenario.TAP_DISMISS)
-          }
-          .width('100%')
-
-          Row() {
-            this.labButton(this.debugLabels.retriggerBlock, EggDebugScenario.RETRIGGER_BLOCKED)
-            Blank().width(Spacing.xs)
-            this.labButton(this.debugLabels.rapidTaps, EggDebugScenario.RAPID_TAPS)
+            this.labButton(this.labels().sakura, EggDebugScenario.SAKURA)
           }
           .width('100%')
           .margin({ top: Spacing.xs })
 
           Row() {
-            this.labButton(this.debugLabels.afterEnd, EggDebugScenario.AFTER_END)
+            this.labButton(this.labels().rise, EggDebugScenario.RISE)
+            Blank().width(Spacing.xs)
+            this.labButton(this.labels().atField, EggDebugScenario.AT_FIELD)
+          }
+          .width('100%')
+          .margin({ top: Spacing.xs })
+
+          this.sectionLabel('02', this.labels().lifecycle)
+
+          Row() {
+            this.labButton(this.labels().autoDismiss, EggDebugScenario.AUTO_DISMISS)
+            Blank().width(Spacing.xs)
+            this.labButton(this.labels().tapDismiss, EggDebugScenario.TAP_DISMISS)
+          }
+          .width('100%')
+
+          Row() {
+            this.labButton(this.labels().retriggerBlock, EggDebugScenario.RETRIGGER_BLOCKED)
+            Blank().width(Spacing.xs)
+            this.labButton(this.labels().rapidTaps, EggDebugScenario.RAPID_TAPS)
+          }
+          .width('100%')
+          .margin({ top: Spacing.xs })
+
+          Row() {
+            this.labButton(this.labels().afterEnd, EggDebugScenario.AFTER_END)
             Blank().width(Spacing.xs)
             Blank().layoutWeight(1)
           }

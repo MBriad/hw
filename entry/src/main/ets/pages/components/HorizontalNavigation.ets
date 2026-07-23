@@ -1,4 +1,5 @@
 import { Spacing } from '../../common/SpacingTokens';
+import { UILabels, labelsForLocale } from '../../common/UILabels';
 import { AppSection } from '../../domain/AppSection';
 import { DesignTokens, SkinTheme } from '../../domain/SkinTheme';
 
@@ -7,9 +8,14 @@ const RAIL_HEIGHT = 44;
 @Component
 export struct HorizontalNavigation {
   @Consume tokens: DesignTokens;
+  @Consume locale: string;
   @Consume themeName: SkinTheme;
   @Prop active: AppSection;
   onNavigate?: (section: AppSection) => void;
+
+  private labels(): UILabels {
+    return labelsForLocale(this.locale);
+  }
 
   @Builder
   private tab(section: AppSection, label: string) {
@@ -53,15 +59,15 @@ export struct HorizontalNavigation {
 
   build() {
     Row() {
-      this.tab(AppSection.DATA, 'CALENDAR')
-      this.tab(AppSection.LOGS, 'LOGS')
-      this.tab(AppSection.CORE, 'PATTERNS')
-      this.tab(AppSection.USER, 'PROFILE')
+      this.tab(AppSection.DATA, this.labels().tabCalendar)
+      this.tab(AppSection.LOGS, this.labels().tabLogs)
+      this.tab(AppSection.CORE, this.labels().tabPatterns)
+      this.tab(AppSection.USER, this.labels().tabProfile)
     }
     .height(RAIL_HEIGHT)
     .width('100%')
     .backgroundColor(this.tokens.bgBase)
     .border({ width: { bottom: 1 }, color: this.tokens.textPrimary })
-    .id(`horizontal_navigation_${this.themeName}`)
+    .id(`horizontal_navigation_${this.themeName}_${this.locale}`)
   }
 }

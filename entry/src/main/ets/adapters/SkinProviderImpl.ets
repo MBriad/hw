@@ -5,6 +5,7 @@ import { SkinProvider } from '../domain/ports/SkinProvider';
 
 const STORE_NAME = 'app_settings';
 const KEY_THEME = 'theme';
+const KEY_LOCALE = 'locale';
 
 export class SkinProviderImpl implements SkinProvider {
   private context: Context | null;
@@ -41,6 +42,31 @@ export class SkinProviderImpl implements SkinProvider {
     try {
       const store = await preferences.getPreferences(this.context, STORE_NAME);
       await store.put(KEY_THEME, id);
+      await store.flush();
+    } catch (_error) {
+    }
+  }
+
+  async loadLocale(): Promise<string> {
+    if (this.context === null) {
+      return 'zh';
+    }
+    try {
+      const store = await preferences.getPreferences(this.context, STORE_NAME);
+      const value = await store.get(KEY_LOCALE, 'zh');
+      return (value === 'zh' || value === 'en') ? value as string : 'zh';
+    } catch (_error) {
+      return 'zh';
+    }
+  }
+
+  async persistLocale(locale: string): Promise<void> {
+    if (this.context === null) {
+      return;
+    }
+    try {
+      const store = await preferences.getPreferences(this.context, STORE_NAME);
+      await store.put(KEY_LOCALE, locale);
       await store.flush();
     } catch (_error) {
     }

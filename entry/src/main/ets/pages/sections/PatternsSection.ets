@@ -1,12 +1,18 @@
 import { Radius } from '../../common/RadiusTokens';
 import { Spacing } from '../../common/SpacingTokens';
+import { UILabels, labelsForLocale } from '../../common/UILabels';
 import { UsagePattern } from '../../domain/EasterEgg';
 import { DesignTokens } from '../../domain/SkinTheme';
 
 @Component
 export struct PatternsSection {
   @Consume tokens: DesignTokens;
+  @Consume locale: string;
   @Prop usagePatterns: UsagePattern[];
+
+  private labels(): UILabels {
+    return labelsForLocale(this.locale);
+  }
 
   @Builder
   private sectionLabel(index: string, label: string) {
@@ -98,7 +104,7 @@ export struct PatternsSection {
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-        Text(pattern.nextMilestone > 0 ? `NEXT MILESTONE // ${pattern.nextMilestone}` : 'MILESTONE // COMPLETE')
+        Text(pattern.nextMilestone > 0 ? `${this.labels().nextMilestone}${pattern.nextMilestone}` : this.labels().milestoneComplete)
           .fontSize(9)
           .fontWeight(600)
           .fontColor(this.tokens.textMuted)
@@ -123,16 +129,16 @@ export struct PatternsSection {
   build() {
     Scroll() {
       Column() {
-        this.sectionLabel('01', 'ENGINE')
+        this.sectionLabel('01', this.labels().engine)
 
         Column() {
-          this.summaryRow('PATTERN ENGINE', 'LOCAL INFERENCE', 'LISTENING')
+          this.summaryRow(this.labels().patternEngine, this.labels().localInference, this.labels().listening)
 
           Divider()
             .color(this.tokens.borderColor)
             .strokeWidth(1)
 
-          this.summaryRow('LEARNED PATTERNS', 'ACTIVE TERMS', `${this.usagePatterns.length}`)
+          this.summaryRow(this.labels().learnedPatterns, this.labels().activeTerms, `${this.usagePatterns.length}`)
         }
         .width('100%')
         .backgroundColor(this.tokens.bgSurface)
@@ -142,16 +148,16 @@ export struct PatternsSection {
         Blank()
           .height(Spacing.lg)
 
-        this.sectionLabel('02', 'MILESTONES')
+        this.sectionLabel('02', this.labels().milestones)
 
         Row() {
-          this.milestone('03', 'SIGNAL')
+          this.milestone('03', this.labels().signal)
           Divider().vertical(true).color(this.tokens.borderColor).strokeWidth(1)
-          this.milestone('07', 'RHYTHM')
+          this.milestone('07', this.labels().rhythm)
           Divider().vertical(true).color(this.tokens.borderColor).strokeWidth(1)
-          this.milestone('14', 'HABIT')
+          this.milestone('14', this.labels().habit)
           Divider().vertical(true).color(this.tokens.borderColor).strokeWidth(1)
-          this.milestone('30', 'MASTERY')
+          this.milestone('30', this.labels().mastery)
         }
         .width('100%')
         .height(72)
@@ -162,11 +168,11 @@ export struct PatternsSection {
         Blank()
           .height(Spacing.lg)
 
-        this.sectionLabel('03', 'SIGNALS')
+        this.sectionLabel('03', this.labels().signals)
 
         Column() {
           if (this.usagePatterns.length === 0) {
-            this.summaryRow('NO PATTERNS YET', 'AWAITING LOCAL ACTIVITY', '0')
+            this.summaryRow(this.labels().noPatternsYet, this.labels().awaitingLocalActivity, '0')
           } else {
             ForEach(this.usagePatterns, (pattern: UsagePattern, index: number) => {
               if (index > 0) {

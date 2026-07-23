@@ -1,28 +1,32 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
-import { DebugLabels } from '../../common/DebugLabels';
+import { UILabels, labelsForLocale } from '../../common/UILabels';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { PatternDebugScenario, AiDebugScenario } from '../DebugRuntime';
 
 @CustomDialog
 export struct PatternLearningLabDialog {
   @Consume tokens: DesignTokens;
-  @Consume debugLabels: DebugLabels;
+  @Consume locale: string;
   controller: CustomDialogController;
   onRun?: (scenario: PatternDebugScenario) => void;
   onAiRun?: (scenario: AiDebugScenario) => void;
+
+  private labels(): UILabels {
+    return labelsForLocale(this.locale);
+  }
 
   build() {
     Column() {
       Row() {
         Column() {
-          Text(this.debugLabels.patternLearningLab)
+          Text(this.labels().patternLearningLab)
             .fontSize(14)
             .fontWeight(800)
             .fontColor(this.tokens.textPrimary)
             .fontFamily('monospace')
 
-          Text(this.debugLabels.realLearningPipeline)
+          Text(this.labels().realLearningPipeline)
             .fontSize(9)
             .fontWeight(600)
             .fontColor(this.tokens.textMuted)
@@ -61,62 +65,62 @@ export struct PatternLearningLabDialog {
 
       Scroll() {
         Column() {
-          this.sectionLabel('01', this.debugLabels.stages)
+          this.sectionLabel('01', this.labels().stages)
 
           Row() {
-            this.labButton(this.debugLabels.observing, PatternDebugScenario.OBSERVING)
+            this.labButton(this.labels().observing, PatternDebugScenario.OBSERVING)
             Blank().width(Spacing.xs)
-            this.labButton(this.debugLabels.candidate, PatternDebugScenario.CANDIDATE)
+            this.labButton(this.labels().candidate, PatternDebugScenario.CANDIDATE)
           }
           .width('100%')
 
           Row() {
-            this.labButton(this.debugLabels.mature, PatternDebugScenario.MATURE)
+            this.labButton(this.labels().mature, PatternDebugScenario.MATURE)
             Blank().width(Spacing.xs)
             Blank().layoutWeight(1)
           }
           .width('100%')
           .margin({ top: Spacing.xs })
 
-          this.sectionLabel('02', this.debugLabels.matching)
+          this.sectionLabel('02', this.labels().matching)
 
           Row() {
-            this.labButton(this.debugLabels.similarMatch, PatternDebugScenario.SIMILAR_MATCH)
+            this.labButton(this.labels().similarMatch, PatternDebugScenario.SIMILAR_MATCH)
             Blank().width(Spacing.xs)
-            this.labButton(this.debugLabels.noMatch, PatternDebugScenario.NO_MATCH)
+            this.labButton(this.labels().noMatch, PatternDebugScenario.NO_MATCH)
           }
           .width('100%')
 
           Row() {
-            this.labButton(this.debugLabels.cooldown, PatternDebugScenario.COOLDOWN)
+            this.labButton(this.labels().cooldown, PatternDebugScenario.COOLDOWN)
             Blank().width(Spacing.xs)
             Blank().layoutWeight(1)
           }
           .width('100%')
           .margin({ top: Spacing.xs })
 
-          this.sectionLabel('03', this.debugLabels.data_section)
+          this.sectionLabel('03', this.labels().data_section)
 
           Row() {
-            this.labButton(this.debugLabels.observationStatus, PatternDebugScenario.OBSERVATION_STATUS)
+            this.labButton(this.labels().observationStatus, PatternDebugScenario.OBSERVATION_STATUS)
             Blank().width(Spacing.xs)
-            this.labButton(this.debugLabels.resetSample, PatternDebugScenario.RESET_SAMPLE)
+            this.labButton(this.labels().resetSample, PatternDebugScenario.RESET_SAMPLE)
           }
           .width('100%')
 
-          this.sectionLabel('04', this.debugLabels.ai_section)
+          this.sectionLabel('04', this.labels().ai_section)
 
           Row() {
-            this.aiButton(this.debugLabels.aiPing, AiDebugScenario.AI_PING)
+            this.aiButton(this.labels().aiPing, AiDebugScenario.AI_PING)
             Blank().width(Spacing.xs)
-            this.aiButton(this.debugLabels.aiAnalyzeSample, AiDebugScenario.AI_ANALYZE_SAMPLE)
+            this.aiButton(this.labels().aiAnalyzeSample, AiDebugScenario.AI_ANALYZE_SAMPLE)
           }
           .width('100%')
 
           Row() {
-            this.aiButton(this.debugLabels.aiTimeout, AiDebugScenario.AI_TIMEOUT)
+            this.aiButton(this.labels().aiTimeout, AiDebugScenario.AI_TIMEOUT)
             Blank().width(Spacing.xs)
-            this.aiButton(this.debugLabels.aiInvalidResponse, AiDebugScenario.AI_INVALID_RESPONSE)
+            this.aiButton(this.labels().aiInvalidResponse, AiDebugScenario.AI_INVALID_RESPONSE)
           }
           .width('100%')
           .margin({ top: Spacing.xs })

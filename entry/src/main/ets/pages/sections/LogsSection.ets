@@ -1,13 +1,19 @@
 import { Radius } from '../../common/RadiusTokens';
 import { Spacing } from '../../common/SpacingTokens';
+import { UILabels, labelsForLocale } from '../../common/UILabels';
 import { CheckIn } from '../../domain/CheckIn';
 import { DesignTokens } from '../../domain/SkinTheme';
 
 @Component
 export struct LogsSection {
   @Consume tokens: DesignTokens;
+  @Consume locale: string;
   @Prop checkIns: CheckIn[];
   @Prop totalCommitCount: number;
+
+  private labels(): UILabels {
+    return labelsForLocale(this.locale);
+  }
 
   @Builder
   private sectionLabel(index: string, label: string) {
@@ -99,16 +105,16 @@ export struct LogsSection {
   build() {
     Scroll() {
       Column() {
-        this.sectionLabel('01', 'SUMMARY')
+        this.sectionLabel('01', this.labels().summary)
 
         Column() {
-          this.summaryRow('ACTIVITY STREAM', 'LOCAL RECORDS', `${this.totalCommitCount}`)
+          this.summaryRow(this.labels().activityStream, this.labels().localRecords, `${this.totalCommitCount}`)
 
           Divider()
             .color(this.tokens.borderColor)
             .strokeWidth(1)
 
-          this.summaryRow('STORAGE MODE', 'PRIVATE APP DATA', 'ON DEVICE')
+          this.summaryRow(this.labels().storageMode, this.labels().privateAppData, this.labels().onDevice)
         }
         .width('100%')
         .backgroundColor(this.tokens.bgSurface)
@@ -118,11 +124,11 @@ export struct LogsSection {
         Blank()
           .height(Spacing.lg)
 
-        this.sectionLabel('02', 'COMMITS')
+        this.sectionLabel('02', this.labels().commits)
 
         Column() {
           if (this.checkIns.length === 0) {
-            this.summaryRow('NO COMMITS YET', 'AWAITING CALENDAR INPUT', '0')
+            this.summaryRow(this.labels().noCommitsYet, this.labels().awaitingCalendarInput, '0')
           } else {
             ForEach(this.checkIns, (checkIn: CheckIn, index: number) => {
               if (index > 0) {

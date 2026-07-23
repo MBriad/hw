@@ -2,7 +2,7 @@
 import { Spacing } from '../common/SpacingTokens';
 import { AppSection } from '../domain/AppSection';
 import { DesignTokens, SkinTheme, ThemePalette } from '../domain/SkinTheme';
-import { DebugLabels, CHINESE_DEBUG_LABELS } from '../common/DebugLabels';
+import { labelsForLocale } from '../common/UILabels';
 import { CalendarVM } from '../viewmodels/CalendarVM';
 import { ActivityVM } from '../viewmodels/ActivityVM';
 import { ThemeVM } from '../viewmodels/ThemeVM';
@@ -23,7 +23,7 @@ const CONTENT_MAX_WIDTH = 420;
 @Component
 struct HeatmapPage {
   @Provide tokens: DesignTokens = ThemePalette[SkinTheme.LIGHT];
-  @Provide debugLabels: DebugLabels = CHINESE_DEBUG_LABELS;
+  @Provide locale: string = 'zh';
   @Provide themeName: SkinTheme = SkinTheme.LIGHT;
   @StorageLink('calendarVM') private calendarVM: CalendarVM | null = null;
   @StorageLink('activityVM') private activityVM: ActivityVM | null = null;
@@ -37,14 +37,25 @@ struct HeatmapPage {
     const activity = this.activityVM;
     const theme = this.themeVM;
     if (calendar !== null && activity !== null && theme !== null) {
-      Promise.all([
-        theme.initialize(),
-        calendar.loadMonth(now.getFullYear(), now.getMonth() + 1),
-        activity.refreshAll(),
-      ]).then(() => {
+      theme.initialize().then(() => {
         this.themeName = theme.currentSkin;
         this.tokens = theme.currentTokens;
       });
+      theme.loadLocale().then((saved: string) => {
+        this.switchLocale(saved);
+      });
+      Promise.all([
+        calendar.loadMonth(now.getFullYear(), now.getMonth() + 1),
+        activity.refreshAll(),
+      ]);
+    }
+  }
+
+  switchLocale(localeStr: string): void {
+    const nextLocale = localeStr === 'en' ? 'en' : 'zh';
+    this.locale = nextLocale;
+    if (this.themeVM !== null) {
+      this.themeVM.persistLocale(nextLocale);
     }
   }
 
@@ -107,6 +118,9 @@ struct HeatmapPage {
         patternCount: this.activityVM!.usagePatterns.length,
         onThemeSwitch: (theme: SkinTheme) => {
           this.switchTheme(theme);
+        },
+        onLocaleSwitch: (locale: string) => {
+          this.switchLocale(locale);
         }
       })
         .width('100%')
@@ -163,7 +177,7 @@ struct HeatmapPage {
                   .margin({ top: Spacing.xs, bottom: Spacing.sm })
               }
             } else {
-              Text('INITIALIZING // ACTRACE')
+              Text(labelsForLocale(this.locale).initializing)
                 .fontSize(12)
                 .fontWeight(700)
                 .fontColor(this.tokens.textMuted)

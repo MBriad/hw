@@ -3,6 +3,7 @@
  * Consumes page-provided DesignTokens.
  */
 import { HeatmapCell } from '../../domain/Streak';
+import { UILabels, labelsForLocale } from '../../common/UILabels';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { DayCell } from './DayCell';
 import { Spacing } from '../../common/SpacingTokens';
@@ -12,12 +13,20 @@ const CALENDAR_ROWS = 6;
 @Component
 export struct HeatmapGrid {
   @Consume tokens: DesignTokens;
+  @Consume locale: string;
   @Prop cells: HeatmapCell[];
   @Prop selectedDate: string;
   @Prop todayString: string;
   onCellTap?: (date: string) => void;
 
-  private readonly dayLabels: string[] = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
+  private labels(): UILabels {
+    return labelsForLocale(this.locale);
+  }
+
+  private get dayLabels(): string[] {
+    return [this.labels().dayMo, this.labels().dayTu, this.labels().dayWe, this.labels().dayTh,
+            this.labels().dayFr, this.labels().daySa, this.labels().daySu];
+  }
 
   build() {
     Column() {

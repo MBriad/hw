@@ -4,12 +4,18 @@
  */
 import { SkinTheme, DesignTokens, ThemePalette } from '../../domain/SkinTheme';
 import { Spacing } from '../../common/SpacingTokens';
+import { UILabels, labelsForLocale } from '../../common/UILabels';
 
 @Component
 export struct SkinSwitcher {
   @Consume tokens: DesignTokens;
+  @Consume locale: string;
   @Consume themeName: SkinTheme;
   onSwitch?: (theme: SkinTheme) => void;
+
+  private labels(): UILabels {
+    return labelsForLocale(this.locale);
+  }
 
   private readonly themes: SkinTheme[] = [
     SkinTheme.LIGHT, SkinTheme.DARK, SkinTheme.PINK, SkinTheme.PASTEL
@@ -17,15 +23,15 @@ export struct SkinSwitcher {
 
   private themeLabel(theme: SkinTheme): string {
     if (theme === SkinTheme.DARK) {
-      return 'DARK';
+      return this.labels().darkTheme;
     }
     if (theme === SkinTheme.PINK) {
-      return 'PINK';
+      return this.labels().pink;
     }
     if (theme === SkinTheme.PASTEL) {
-      return 'PASTEL';
+      return this.labels().pastel;
     }
-    return 'LIGHT';
+    return this.labels().light;
   }
 
   build() {

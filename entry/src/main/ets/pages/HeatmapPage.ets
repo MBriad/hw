@@ -2,7 +2,7 @@
 import { Spacing } from '../common/SpacingTokens';
 import { AppSection } from '../domain/AppSection';
 import { DesignTokens, SkinTheme, ThemePalette } from '../domain/SkinTheme';
-import { labelsForLocale } from '../common/UILabels';
+import { UILabels, labelsForLocale } from '../common/UILabels';
 import { CalendarVM } from '../viewmodels/CalendarVM';
 import { ActivityVM } from '../viewmodels/ActivityVM';
 import { ThemeVM } from '../viewmodels/ThemeVM';
@@ -24,6 +24,7 @@ const CONTENT_MAX_WIDTH = 420;
 struct HeatmapPage {
   @Provide tokens: DesignTokens = ThemePalette[SkinTheme.LIGHT];
   @Provide locale: string = 'zh';
+  @Provide uiLabels: UILabels = labelsForLocale('zh');
   @Provide themeName: SkinTheme = SkinTheme.LIGHT;
   @StorageLink('calendarVM') private calendarVM: CalendarVM | null = null;
   @StorageLink('activityVM') private activityVM: ActivityVM | null = null;
@@ -54,6 +55,7 @@ struct HeatmapPage {
   switchLocale(localeStr: string): void {
     const nextLocale = localeStr === 'en' ? 'en' : 'zh';
     this.locale = nextLocale;
+    this.uiLabels = labelsForLocale(nextLocale);
     if (this.themeVM !== null) {
       this.themeVM.persistLocale(nextLocale);
     }
@@ -177,7 +179,7 @@ struct HeatmapPage {
                   .margin({ top: Spacing.xs, bottom: Spacing.sm })
               }
             } else {
-              Text(labelsForLocale(this.locale).initializing)
+              Text(this.uiLabels.initializing)
                 .fontSize(12)
                 .fontWeight(700)
                 .fontColor(this.tokens.textMuted)

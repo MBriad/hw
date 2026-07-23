@@ -1,5 +1,5 @@
 import { Spacing } from '../../common/SpacingTokens';
-import { UILabels, labelsForLocale } from '../../common/UILabels';
+import { UILabels } from '../../common/UILabels';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { HeatmapCell } from '../../domain/Streak';
 import { HeatmapGrid } from '../components/HeatmapGrid';
@@ -7,7 +7,7 @@ import { HeatmapGrid } from '../components/HeatmapGrid';
 @Component
 export struct CalendarSection {
   @Consume tokens: DesignTokens;
-  @Consume locale: string;
+  @Consume uiLabels: UILabels;
   @Prop cells: HeatmapCell[];
   @Prop selectedDate: string;
   @Prop todayString: string;
@@ -15,15 +15,11 @@ export struct CalendarSection {
   @Prop monthCommitCount: number;
   onCellTap?: (date: string) => void;
 
-  private labels(): UILabels {
-    return labelsForLocale(this.locale);
-  }
-
   build() {
     Scroll() {
       Column() {
         Row() {
-          Text(this.labels().calendarView)
+          Text(this.uiLabels.calendarView)
             .fontSize(11)
             .fontWeight(700)
             .fontColor(this.tokens.textPrimary)
@@ -31,7 +27,7 @@ export struct CalendarSection {
 
           Blank()
 
-          Text(`${this.cells.length} ${this.labels().daysUnit}`)
+          Text(`${this.cells.length} ${this.uiLabels.daysUnit}`)
             .fontSize(10)
             .fontWeight(700)
             .fontColor(this.tokens.textMuted)
@@ -56,7 +52,7 @@ export struct CalendarSection {
 
         Row() {
           Column() {
-            Text(this.labels().bestRun)
+            Text(this.uiLabels.bestRun)
               .fontSize(10)
               .fontWeight(700)
               .fontColor(this.tokens.textMuted)
@@ -68,7 +64,7 @@ export struct CalendarSection {
                 .fontWeight(900)
                 .fontColor(this.tokens.textPrimary)
 
-              Text(this.labels().daysUnit)
+              Text(this.uiLabels.daysUnit)
                 .fontSize(10)
                 .fontWeight(700)
                 .fontColor(this.tokens.textMuted)
@@ -81,7 +77,7 @@ export struct CalendarSection {
           .alignItems(HorizontalAlign.Start)
 
           Column() {
-            Text(this.labels().monthCommits)
+            Text(this.uiLabels.monthCommits)
               .fontSize(10)
               .fontWeight(700)
               .fontColor(this.tokens.textMuted)

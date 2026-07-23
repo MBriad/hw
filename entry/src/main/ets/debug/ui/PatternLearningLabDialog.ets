@@ -1,32 +1,35 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
-import { UILabels, labelsForLocale } from '../../common/UILabels';
+import { UILabels } from '../../common/UILabels';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { PatternDebugScenario, AiDebugScenario } from '../DebugRuntime';
+
+enum PatternLabSectionKind {
+  STAGES = 'stages',
+  MATCHING = 'matching',
+  DATA = 'data',
+  AI = 'ai',
+}
 
 @CustomDialog
 export struct PatternLearningLabDialog {
   @Consume tokens: DesignTokens;
-  @Consume locale: string;
+  @Consume uiLabels: UILabels;
   controller: CustomDialogController;
   onRun?: (scenario: PatternDebugScenario) => void;
   onAiRun?: (scenario: AiDebugScenario) => void;
-
-  private labels(): UILabels {
-    return labelsForLocale(this.locale);
-  }
 
   build() {
     Column() {
       Row() {
         Column() {
-          Text(this.labels().patternLearningLab)
+          Text(this.uiLabels.patternLearningLab)
             .fontSize(14)
             .fontWeight(800)
             .fontColor(this.tokens.textPrimary)
             .fontFamily('monospace')
 
-          Text(this.labels().realLearningPipeline)
+          Text(this.uiLabels.realLearningPipeline)
             .fontSize(9)
             .fontWeight(600)
             .fontColor(this.tokens.textMuted)
@@ -65,62 +68,62 @@ export struct PatternLearningLabDialog {
 
       Scroll() {
         Column() {
-          this.sectionLabel('01', this.labels().stages)
+          this.sectionLabel('01', PatternLabSectionKind.STAGES)
 
           Row() {
-            this.labButton(this.labels().observing, PatternDebugScenario.OBSERVING)
+            this.labButton(PatternDebugScenario.OBSERVING)
             Blank().width(Spacing.xs)
-            this.labButton(this.labels().candidate, PatternDebugScenario.CANDIDATE)
+            this.labButton(PatternDebugScenario.CANDIDATE)
           }
           .width('100%')
 
           Row() {
-            this.labButton(this.labels().mature, PatternDebugScenario.MATURE)
+            this.labButton(PatternDebugScenario.MATURE)
             Blank().width(Spacing.xs)
             Blank().layoutWeight(1)
           }
           .width('100%')
           .margin({ top: Spacing.xs })
 
-          this.sectionLabel('02', this.labels().matching)
+          this.sectionLabel('02', PatternLabSectionKind.MATCHING)
 
           Row() {
-            this.labButton(this.labels().similarMatch, PatternDebugScenario.SIMILAR_MATCH)
+            this.labButton(PatternDebugScenario.SIMILAR_MATCH)
             Blank().width(Spacing.xs)
-            this.labButton(this.labels().noMatch, PatternDebugScenario.NO_MATCH)
+            this.labButton(PatternDebugScenario.NO_MATCH)
           }
           .width('100%')
 
           Row() {
-            this.labButton(this.labels().cooldown, PatternDebugScenario.COOLDOWN)
+            this.labButton(PatternDebugScenario.COOLDOWN)
             Blank().width(Spacing.xs)
             Blank().layoutWeight(1)
           }
           .width('100%')
           .margin({ top: Spacing.xs })
 
-          this.sectionLabel('03', this.labels().data_section)
+          this.sectionLabel('03', PatternLabSectionKind.DATA)
 
           Row() {
-            this.labButton(this.labels().observationStatus, PatternDebugScenario.OBSERVATION_STATUS)
+            this.labButton(PatternDebugScenario.OBSERVATION_STATUS)
             Blank().width(Spacing.xs)
-            this.labButton(this.labels().resetSample, PatternDebugScenario.RESET_SAMPLE)
+            this.labButton(PatternDebugScenario.RESET_SAMPLE)
           }
           .width('100%')
 
-          this.sectionLabel('04', this.labels().ai_section)
+          this.sectionLabel('04', PatternLabSectionKind.AI)
 
           Row() {
-            this.aiButton(this.labels().aiPing, AiDebugScenario.AI_PING)
+            this.aiButton(AiDebugScenario.AI_PING)
             Blank().width(Spacing.xs)
-            this.aiButton(this.labels().aiAnalyzeSample, AiDebugScenario.AI_ANALYZE_SAMPLE)
+            this.aiButton(AiDebugScenario.AI_ANALYZE_SAMPLE)
           }
           .width('100%')
 
           Row() {
-            this.aiButton(this.labels().aiTimeout, AiDebugScenario.AI_TIMEOUT)
+            this.aiButton(AiDebugScenario.AI_TIMEOUT)
             Blank().width(Spacing.xs)
-            this.aiButton(this.labels().aiInvalidResponse, AiDebugScenario.AI_INVALID_RESPONSE)
+            this.aiButton(AiDebugScenario.AI_INVALID_RESPONSE)
           }
           .width('100%')
           .margin({ top: Spacing.xs })
@@ -142,7 +145,7 @@ export struct PatternLearningLabDialog {
   }
 
   @Builder
-  private sectionLabel(index: string, label: string) {
+  private sectionLabel(index: string, kind: PatternLabSectionKind) {
     Row() {
       Text(index)
         .fontSize(8)
@@ -150,7 +153,17 @@ export struct PatternLearningLabDialog {
         .fontColor(this.tokens.brandPrimary)
         .fontFamily('monospace')
 
-      Text(label)
+      Text() {
+        if (kind === PatternLabSectionKind.STAGES) {
+          Span(this.uiLabels.stages)
+        } else if (kind === PatternLabSectionKind.MATCHING) {
+          Span(this.uiLabels.matching)
+        } else if (kind === PatternLabSectionKind.DATA) {
+          Span(this.uiLabels.data_section)
+        } else {
+          Span(this.uiLabels.ai_section)
+        }
+      }
         .fontSize(8)
         .fontWeight(800)
         .fontColor(this.tokens.textMuted)
@@ -162,8 +175,26 @@ export struct PatternLearningLabDialog {
   }
 
   @Builder
-  private labButton(label: string, scenario: PatternDebugScenario) {
-    Text(label)
+  private labButton(scenario: PatternDebugScenario) {
+    Text() {
+      if (scenario === PatternDebugScenario.OBSERVING) {
+        Span(this.uiLabels.observing)
+      } else if (scenario === PatternDebugScenario.CANDIDATE) {
+        Span(this.uiLabels.candidate)
+      } else if (scenario === PatternDebugScenario.MATURE) {
+        Span(this.uiLabels.mature)
+      } else if (scenario === PatternDebugScenario.SIMILAR_MATCH) {
+        Span(this.uiLabels.similarMatch)
+      } else if (scenario === PatternDebugScenario.NO_MATCH) {
+        Span(this.uiLabels.noMatch)
+      } else if (scenario === PatternDebugScenario.COOLDOWN) {
+        Span(this.uiLabels.cooldown)
+      } else if (scenario === PatternDebugScenario.OBSERVATION_STATUS) {
+        Span(this.uiLabels.observationStatus)
+      } else {
+        Span(this.uiLabels.resetSample)
+      }
+    }
       .layoutWeight(1)
       .height(44)
       .fontSize(9)
@@ -195,8 +226,18 @@ export struct PatternLearningLabDialog {
   }
 
   @Builder
-  private aiButton(label: string, scenario: AiDebugScenario) {
-    Text(label)
+  private aiButton(scenario: AiDebugScenario) {
+    Text() {
+      if (scenario === AiDebugScenario.AI_PING) {
+        Span(this.uiLabels.aiPing)
+      } else if (scenario === AiDebugScenario.AI_ANALYZE_SAMPLE) {
+        Span(this.uiLabels.aiAnalyzeSample)
+      } else if (scenario === AiDebugScenario.AI_TIMEOUT) {
+        Span(this.uiLabels.aiTimeout)
+      } else {
+        Span(this.uiLabels.aiInvalidResponse)
+      }
+    }
       .layoutWeight(1)
       .height(44)
       .fontSize(9)

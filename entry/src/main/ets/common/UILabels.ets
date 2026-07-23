@@ -219,7 +219,7 @@ export const CHINESE_UI_LABELS: UILabels = new UILabels(
   '观察中', '候选', '已成熟', '相似匹配', '无匹配', '冷却中', '观察状态', '重置样本',
   'AI 探活', 'AI 分析样本', 'AI 超时', 'AI 无效响应',
   // Language toggle
-  '中', 'EN',
+  '中', '英',
 );
 
 export const ENGLISH_UI_LABELS: UILabels = new UILabels(

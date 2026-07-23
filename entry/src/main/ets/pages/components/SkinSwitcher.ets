@@ -4,41 +4,21 @@
  */
 import { SkinTheme, DesignTokens, ThemePalette } from '../../domain/SkinTheme';
 import { Spacing } from '../../common/SpacingTokens';
-import { UILabels, labelsForLocale } from '../../common/UILabels';
+import { UILabels } from '../../common/UILabels';
 
 @Component
 export struct SkinSwitcher {
   @Consume tokens: DesignTokens;
-  @Consume locale: string;
+  @Consume uiLabels: UILabels;
   @Consume themeName: SkinTheme;
   onSwitch?: (theme: SkinTheme) => void;
 
-  private labels(): UILabels {
-    return labelsForLocale(this.locale);
-  }
-
-  private readonly themes: SkinTheme[] = [
-    SkinTheme.LIGHT, SkinTheme.DARK, SkinTheme.PINK, SkinTheme.PASTEL
-  ];
-
-  private themeLabel(theme: SkinTheme): string {
-    if (theme === SkinTheme.DARK) {
-      return this.labels().darkTheme;
-    }
-    if (theme === SkinTheme.PINK) {
-      return this.labels().pink;
-    }
-    if (theme === SkinTheme.PASTEL) {
-      return this.labels().pastel;
-    }
-    return this.labels().light;
-  }
-
   build() {
     Row() {
-      ForEach(this.themes, (theme: SkinTheme) => {
-        this.skinButton(theme)
-      })
+      this.skinButton(SkinTheme.LIGHT)
+      this.skinButton(SkinTheme.DARK)
+      this.skinButton(SkinTheme.PINK)
+      this.skinButton(SkinTheme.PASTEL)
     }
     .height(64)
     .width('100%')
@@ -56,7 +36,17 @@ export struct SkinSwitcher {
           color: this.themeName === theme ? this.tokens.textPrimary : this.tokens.borderColor,
         })
 
-      Text(this.themeLabel(theme))
+      Text() {
+        if (theme === SkinTheme.LIGHT) {
+          Span(this.uiLabels.light)
+        } else if (theme === SkinTheme.DARK) {
+          Span(this.uiLabels.darkTheme)
+        } else if (theme === SkinTheme.PINK) {
+          Span(this.uiLabels.pink)
+        } else {
+          Span(this.uiLabels.pastel)
+        }
+      }
         .fontSize(8)
         .fontWeight(this.themeName === theme ? 800 : 600)
         .fontColor(this.themeName === theme ? this.tokens.textPrimary : this.tokens.textMuted)

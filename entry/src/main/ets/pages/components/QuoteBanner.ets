@@ -2,21 +2,17 @@
  * Humble View: Semi-transparent quote banner for easter egg voicelines.
  * Slides up from bottom, stays 2.5s, auto-dismisses. Tap to dismiss early.
  */
-import { UILabels, labelsForLocale } from '../../common/UILabels';
+import { UILabels } from '../../common/UILabels';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { Spacing } from '../../common/SpacingTokens';
 
 @Component
 export struct QuoteBanner {
   @Consume tokens: DesignTokens;
-  @Consume locale: string;
+  @Consume uiLabels: UILabels;
   @Prop quote: string = '';
   @State private visible: boolean = false;
   @State private translateY: number = 100;
-
-  private labels(): UILabels {
-    return labelsForLocale(this.locale);
-  }
 
   aboutToAppear(): void {
     this.show();
@@ -47,7 +43,7 @@ export struct QuoteBanner {
   build() {
     if (this.visible) {
       Column() {
-        Text(this.labels().signalReceived)
+        Text(this.uiLabels.signalReceived)
           .fontSize(9)
           .fontWeight(700)
           .fontColor(this.tokens.brandAccent)

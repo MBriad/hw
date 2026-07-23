@@ -3,7 +3,7 @@
  * Consumes page-provided DesignTokens.
  */
 import { HeatmapCell } from '../../domain/Streak';
-import { UILabels, labelsForLocale } from '../../common/UILabels';
+import { UILabels } from '../../common/UILabels';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { DayCell } from './DayCell';
 import { Spacing } from '../../common/SpacingTokens';
@@ -13,26 +13,20 @@ const CALENDAR_ROWS = 6;
 @Component
 export struct HeatmapGrid {
   @Consume tokens: DesignTokens;
-  @Consume locale: string;
+  @Consume uiLabels: UILabels;
   @Prop cells: HeatmapCell[];
   @Prop selectedDate: string;
   @Prop todayString: string;
   onCellTap?: (date: string) => void;
 
-  private labels(): UILabels {
-    return labelsForLocale(this.locale);
-  }
-
-  private get dayLabels(): string[] {
-    return [this.labels().dayMo, this.labels().dayTu, this.labels().dayWe, this.labels().dayTh,
-            this.labels().dayFr, this.labels().daySa, this.labels().daySu];
-  }
-
   build() {
     Column() {
       // Day-of-week header
       Row() {
-        ForEach(this.dayLabels, (label: string, _index: number) => {
+        ForEach([
+          this.uiLabels.dayMo, this.uiLabels.dayTu, this.uiLabels.dayWe, this.uiLabels.dayTh,
+          this.uiLabels.dayFr, this.uiLabels.daySa, this.uiLabels.daySu,
+        ], (label: string, _index: number) => {
           Text(label)
             .fontSize(10)
             .fontWeight(700)

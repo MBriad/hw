@@ -1,31 +1,32 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
-import { UILabels, labelsForLocale } from '../../common/UILabels';
+import { UILabels } from '../../common/UILabels';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { EggDebugScenario } from '../DebugRuntime';
+
+enum EggLabSectionKind {
+  PRESETS = 'presets',
+  LIFECYCLE = 'lifecycle',
+}
 
 @CustomDialog
 export struct EasterEggLabDialog {
   @Consume tokens: DesignTokens;
-  @Consume locale: string;
+  @Consume uiLabels: UILabels;
   controller: CustomDialogController;
   onRun?: (scenario: EggDebugScenario) => void;
-
-  private labels(): UILabels {
-    return labelsForLocale(this.locale);
-  }
 
   build() {
     Column() {
       Row() {
         Column() {
-          Text(this.labels().easterEggLab)
+          Text(this.uiLabels.easterEggLab)
             .fontSize(14)
             .fontWeight(800)
             .fontColor(this.tokens.textPrimary)
             .fontFamily('monospace')
 
-          Text(this.labels().liveEffectPipeline)
+          Text(this.uiLabels.liveEffectPipeline)
             .fontSize(9)
             .fontWeight(600)
             .fontColor(this.tokens.textMuted)
@@ -66,50 +67,50 @@ export struct EasterEggLabDialog {
 
       Scroll() {
         Column() {
-          this.sectionLabel('01', this.labels().presets)
+          this.sectionLabel('01', EggLabSectionKind.PRESETS)
 
           Row() {
-            this.labButton(this.labels().sparkle, EggDebugScenario.SPARKLE)
+            this.labButton(EggDebugScenario.SPARKLE)
             Blank().width(Spacing.xs)
-            this.labButton(this.labels().darkEgg, EggDebugScenario.DARK)
+            this.labButton(EggDebugScenario.DARK)
           }
           .width('100%')
 
           Row() {
-            this.labButton(this.labels().bubble, EggDebugScenario.BUBBLE)
+            this.labButton(EggDebugScenario.BUBBLE)
             Blank().width(Spacing.xs)
-            this.labButton(this.labels().sakura, EggDebugScenario.SAKURA)
-          }
-          .width('100%')
-          .margin({ top: Spacing.xs })
-
-          Row() {
-            this.labButton(this.labels().rise, EggDebugScenario.RISE)
-            Blank().width(Spacing.xs)
-            this.labButton(this.labels().atField, EggDebugScenario.AT_FIELD)
-          }
-          .width('100%')
-          .margin({ top: Spacing.xs })
-
-          this.sectionLabel('02', this.labels().lifecycle)
-
-          Row() {
-            this.labButton(this.labels().autoDismiss, EggDebugScenario.AUTO_DISMISS)
-            Blank().width(Spacing.xs)
-            this.labButton(this.labels().tapDismiss, EggDebugScenario.TAP_DISMISS)
-          }
-          .width('100%')
-
-          Row() {
-            this.labButton(this.labels().retriggerBlock, EggDebugScenario.RETRIGGER_BLOCKED)
-            Blank().width(Spacing.xs)
-            this.labButton(this.labels().rapidTaps, EggDebugScenario.RAPID_TAPS)
+            this.labButton(EggDebugScenario.SAKURA)
           }
           .width('100%')
           .margin({ top: Spacing.xs })
 
           Row() {
-            this.labButton(this.labels().afterEnd, EggDebugScenario.AFTER_END)
+            this.labButton(EggDebugScenario.RISE)
+            Blank().width(Spacing.xs)
+            this.labButton(EggDebugScenario.AT_FIELD)
+          }
+          .width('100%')
+          .margin({ top: Spacing.xs })
+
+          this.sectionLabel('02', EggLabSectionKind.LIFECYCLE)
+
+          Row() {
+            this.labButton(EggDebugScenario.AUTO_DISMISS)
+            Blank().width(Spacing.xs)
+            this.labButton(EggDebugScenario.TAP_DISMISS)
+          }
+          .width('100%')
+
+          Row() {
+            this.labButton(EggDebugScenario.RETRIGGER_BLOCKED)
+            Blank().width(Spacing.xs)
+            this.labButton(EggDebugScenario.RAPID_TAPS)
+          }
+          .width('100%')
+          .margin({ top: Spacing.xs })
+
+          Row() {
+            this.labButton(EggDebugScenario.AFTER_END)
             Blank().width(Spacing.xs)
             Blank().layoutWeight(1)
           }
@@ -133,7 +134,7 @@ export struct EasterEggLabDialog {
   }
 
   @Builder
-  private sectionLabel(index: string, label: string) {
+  private sectionLabel(index: string, kind: EggLabSectionKind) {
     Row() {
       Text(index)
         .fontSize(8)
@@ -141,7 +142,13 @@ export struct EasterEggLabDialog {
         .fontColor(this.tokens.brandPrimary)
         .fontFamily('monospace')
 
-      Text(label)
+      Text() {
+        if (kind === EggLabSectionKind.PRESETS) {
+          Span(this.uiLabels.presets)
+        } else {
+          Span(this.uiLabels.lifecycle)
+        }
+      }
         .fontSize(8)
         .fontWeight(800)
         .fontColor(this.tokens.textMuted)
@@ -153,8 +160,32 @@ export struct EasterEggLabDialog {
   }
 
   @Builder
-  private labButton(label: string, scenario: EggDebugScenario) {
-    Text(label)
+  private labButton(scenario: EggDebugScenario) {
+    Text() {
+      if (scenario === EggDebugScenario.SPARKLE) {
+        Span(this.uiLabels.sparkle)
+      } else if (scenario === EggDebugScenario.DARK) {
+        Span(this.uiLabels.darkEgg)
+      } else if (scenario === EggDebugScenario.BUBBLE) {
+        Span(this.uiLabels.bubble)
+      } else if (scenario === EggDebugScenario.SAKURA) {
+        Span(this.uiLabels.sakura)
+      } else if (scenario === EggDebugScenario.RISE) {
+        Span(this.uiLabels.rise)
+      } else if (scenario === EggDebugScenario.AT_FIELD) {
+        Span(this.uiLabels.atField)
+      } else if (scenario === EggDebugScenario.AUTO_DISMISS) {
+        Span(this.uiLabels.autoDismiss)
+      } else if (scenario === EggDebugScenario.TAP_DISMISS) {
+        Span(this.uiLabels.tapDismiss)
+      } else if (scenario === EggDebugScenario.RETRIGGER_BLOCKED) {
+        Span(this.uiLabels.retriggerBlock)
+      } else if (scenario === EggDebugScenario.RAPID_TAPS) {
+        Span(this.uiLabels.rapidTaps)
+      } else {
+        Span(this.uiLabels.afterEnd)
+      }
+    }
       .layoutWeight(1)
       .height(44)
       .fontSize(9)

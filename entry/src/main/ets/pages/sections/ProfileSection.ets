@@ -1,25 +1,34 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
-import { UILabels, labelsForLocale } from '../../common/UILabels';
+import { UILabels } from '../../common/UILabels';
 import { DesignTokens, SkinTheme } from '../../domain/SkinTheme';
 import { DebugPanel } from '../../debug/ui/DebugPanel';
 import { SkinSwitcher } from '../components/SkinSwitcher';
+
+enum ProfileSectionKind {
+  APPEARANCE = 'appearance',
+  STORAGE = 'storage',
+  DEVELOPER = 'developer',
+}
+
+enum ProfileSettingKind {
+  THEME = 'theme',
+  STORAGE_LOCATION = 'storage_location',
+  LOCAL_ACTIVITY = 'local_activity',
+}
 
 @Component
 export struct ProfileSection {
   @Consume tokens: DesignTokens;
   @Consume locale: string;
+  @Consume uiLabels: UILabels;
   @Prop totalCommitCount: number;
   @Prop patternCount: number;
   onThemeSwitch?: (theme: SkinTheme) => void;
   onLocaleSwitch?: (locale: string) => void;
 
-  private labels(): UILabels {
-    return labelsForLocale(this.locale);
-  }
-
   @Builder
-  private sectionLabel(index: string, label: string) {
+  private sectionLabel(index: string, kind: ProfileSectionKind) {
     Row() {
       Text(index)
         .fontSize(9)
@@ -27,7 +36,15 @@ export struct ProfileSection {
         .fontColor(this.tokens.brandPrimary)
         .fontFamily('monospace')
 
-      Text(label)
+      Text() {
+        if (kind === ProfileSectionKind.APPEARANCE) {
+          Span(this.uiLabels.appearance)
+        } else if (kind === ProfileSectionKind.STORAGE) {
+          Span(this.uiLabels.storage)
+        } else {
+          Span(this.uiLabels.developer)
+        }
+      }
         .fontSize(9)
         .fontWeight(800)
         .fontColor(this.tokens.textMuted)
@@ -39,17 +56,33 @@ export struct ProfileSection {
   }
 
   @Builder
-  private settingRow(title: string, subtitle: string, value: string) {
+  private settingRow(kind: ProfileSettingKind) {
     Row() {
       Column() {
-        Text(title)
+        Text() {
+          if (kind === ProfileSettingKind.THEME) {
+            Span(this.uiLabels.themeLabel)
+          } else if (kind === ProfileSettingKind.STORAGE_LOCATION) {
+            Span(this.uiLabels.storageLocation)
+          } else {
+            Span(this.uiLabels.localActivity)
+          }
+        }
           .fontSize(13)
           .fontWeight(700)
           .fontColor(this.tokens.textPrimary)
           .fontFamily('monospace')
           .maxLines(1)
 
-        Text(subtitle)
+        Text() {
+          if (kind === ProfileSettingKind.THEME) {
+            Span(this.uiLabels.colorSystem)
+          } else if (kind === ProfileSettingKind.STORAGE_LOCATION) {
+            Span(this.uiLabels.privateAppData)
+          } else {
+            Span(this.uiLabels.dataSummary)
+          }
+        }
           .fontSize(9)
           .fontWeight(600)
           .fontColor(this.tokens.textMuted)
@@ -60,7 +93,14 @@ export struct ProfileSection {
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
 
-      Text(value)
+      Text() {
+        if (kind === ProfileSettingKind.STORAGE_LOCATION) {
+          Span(this.uiLabels.onDevice)
+        } else if (kind === ProfileSettingKind.LOCAL_ACTIVITY) {
+          Span(`${this.totalCommitCount} ${this.uiLabels.commitCountLabel} / ` +
+            `${this.patternCount} ${this.uiLabels.patternCountLabel}`)
+        }
+      }
         .fontSize(11)
         .fontWeight(800)
         .fontColor(this.tokens.textPrimary)
@@ -77,10 +117,10 @@ export struct ProfileSection {
   build() {
     Scroll() {
       Column() {
-        this.sectionLabel('01', this.labels().appearance)
+        this.sectionLabel('01', ProfileSectionKind.APPEARANCE)
 
         Column() {
-          this.settingRow(this.labels().themeLabel, this.labels().colorSystem, '')
+          this.settingRow(ProfileSettingKind.THEME)
 
           Divider()
             .color(this.tokens.borderColor)
@@ -93,27 +133,18 @@ export struct ProfileSection {
               }
             }
           })
-        }
-        .width('100%')
-        .backgroundColor(this.tokens.bgSurface)
-        .border({ width: 1, color: this.tokens.borderColor })
-        .borderRadius(Radius.none)
-
-        Blank()
-          .height(Spacing.lg)
-
-        this.sectionLabel('02', this.labels().storage)
-
-        Column() {
-          this.settingRow(this.labels().storageLocation, this.labels().privateAppData, this.labels().onDevice)
 
           Divider()
             .color(this.tokens.borderColor)
             .strokeWidth(1)
 
-          this.settingRow(this.labels().localActivity, this.labels().dataSummary,
-            `${this.totalCommitCount} ${this.labels().commitCountLabel} / ` +
-              `${this.patternCount} ${this.labels().patternCountLabel}`)
+          Row() {
+            this.localeButton('zh')
+            Blank().width(Spacing.xs)
+            this.localeButton('en')
+          }
+          .width('100%')
+          .padding({ left: Spacing.md, right: Spacing.md, top: Spacing.xs, bottom: Spacing.sm })
         }
         .width('100%')
         .backgroundColor(this.tokens.bgSurface)
@@ -123,11 +154,28 @@ export struct ProfileSection {
         Blank()
           .height(Spacing.lg)
 
-        this.sectionLabel('03', this.labels().developer)
+        this.sectionLabel('02', ProfileSectionKind.STORAGE)
 
-        DebugPanel({
-          onLocaleSwitch: this.onLocaleSwitch,
-        })
+        Column() {
+          this.settingRow(ProfileSettingKind.STORAGE_LOCATION)
+
+          Divider()
+            .color(this.tokens.borderColor)
+            .strokeWidth(1)
+
+          this.settingRow(ProfileSettingKind.LOCAL_ACTIVITY)
+        }
+        .width('100%')
+        .backgroundColor(this.tokens.bgSurface)
+        .border({ width: 1, color: this.tokens.borderColor })
+        .borderRadius(Radius.none)
+
+        Blank()
+          .height(Spacing.lg)
+
+        this.sectionLabel('03', ProfileSectionKind.DEVELOPER)
+
+        DebugPanel()
           .width('100%')
       }
       .width('100%')
@@ -139,5 +187,42 @@ export struct ProfileSection {
     .width('100%')
     .height('100%')
     .scrollBar(BarState.Off)
+  }
+
+  @Builder
+  private localeButton(locale: string) {
+    Text() {
+      if (locale === 'zh') {
+        Span(this.uiLabels.langZh)
+      } else {
+        Span(this.uiLabels.langEn)
+      }
+    }
+      .layoutWeight(1)
+      .height(36)
+      .fontSize(10)
+      .fontWeight(800)
+      .fontColor(this.locale === locale ? this.tokens.brandText : this.tokens.brandPrimary)
+      .fontFamily('monospace')
+      .textAlign(TextAlign.Center)
+      .backgroundColor(this.locale === locale ? this.tokens.brandPrimary : this.tokens.bgBase)
+      .border({ width: 1, color: this.tokens.brandPrimary })
+      .stateStyles({
+        normal: {
+          .backgroundColor(this.locale === locale ? this.tokens.brandPrimary : this.tokens.bgBase)
+          .scale({ x: 1, y: 1 })
+        },
+        pressed: {
+          .backgroundColor(this.locale === locale ? this.tokens.brandActive : this.tokens.bgSurfacePressed)
+          .scale({ x: 0.96, y: 0.96 })
+        }
+      })
+      .animation({ duration: 100, curve: Curve.EaseOut })
+      .id(`locale_button_${locale}`)
+      .onClick(() => {
+        if (this.locale !== locale && this.onLocaleSwitch) {
+          this.onLocaleSwitch(locale);
+        }
+      })
   }
 }

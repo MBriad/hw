@@ -2,7 +2,7 @@
  * Humble View: check-in input area. Consumes page-provided DesignTokens.
  * Uses design system patterns: PrimaryButton + ThemedInput + stateStyles.
  */
-import { UILabels, labelsForLocale } from '../../common/UILabels';
+import { UILabels } from '../../common/UILabels';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
@@ -10,19 +10,15 @@ import { Radius } from '../../common/RadiusTokens';
 @Component
 export struct CheckInInput {
   @Consume tokens: DesignTokens;
-  @Consume locale: string;
+  @Consume uiLabels: UILabels;
   @Prop selectedDate: string;
   @State inputText: string = '';
   onLightUp?: (text: string) => void;
 
-  private labels(): UILabels {
-    return labelsForLocale(this.locale);
-  }
-
   build() {
     Column() {
       Row() {
-        Text(this.labels().commitTarget)
+        Text(this.uiLabels.commitTarget)
           .fontSize(10)
           .fontWeight(700)
           .fontColor(this.tokens.textMuted)
@@ -40,7 +36,7 @@ export struct CheckInInput {
       .padding({ bottom: Spacing.xs })
 
       Row() {
-        TextInput({ placeholder: this.labels().commitPlaceholder, text: this.inputText })
+        TextInput({ placeholder: this.uiLabels.commitPlaceholder, text: this.inputText })
           .layoutWeight(1)
           .height(48)
           .fontSize(14)
@@ -55,7 +51,7 @@ export struct CheckInInput {
             this.inputText = value;
           })
 
-        Button(this.labels().commitButton)
+        Button(this.uiLabels.commitButton)
           .fontSize(13)
           .fontWeight(700)
           .fontFamily('monospace')
@@ -87,7 +83,7 @@ export struct CheckInInput {
 
   private getDateLabel(): string {
     if (this.selectedDate.length === 0) {
-      return this.labels().noDateSelected;
+      return this.uiLabels.noDateSelected;
     }
     return this.selectedDate.replace(/-/g, '.');
   }

@@ -1,5 +1,5 @@
 import { Spacing } from '../../common/SpacingTokens';
-import { UILabels, labelsForLocale } from '../../common/UILabels';
+import { UILabels } from '../../common/UILabels';
 import { AppSection } from '../../domain/AppSection';
 import { DesignTokens, SkinTheme } from '../../domain/SkinTheme';
 
@@ -8,19 +8,25 @@ const RAIL_HEIGHT = 44;
 @Component
 export struct HorizontalNavigation {
   @Consume tokens: DesignTokens;
-  @Consume locale: string;
+  @Consume uiLabels: UILabels;
   @Consume themeName: SkinTheme;
   @Prop active: AppSection;
   onNavigate?: (section: AppSection) => void;
 
-  private labels(): UILabels {
-    return labelsForLocale(this.locale);
-  }
-
   @Builder
-  private tab(section: AppSection, label: string) {
+  private tab(section: AppSection) {
     Column() {
-      Text(label)
+      Text() {
+        if (section === AppSection.DATA) {
+          Span(this.uiLabels.tabCalendar)
+        } else if (section === AppSection.LOGS) {
+          Span(this.uiLabels.tabLogs)
+        } else if (section === AppSection.CORE) {
+          Span(this.uiLabels.tabPatterns)
+        } else {
+          Span(this.uiLabels.tabProfile)
+        }
+      }
         .fontSize(11)
         .fontWeight(this.active === section ? 800 : 600)
         .fontColor(this.active === section ? this.tokens.textPrimary : this.tokens.textPlaceholder)
@@ -59,15 +65,15 @@ export struct HorizontalNavigation {
 
   build() {
     Row() {
-      this.tab(AppSection.DATA, this.labels().tabCalendar)
-      this.tab(AppSection.LOGS, this.labels().tabLogs)
-      this.tab(AppSection.CORE, this.labels().tabPatterns)
-      this.tab(AppSection.USER, this.labels().tabProfile)
+      this.tab(AppSection.DATA)
+      this.tab(AppSection.LOGS)
+      this.tab(AppSection.CORE)
+      this.tab(AppSection.USER)
     }
     .height(RAIL_HEIGHT)
     .width('100%')
     .backgroundColor(this.tokens.bgBase)
     .border({ width: { bottom: 1 }, color: this.tokens.textPrimary })
-    .id(`horizontal_navigation_${this.themeName}_${this.locale}`)
+    .id(`horizontal_navigation_${this.themeName}`)
   }
 }

@@ -1,21 +1,36 @@
 import { Radius } from '../../common/RadiusTokens';
 import { Spacing } from '../../common/SpacingTokens';
-import { UILabels, labelsForLocale } from '../../common/UILabels';
+import { UILabels } from '../../common/UILabels';
 import { UsagePattern } from '../../domain/EasterEgg';
 import { DesignTokens } from '../../domain/SkinTheme';
+
+enum PatternsSectionKind {
+  ENGINE = 'engine',
+  MILESTONES = 'milestones',
+  SIGNALS = 'signals',
+}
+
+enum PatternsSummaryKind {
+  ENGINE = 'engine',
+  LEARNED = 'learned',
+  EMPTY = 'empty',
+}
+
+enum MilestoneKind {
+  SIGNAL = 'signal',
+  RHYTHM = 'rhythm',
+  HABIT = 'habit',
+  MASTERY = 'mastery',
+}
 
 @Component
 export struct PatternsSection {
   @Consume tokens: DesignTokens;
-  @Consume locale: string;
+  @Consume uiLabels: UILabels;
   @Prop usagePatterns: UsagePattern[];
 
-  private labels(): UILabels {
-    return labelsForLocale(this.locale);
-  }
-
   @Builder
-  private sectionLabel(index: string, label: string) {
+  private sectionLabel(index: string, kind: PatternsSectionKind) {
     Row() {
       Text(index)
         .fontSize(9)
@@ -23,7 +38,15 @@ export struct PatternsSection {
         .fontColor(this.tokens.brandPrimary)
         .fontFamily('monospace')
 
-      Text(label)
+      Text() {
+        if (kind === PatternsSectionKind.ENGINE) {
+          Span(this.uiLabels.engine)
+        } else if (kind === PatternsSectionKind.MILESTONES) {
+          Span(this.uiLabels.milestones)
+        } else {
+          Span(this.uiLabels.signals)
+        }
+      }
         .fontSize(9)
         .fontWeight(800)
         .fontColor(this.tokens.textMuted)
@@ -35,17 +58,33 @@ export struct PatternsSection {
   }
 
   @Builder
-  private summaryRow(title: string, subtitle: string, value: string) {
+  private summaryRow(kind: PatternsSummaryKind) {
     Row() {
       Column() {
-        Text(title)
+        Text() {
+          if (kind === PatternsSummaryKind.ENGINE) {
+            Span(this.uiLabels.patternEngine)
+          } else if (kind === PatternsSummaryKind.LEARNED) {
+            Span(this.uiLabels.learnedPatterns)
+          } else {
+            Span(this.uiLabels.noPatternsYet)
+          }
+        }
           .fontSize(13)
           .fontWeight(700)
           .fontColor(this.tokens.textPrimary)
           .fontFamily('monospace')
           .maxLines(1)
 
-        Text(subtitle)
+        Text() {
+          if (kind === PatternsSummaryKind.ENGINE) {
+            Span(this.uiLabels.localInference)
+          } else if (kind === PatternsSummaryKind.LEARNED) {
+            Span(this.uiLabels.activeTerms)
+          } else {
+            Span(this.uiLabels.awaitingLocalActivity)
+          }
+        }
           .fontSize(9)
           .fontWeight(600)
           .fontColor(this.tokens.textMuted)
@@ -56,7 +95,15 @@ export struct PatternsSection {
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
 
-      Text(value)
+      Text() {
+        if (kind === PatternsSummaryKind.ENGINE) {
+          Span(this.uiLabels.listening)
+        } else if (kind === PatternsSummaryKind.LEARNED) {
+          Span(`${this.usagePatterns.length}`)
+        } else {
+          Span('0')
+        }
+      }
         .fontSize(11)
         .fontWeight(800)
         .fontColor(this.tokens.textPrimary)
@@ -70,7 +117,7 @@ export struct PatternsSection {
   }
 
   @Builder
-  private milestone(value: string, label: string) {
+  private milestone(value: string, kind: MilestoneKind) {
     Column() {
       Text(value)
         .fontSize(18)
@@ -78,7 +125,17 @@ export struct PatternsSection {
         .fontColor(this.tokens.textPrimary)
         .fontFamily('monospace')
 
-      Text(label)
+      Text() {
+        if (kind === MilestoneKind.SIGNAL) {
+          Span(this.uiLabels.signal)
+        } else if (kind === MilestoneKind.RHYTHM) {
+          Span(this.uiLabels.rhythm)
+        } else if (kind === MilestoneKind.HABIT) {
+          Span(this.uiLabels.habit)
+        } else {
+          Span(this.uiLabels.mastery)
+        }
+      }
         .fontSize(8)
         .fontWeight(700)
         .fontColor(this.tokens.textMuted)
@@ -104,7 +161,7 @@ export struct PatternsSection {
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-        Text(pattern.nextMilestone > 0 ? `${this.labels().nextMilestone}${pattern.nextMilestone}` : this.labels().milestoneComplete)
+        Text(pattern.nextMilestone > 0 ? `${this.uiLabels.nextMilestone}${pattern.nextMilestone}` : this.uiLabels.milestoneComplete)
           .fontSize(9)
           .fontWeight(600)
           .fontColor(this.tokens.textMuted)
@@ -129,16 +186,16 @@ export struct PatternsSection {
   build() {
     Scroll() {
       Column() {
-        this.sectionLabel('01', this.labels().engine)
+        this.sectionLabel('01', PatternsSectionKind.ENGINE)
 
         Column() {
-          this.summaryRow(this.labels().patternEngine, this.labels().localInference, this.labels().listening)
+          this.summaryRow(PatternsSummaryKind.ENGINE)
 
           Divider()
             .color(this.tokens.borderColor)
             .strokeWidth(1)
 
-          this.summaryRow(this.labels().learnedPatterns, this.labels().activeTerms, `${this.usagePatterns.length}`)
+          this.summaryRow(PatternsSummaryKind.LEARNED)
         }
         .width('100%')
         .backgroundColor(this.tokens.bgSurface)
@@ -148,16 +205,16 @@ export struct PatternsSection {
         Blank()
           .height(Spacing.lg)
 
-        this.sectionLabel('02', this.labels().milestones)
+        this.sectionLabel('02', PatternsSectionKind.MILESTONES)
 
         Row() {
-          this.milestone('03', this.labels().signal)
+          this.milestone('03', MilestoneKind.SIGNAL)
           Divider().vertical(true).color(this.tokens.borderColor).strokeWidth(1)
-          this.milestone('07', this.labels().rhythm)
+          this.milestone('07', MilestoneKind.RHYTHM)
           Divider().vertical(true).color(this.tokens.borderColor).strokeWidth(1)
-          this.milestone('14', this.labels().habit)
+          this.milestone('14', MilestoneKind.HABIT)
           Divider().vertical(true).color(this.tokens.borderColor).strokeWidth(1)
-          this.milestone('30', this.labels().mastery)
+          this.milestone('30', MilestoneKind.MASTERY)
         }
         .width('100%')
         .height(72)
@@ -168,11 +225,11 @@ export struct PatternsSection {
         Blank()
           .height(Spacing.lg)
 
-        this.sectionLabel('03', this.labels().signals)
+        this.sectionLabel('03', PatternsSectionKind.SIGNALS)
 
         Column() {
           if (this.usagePatterns.length === 0) {
-            this.summaryRow(this.labels().noPatternsYet, this.labels().awaitingLocalActivity, '0')
+            this.summaryRow(PatternsSummaryKind.EMPTY)
           } else {
             ForEach(this.usagePatterns, (pattern: UsagePattern, index: number) => {
               if (index > 0) {

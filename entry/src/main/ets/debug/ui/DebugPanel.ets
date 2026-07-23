@@ -5,9 +5,27 @@ import { CalendarVM } from '../../viewmodels/CalendarVM';
 import { ActivityVM } from '../../viewmodels/ActivityVM';
 import { EasterEggVM } from '../../viewmodels/EasterEggVM';
 import { DebugRuntime, EggDebugScenario, PatternDebugScenario, AiDebugScenario } from '../DebugRuntime';
-import { UILabels, labelsForLocale } from '../../common/UILabels';
+import { UILabels } from '../../common/UILabels';
 import { EasterEggLabDialog } from './EasterEggLabDialog';
 import { PatternLearningLabDialog } from './PatternLearningLabDialog';
+
+enum DebugSectionKind {
+  QUICK_TESTS = 'quick_tests',
+  FEATURE_LABS = 'feature_labs',
+}
+
+enum DebugActionKind {
+  LOAD_HEATMAP = 'load_heatmap',
+  LOAD_ACTIVITY = 'load_activity',
+  RELOAD_MONTH = 'reload_month',
+  REFRESH_DATA = 'refresh_data',
+  CLEAR_RECORDS = 'clear_records',
+}
+
+enum DebugLabKind {
+  EASTER_EGG = 'easter_egg',
+  PATTERN_LEARNING = 'pattern_learning',
+}
 
 @Component
 export struct DebugPanel {
@@ -15,13 +33,9 @@ export struct DebugPanel {
   @StorageLink('activityVM') private activityVM: ActivityVM | null = null;
   @StorageLink('easterEggVM') private easterEggVM: EasterEggVM | null = null;
   @Consume tokens: DesignTokens;
-  @Consume locale: string;
-  onLocaleSwitch?: (locale: string) => void;
+  @Consume uiLabels: UILabels;
   @State private expanded: boolean = false;
 
-  private labels(): UILabels {
-    return labelsForLocale(this.locale);
-  }
   private eggLabController: CustomDialogController = new CustomDialogController({
     builder: EasterEggLabDialog({
       onRun: (scenario: EggDebugScenario) => {
@@ -50,13 +64,13 @@ export struct DebugPanel {
     Column() {
       Row() {
         Column() {
-          Text(this.labels().devDebugPanel)
+          Text(this.uiLabels.devDebugPanel)
             .fontSize(13)
             .fontWeight(800)
             .fontColor(this.tokens.textPrimary)
             .fontFamily('monospace')
 
-          Text(this.labels().unifiedDebugEntry)
+          Text(this.uiLabels.unifiedDebugEntry)
             .fontSize(9)
             .fontWeight(600)
             .fontColor(this.tokens.textMuted)
@@ -90,34 +104,34 @@ export struct DebugPanel {
 
       if (this.expanded && this.calendarVM !== null && this.activityVM !== null && this.easterEggVM !== null) {
         Column() {
-          this.sectionLabel(this.labels().quickTests)
+          this.sectionLabel(DebugSectionKind.QUICK_TESTS)
 
           Row() {
-            this.debugButton(this.labels().loadHeatmap, () => {
-              this.runAsync(this.labels().loadHeatmap, (runtime: DebugRuntime) => runtime.loadHeatmap());
+            this.debugButton(DebugActionKind.LOAD_HEATMAP, () => {
+              this.runAsync(this.uiLabels.loadHeatmap, (runtime: DebugRuntime) => runtime.loadHeatmap());
             })
             Blank().width(Spacing.xs)
-            this.debugButton(this.labels().loadActivity, () => {
-              this.runAsync(this.labels().loadActivity, (runtime: DebugRuntime) => runtime.loadActivity());
+            this.debugButton(DebugActionKind.LOAD_ACTIVITY, () => {
+              this.runAsync(this.uiLabels.loadActivity, (runtime: DebugRuntime) => runtime.loadActivity());
             })
           }
           .width('100%')
 
           Row() {
-            this.debugButton(this.labels().reloadMonth, () => {
-              this.runAsync(this.labels().reloadMonth, (runtime: DebugRuntime) => runtime.reloadMonth());
+            this.debugButton(DebugActionKind.RELOAD_MONTH, () => {
+              this.runAsync(this.uiLabels.reloadMonth, (runtime: DebugRuntime) => runtime.reloadMonth());
             })
             Blank().width(Spacing.xs)
-            this.debugButton(this.labels().refreshData, () => {
-              this.runAsync(this.labels().refreshData, (runtime: DebugRuntime) => runtime.refreshData());
+            this.debugButton(DebugActionKind.REFRESH_DATA, () => {
+              this.runAsync(this.uiLabels.refreshData, (runtime: DebugRuntime) => runtime.refreshData());
             })
           }
           .width('100%')
           .margin({ top: Spacing.xs })
 
           Row() {
-            this.debugButton(this.labels().clearRecords, () => {
-              this.runAsync(this.labels().clearRecords, (runtime: DebugRuntime) => runtime.clearRecords());
+            this.debugButton(DebugActionKind.CLEAR_RECORDS, () => {
+              this.runAsync(this.uiLabels.clearRecords, (runtime: DebugRuntime) => runtime.clearRecords());
             })
             Blank().width(Spacing.xs)
             Blank().layoutWeight(1)
@@ -125,19 +139,10 @@ export struct DebugPanel {
           .width('100%')
           .margin({ top: Spacing.xs })
 
-          Row() {
-            this.localeButton(this.labels().langZh, 'zh')
-            Blank().width(Spacing.xs)
-            this.localeButton(this.labels().langEn, 'en')
-          }
-          .width('100%')
-          .margin({ top: Spacing.xs })
-
-          this.sectionLabel(this.labels().featureLabs)
+          this.sectionLabel(DebugSectionKind.FEATURE_LABS)
 
           this.featureLabButton(
-            this.labels().easterEggLab,
-            this.labels().easterEggLabSub,
+            DebugLabKind.EASTER_EGG,
             () => {
               this.eggLabController.open();
             }
@@ -146,8 +151,7 @@ export struct DebugPanel {
           Blank().height(Spacing.xs)
 
           this.featureLabButton(
-            this.labels().patternLearningLab,
-            this.labels().patternLearningLabSub,
+            DebugLabKind.PATTERN_LEARNING,
             () => {
               this.patternLabController.open();
             }
@@ -226,8 +230,14 @@ export struct DebugPanel {
   }
 
   @Builder
-  private sectionLabel(label: string) {
-    Text(label)
+  private sectionLabel(kind: DebugSectionKind) {
+    Text() {
+      if (kind === DebugSectionKind.QUICK_TESTS) {
+        Span(this.uiLabels.quickTests)
+      } else {
+        Span(this.uiLabels.featureLabs)
+      }
+    }
       .width('100%')
       .fontSize(8)
       .fontWeight(800)
@@ -237,8 +247,20 @@ export struct DebugPanel {
   }
 
   @Builder
-  private debugButton(label: string, action: () => void) {
-    Text(label)
+  private debugButton(kind: DebugActionKind, action: () => void) {
+    Text() {
+      if (kind === DebugActionKind.LOAD_HEATMAP) {
+        Span(this.uiLabels.loadHeatmap)
+      } else if (kind === DebugActionKind.LOAD_ACTIVITY) {
+        Span(this.uiLabels.loadActivity)
+      } else if (kind === DebugActionKind.RELOAD_MONTH) {
+        Span(this.uiLabels.reloadMonth)
+      } else if (kind === DebugActionKind.REFRESH_DATA) {
+        Span(this.uiLabels.refreshData)
+      } else {
+        Span(this.uiLabels.clearRecords)
+      }
+    }
       .layoutWeight(1)
       .height(40)
       .fontSize(9)
@@ -263,47 +285,28 @@ export struct DebugPanel {
   }
 
   @Builder
-  private localeButton(label: string, locale: string) {
-    Text(label)
-      .layoutWeight(1)
-      .height(36)
-      .fontSize(10)
-      .fontWeight(800)
-      .fontColor(this.locale === locale ? this.tokens.brandText : this.tokens.brandPrimary)
-      .fontFamily('monospace')
-      .textAlign(TextAlign.Center)
-      .backgroundColor(this.locale === locale ? this.tokens.brandPrimary : this.tokens.bgBase)
-      .border({ width: 1, color: this.tokens.brandPrimary })
-      .stateStyles({
-        normal: {
-          .backgroundColor(this.locale === locale ? this.tokens.brandPrimary : this.tokens.bgBase)
-          .scale({ x: 1, y: 1 })
-        },
-        pressed: {
-          .backgroundColor(this.locale === locale ? this.tokens.brandActive : this.tokens.bgSurfacePressed)
-          .scale({ x: 0.96, y: 0.96 })
-        }
-      })
-      .animation({ duration: 100, curve: Curve.EaseOut })
-      .id(`locale_button_${locale}`)
-      .onClick(() => {
-        if (this.locale !== locale && this.onLocaleSwitch) {
-          this.onLocaleSwitch(locale);
-        }
-      })
-  }
-
-  @Builder
-  private featureLabButton(title: string, subtitle: string, action: () => void) {
+  private featureLabButton(kind: DebugLabKind, action: () => void) {
     Row() {
       Column() {
-        Text(title)
+        Text() {
+          if (kind === DebugLabKind.EASTER_EGG) {
+            Span(this.uiLabels.easterEggLab)
+          } else {
+            Span(this.uiLabels.patternLearningLab)
+          }
+        }
           .fontSize(10)
           .fontWeight(800)
           .fontColor(this.tokens.textPrimary)
           .fontFamily('monospace')
 
-        Text(subtitle)
+        Text() {
+          if (kind === DebugLabKind.EASTER_EGG) {
+            Span(this.uiLabels.easterEggLabSub)
+          } else {
+            Span(this.uiLabels.patternLearningLabSub)
+          }
+        }
           .fontSize(8)
           .fontWeight(600)
           .fontColor(this.tokens.textMuted)

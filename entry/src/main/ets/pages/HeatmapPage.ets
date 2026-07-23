@@ -3,7 +3,10 @@ import { Spacing } from '../common/SpacingTokens';
 import { AppSection } from '../domain/AppSection';
 import { DesignTokens, SkinTheme, ThemePalette } from '../domain/SkinTheme';
 import { DebugLabels, CHINESE_DEBUG_LABELS } from '../common/DebugLabels';
-import { HeatmapVM } from '../viewmodels/HeatmapVM';
+import { CalendarVM } from '../viewmodels/CalendarVM';
+import { ActivityVM } from '../viewmodels/ActivityVM';
+import { ThemeVM } from '../viewmodels/ThemeVM';
+import { EasterEggVM } from '../viewmodels/EasterEggVM';
 import { CheckInInput } from './components/CheckInInput';
 import { GridBackdrop } from './components/GridBackdrop';
 import { HorizontalNavigation } from './components/HorizontalNavigation';
@@ -22,34 +25,57 @@ struct HeatmapPage {
   @Provide tokens: DesignTokens = ThemePalette[SkinTheme.LIGHT];
   @Provide debugLabels: DebugLabels = CHINESE_DEBUG_LABELS;
   @Provide themeName: SkinTheme = SkinTheme.LIGHT;
-  @StorageLink('heatmapVM') private vm: HeatmapVM | null = null;
+  @StorageLink('calendarVM') private calendarVM: CalendarVM | null = null;
+  @StorageLink('activityVM') private activityVM: ActivityVM | null = null;
+  @StorageLink('themeVM') private themeVM: ThemeVM | null = null;
+  @StorageLink('easterEggVM') private easterEggVM: EasterEggVM | null = null;
   @State private activeSection: AppSection = AppSection.DATA;
 
   aboutToAppear(): void {
     const now = new Date();
-    if (this.vm !== null) {
-      const vm = this.vm;
-      vm.initialize(now.getFullYear(), now.getMonth() + 1).then(() => {
-        this.themeName = vm.currentSkin;
-        this.tokens = vm.currentTokens;
+    const calendar = this.calendarVM;
+    const activity = this.activityVM;
+    const theme = this.themeVM;
+    if (calendar !== null && activity !== null && theme !== null) {
+      Promise.all([
+        theme.initialize(),
+        calendar.loadMonth(now.getFullYear(), now.getMonth() + 1),
+        activity.refreshAll(),
+      ]).then(() => {
+        this.themeName = theme.currentSkin;
+        this.tokens = theme.currentTokens;
       });
     }
   }
 
   private switchTheme(name: SkinTheme): void {
     this.themeName = name;
-    if (this.vm !== null) {
-      this.vm.switchSkin(name);
-      this.tokens = this.vm.currentTokens;
+    if (this.themeVM !== null) {
+      this.themeVM.switchSkin(name);
+      this.tokens = this.themeVM.currentTokens;
     } else {
       this.tokens = ThemePalette[name];
+    }
+  }
+
+  private async doCheckIn(content: string): Promise<void> {
+    const calendar = this.calendarVM;
+    const activity = this.activityVM;
+    const eggVM = this.easterEggVM;
+    if (calendar === null || activity === null) {
+      return;
+    }
+    const egg = await calendar.doCheckIn(content);
+    await activity.refreshAll();
+    if (egg !== null && eggVM !== null) {
+      eggVM.present(egg);
     }
   }
 
   @Builder
   private calendarMonthHeader() {
     Column() {
-      Text(this.vm!.monthCode)
+      Text(this.calendarVM!.monthCode)
         .fontSize(28)
         .fontWeight(900)
         .fontColor(this.tokens.textPrimary)
@@ -66,19 +92,19 @@ struct HeatmapPage {
   private activePage() {
     if (this.activeSection === AppSection.LOGS) {
       LogsSection({
-        checkIns: this.vm!.checkIns,
-        totalCommitCount: this.vm!.totalCommitCount,
+        checkIns: this.activityVM!.checkIns,
+        totalCommitCount: this.activityVM!.checkIns.length,
       })
         .width('100%')
         .height('100%')
     } else if (this.activeSection === AppSection.CORE) {
-      PatternsSection({ usagePatterns: this.vm!.usagePatterns })
+      PatternsSection({ usagePatterns: this.activityVM!.usagePatterns })
         .width('100%')
         .height('100%')
     } else if (this.activeSection === AppSection.USER) {
       ProfileSection({
-        totalCommitCount: this.vm!.totalCommitCount,
-        patternCount: this.vm!.usagePatterns.length,
+        totalCommitCount: this.activityVM!.checkIns.length,
+        patternCount: this.activityVM!.usagePatterns.length,
         onThemeSwitch: (theme: SkinTheme) => {
           this.switchTheme(theme);
         }
@@ -87,13 +113,13 @@ struct HeatmapPage {
         .height('100%')
     } else {
       CalendarSection({
-        cells: this.vm!.cells,
-        selectedDate: this.vm!.selectedDate,
-        todayString: this.vm!.todayString,
-        longestMonthStreak: this.vm!.longestMonthStreak,
-        monthCommitCount: this.vm!.monthCommitCount,
+        cells: this.calendarVM!.cells,
+        selectedDate: this.calendarVM!.selectedDate,
+        todayString: this.calendarVM!.todayString,
+        longestMonthStreak: this.calendarVM!.longestMonthStreak,
+        monthCommitCount: this.calendarVM!.monthCommitCount,
         onCellTap: (date: string) => {
-          this.vm!.selectDate(date);
+          this.calendarVM!.selectDate(date);
         }
       })
         .width('100%')
@@ -108,7 +134,7 @@ struct HeatmapPage {
       Column() {
         Row() {
           Column() {
-            if (this.vm !== null) {
+            if (this.calendarVM !== null && this.activityVM !== null && this.themeVM !== null) {
               HorizontalNavigation({
                 active: this.activeSection,
                 onNavigate: (section: AppSection) => {
@@ -129,9 +155,9 @@ struct HeatmapPage {
 
               if (this.activeSection === AppSection.DATA) {
                 CheckInInput({
-                  selectedDate: this.vm!.selectedDate,
+                  selectedDate: this.calendarVM!.selectedDate,
                   onLightUp: (text: string) => {
-                    this.vm!.doCheckIn(text);
+                    this.doCheckIn(text);
                   }
                 })
                   .margin({ top: Spacing.xs, bottom: Spacing.sm })
@@ -157,17 +183,17 @@ struct HeatmapPage {
       .width('100%')
       .height('100%')
 
-      if (this.vm !== null && this.vm.showParticles) {
+      if (this.easterEggVM !== null && this.easterEggVM.showParticles) {
         ParticleOverlay({
-          effectType: this.vm.triggeredEgg ? this.vm.triggeredEgg.effectType : 'particle_sparkle',
+          effectType: this.easterEggVM.triggeredEgg ? this.easterEggVM.triggeredEgg.effectType : 'particle_sparkle',
         })
           .width('100%')
           .height('100%')
           .hitTestBehavior(HitTestMode.Transparent)
       }
 
-      if (this.vm !== null && this.vm.showBanner) {
-        QuoteBanner({ quote: this.vm.triggeredEgg ? this.vm.triggeredEgg.quote : '' })
+      if (this.easterEggVM !== null && this.easterEggVM.showBanner) {
+        QuoteBanner({ quote: this.easterEggVM.triggeredEgg ? this.easterEggVM.triggeredEgg.quote : '' })
       }
     }
     .width('100%')

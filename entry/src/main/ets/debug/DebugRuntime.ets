@@ -1,7 +1,9 @@
 import { EasterEgg } from '../domain/EasterEgg';
 import { LearnedPattern, PatternStage, PatternSuggestion } from '../domain/LearnedPattern';
 import { HeatmapCell } from '../domain/Streak';
-import { HeatmapVM } from '../viewmodels/HeatmapVM';
+import { CalendarVM } from '../viewmodels/CalendarVM';
+import { ActivityVM } from '../viewmodels/ActivityVM';
+import { EasterEggVM } from '../viewmodels/EasterEggVM';
 
 const EGG_DEBUG_REPLAY_MS = 3200;
 
@@ -38,18 +40,22 @@ export enum AiDebugScenario {
 }
 
 export class DebugRuntime {
-  private vm: HeatmapVM;
+  private calendarVM: CalendarVM;
+  private activityVM: ActivityVM;
+  private easterEggVM: EasterEggVM;
 
-  constructor(vm: HeatmapVM) {
-    this.vm = vm;
+  constructor(calendarVM: CalendarVM, activityVM: ActivityVM, easterEggVM: EasterEggVM) {
+    this.calendarVM = calendarVM;
+    this.activityVM = activityVM;
+    this.easterEggVM = easterEggVM;
   }
 
   async loadHeatmap(): Promise<string> {
     try {
       const date = this.currentMonth();
-      await this.vm.loadMonth(date.year, date.month);
-      const active = this.vm.cells.filter((cell: HeatmapCell) => cell.level > 0).length;
-      return `OK | cells=${active}/${this.vm.cells.length}`;
+      await this.calendarVM.loadMonth(date.year, date.month);
+      const active = this.calendarVM.cells.filter((cell: HeatmapCell) => cell.level > 0).length;
+      return `OK | cells=${active}/${this.calendarVM.cells.length}`;
     } catch (error) {
       return this.failure(error);
     }
@@ -57,8 +63,8 @@ export class DebugRuntime {
 
   async loadActivity(): Promise<string> {
     try {
-      await this.vm.refreshActivity();
-      return `OK | checkIns=${this.vm.checkIns.length} | patterns=${this.vm.usagePatterns.length}`;
+      await this.activityVM.refreshActivity();
+      return `OK | checkIns=${this.activityVM.checkIns.length} | patterns=${this.activityVM.usagePatterns.length}`;
     } catch (error) {
       return this.failure(error);
     }
@@ -67,8 +73,8 @@ export class DebugRuntime {
   async reloadMonth(): Promise<string> {
     try {
       const today = this.todayMonth();
-      await this.vm.loadMonth(today.year, today.month);
-      return `OK | cells=${this.vm.cells.length}`;
+      await this.calendarVM.loadMonth(today.year, today.month);
+      return `OK | cells=${this.calendarVM.cells.length}`;
     } catch (error) {
       return this.failure(error);
     }
@@ -76,20 +82,18 @@ export class DebugRuntime {
 
   async refreshData(): Promise<string> {
     try {
-      await this.vm.refreshActivity();
-      return `OK | commits=${this.vm.checkIns.length} | patterns=${this.vm.usagePatterns.length}`;
+      await this.activityVM.refreshActivity();
+      return `OK | commits=${this.activityVM.checkIns.length} | patterns=${this.activityVM.usagePatterns.length}`;
     } catch (error) {
       return this.failure(error);
     }
   }
 
-  tokenSnapshot(): string {
-    return `OK | theme=${this.vm.currentSkin} | primary=${this.vm.currentTokens.brandPrimary}`;
-  }
-
   async clearRecords(): Promise<string> {
     try {
-      await this.vm.clearAllRecords();
+      await this.calendarVM.clearAllRecords();
+      this.easterEggVM.dismiss();
+      await this.activityVM.refreshAll();
       return 'OK | records cleared';
     } catch (error) {
       return this.failure(error);
@@ -106,27 +110,30 @@ export class DebugRuntime {
         return this.patternStatus(await this.seedPattern(5, 0.9));
       } else if (scenario === PatternDebugScenario.SIMILAR_MATCH) {
         await this.seedPattern(5, 0.9);
-        const egg = await this.vm.matchLearnedPattern('evening sketch practice', 20000);
+        const egg = await this.activityVM.matchLearnedPattern('evening sketch practice', 20000);
+        if (egg !== null) {
+          this.easterEggVM.present(egg);
+        }
         return egg === null ? 'FAIL | similar alias did not match' : `OK | matched=${egg.keyword}`;
       } else if (scenario === PatternDebugScenario.NO_MATCH) {
         const pattern = await this.seedPattern(5, 0.9);
-        const egg = await this.vm.matchLearnedPattern('strength training plan', 20000);
+        const egg = await this.activityVM.matchLearnedPattern('strength training plan', 20000);
         return egg === null ? `OK | no match | stage=${pattern.stage}` : 'FAIL | unrelated text matched';
       } else if (scenario === PatternDebugScenario.COOLDOWN) {
         await this.seedPattern(5, 0.9);
-        await this.vm.matchLearnedPattern('drawing session', 20000);
-        this.vm.dismissEgg();
-        const patterns = this.vm.learnedPatterns;
+        await this.activityVM.matchLearnedPattern('drawing session', 20000);
+        this.easterEggVM.dismiss();
+        const patterns = this.activityVM.learnedPatterns;
         if (patterns.length === 0) {
           return 'FAIL | pattern missing after match';
         }
         return `OK | stage=${patterns[0].stage} | blockedUntil=${patterns[0].cooldownUntil}`;
       } else if (scenario === PatternDebugScenario.OBSERVATION_STATUS) {
-        await this.vm.refreshLearningObservationCount();
-        return `OK | pending=${this.vm.pendingLearningObservations}`;
+        await this.activityVM.refreshObservationCount();
+        return `OK | pending=${this.activityVM.pendingLearningObservations}`;
       } else if (scenario === PatternDebugScenario.RESET_SAMPLE) {
-        await this.vm.resetLearnedPatterns();
-        return `OK | patterns=${this.vm.learnedPatterns.length} | pending=${this.vm.pendingLearningObservations}`;
+        await this.activityVM.resetLearnedPatterns();
+        return `OK | patterns=${this.activityVM.learnedPatterns.length} | pending=${this.activityVM.pendingLearningObservations}`;
       }
       return 'FAIL | unsupported scenario';
     } catch (error) {
@@ -163,23 +170,20 @@ export class DebugRuntime {
   async runAiScenario(scenario: AiDebugScenario): Promise<string> {
     try {
       if (scenario === AiDebugScenario.AI_PING) {
-        return await this.vm.triggerAiAnalysis();
+        return await this.activityVM.triggerAiAnalysis();
       } else if (scenario === AiDebugScenario.AI_ANALYZE_SAMPLE) {
-        await this.vm.resetLearnedPatterns();
-        // Seed pending observations to simulate real input
-        this.vm.selectDate('2026-07-01');
-        await this.vm.doCheckIn('evening sketch practice');
-        this.vm.selectDate('2026-07-02');
-        await this.vm.doCheckIn('daily drawing session');
-        this.vm.selectDate('2026-07-03');
-        await this.vm.doCheckIn('illustration study today');
-        return await this.vm.triggerAiAnalysis();
+        await this.activityVM.resetLearnedPatterns();
+        this.calendarVM.selectDate('2026-07-01');
+        await this.calendarVM.doCheckIn('evening sketch practice');
+        this.calendarVM.selectDate('2026-07-02');
+        await this.calendarVM.doCheckIn('daily drawing session');
+        this.calendarVM.selectDate('2026-07-03');
+        await this.calendarVM.doCheckIn('illustration study today');
+        return await this.activityVM.triggerAiAnalysis();
       } else if (scenario === AiDebugScenario.AI_TIMEOUT) {
-        // Stub never times out — returns empty result safely
-        return await this.vm.triggerAiAnalysis();
+        return await this.activityVM.triggerAiAnalysis();
       } else if (scenario === AiDebugScenario.AI_INVALID_RESPONSE) {
-        // Stub always returns valid (empty) — degradation is proven
-        return await this.vm.triggerAiAnalysis();
+        return await this.activityVM.triggerAiAnalysis();
       }
       return 'FAIL | unsupported scenario';
     } catch (error) {
@@ -188,13 +192,13 @@ export class DebugRuntime {
   }
 
   playEasterEgg(effectType: string, soundFile: string, quote: string): void {
-    this.vm.dismissEgg();
-    this.vm.presentEasterEgg(this.egg('debug', quote, effectType, soundFile));
+    this.easterEggVM.dismiss();
+    this.easterEggVM.present(this.egg('debug', quote, effectType, soundFile));
   }
 
   playBlockedRetrigger(): void {
     this.playEasterEgg('particle_dark', 'jojo_menace', 'DEBUG // FIRST SIGNAL');
-    this.vm.presentEasterEgg(this.egg(
+    this.easterEggVM.present(this.egg(
       'debug_blocked',
       'DEBUG // THIS SIGNAL MUST BE BLOCKED',
       'particle_sakura',
@@ -205,7 +209,7 @@ export class DebugRuntime {
   playRapidTaps(): void {
     this.playEasterEgg('particle_rise', 'level_up', 'DEBUG // RAPID INPUT LOCKED');
     for (let i = 0; i < 4; i++) {
-      this.vm.presentEasterEgg(this.egg(
+      this.easterEggVM.present(this.egg(
         'debug_rapid',
         'DEBUG // DUPLICATE SIGNAL',
         'particle_bubble',
@@ -217,7 +221,7 @@ export class DebugRuntime {
   playAfterEnd(): void {
     this.playEasterEgg('particle_sparkle', 'level_up', 'DEBUG // SIGNAL ONE');
     setTimeout(() => {
-      this.vm.presentEasterEgg(this.egg(
+      this.easterEggVM.present(this.egg(
         'debug_replay',
         'DEBUG // SIGNAL TWO',
         'eva_at_field',
@@ -227,7 +231,7 @@ export class DebugRuntime {
   }
 
   private async seedPattern(count: number, confidence: number): Promise<LearnedPattern> {
-    await this.vm.resetLearnedPatterns();
+    await this.activityVM.resetLearnedPatterns();
     const suggestion = new PatternSuggestion(
       'creative flow',
       ['sketch practice', 'drawing session', 'illustration study'],
@@ -236,10 +240,10 @@ export class DebugRuntime {
       'particle_rise',
       'level_up'
     );
-    let pattern = await this.vm.observeLearnedPattern(suggestion, '2026-07-01', 1000);
+    let pattern = await this.activityVM.observeLearnedPattern(suggestion, '2026-07-01', 1000);
     for (let i = 1; i < count; i++) {
       const day = String(i + 1).padStart(2, '0');
-      pattern = await this.vm.observeLearnedPattern(suggestion, `2026-07-${day}`, 1000 + i);
+      pattern = await this.activityVM.observeLearnedPattern(suggestion, `2026-07-${day}`, 1000 + i);
     }
     return pattern;
   }
@@ -253,12 +257,12 @@ export class DebugRuntime {
   }
 
   private currentMonth(): DebugMonth {
-    const parts = this.vm.monthCode.split('.');
+    const parts = this.calendarVM.monthCode.split('.');
     return new DebugMonth(parseInt(parts[0]), parseInt(parts[1]));
   }
 
   private todayMonth(): DebugMonth {
-    const today = this.vm.todayString;
+    const today = this.calendarVM.todayString;
     return new DebugMonth(parseInt(today.slice(0, 4)), parseInt(today.slice(5, 7)));
   }
 

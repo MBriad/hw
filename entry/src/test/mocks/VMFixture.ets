@@ -1,8 +1,11 @@
 import { DesignTokens, SkinTheme, ThemePalette } from '../../main/ets/domain/SkinTheme';
 import { SkinProvider } from '../../main/ets/domain/ports/SkinProvider';
 import { SoundPlayer } from '../../main/ets/domain/ports/SoundPlayer';
-import { HeatmapVM } from '../../main/ets/viewmodels/HeatmapVM';
 import { PatternLearningApi } from '../../main/ets/domain/ports/PatternLearningApi';
+import { CalendarVM } from '../../main/ets/viewmodels/CalendarVM';
+import { ActivityVM } from '../../main/ets/viewmodels/ActivityVM';
+import { ThemeVM } from '../../main/ets/viewmodels/ThemeVM';
+import { EasterEggVM } from '../../main/ets/viewmodels/EasterEggVM';
 import {
   MockClearCheckIns,
   MockLoadActivity,
@@ -52,18 +55,28 @@ export class VMFixture {
   patternLearning: PatternLearningApi;
   skin: MockSkinProvider = new MockSkinProvider();
   sound: MockSoundPlayer = new MockSoundPlayer();
-  vm: HeatmapVM;
+  calendarVM: CalendarVM;
+  activityVM: ActivityVM;
+  themeVM: ThemeVM;
+  easterEggVM: EasterEggVM;
 
   constructor(patternLearning?: PatternLearningApi) {
     this.patternLearning = patternLearning ?? new MockPatternLearning();
-    this.vm = new HeatmapVM(
+    this.calendarVM = new CalendarVM(
       this.loadHeatmap,
       this.record,
       this.clear,
+      this.patternLearning,
+    );
+    this.activityVM = new ActivityVM(
       this.loadActivity,
       this.patternLearning,
+    );
+    this.themeVM = new ThemeVM(
       this.skin,
-      this.sound
+    );
+    this.easterEggVM = new EasterEggVM(
+      this.sound,
     );
   }
 }

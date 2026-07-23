@@ -1,7 +1,9 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
 import { DesignTokens } from '../../domain/SkinTheme';
-import { HeatmapVM } from '../../viewmodels/HeatmapVM';
+import { CalendarVM } from '../../viewmodels/CalendarVM';
+import { ActivityVM } from '../../viewmodels/ActivityVM';
+import { EasterEggVM } from '../../viewmodels/EasterEggVM';
 import { DebugRuntime, EggDebugScenario, PatternDebugScenario, AiDebugScenario } from '../DebugRuntime';
 import { DebugLabels } from '../../common/DebugLabels';
 import { EasterEggLabDialog } from './EasterEggLabDialog';
@@ -9,7 +11,9 @@ import { PatternLearningLabDialog } from './PatternLearningLabDialog';
 
 @Component
 export struct DebugPanel {
-  @StorageLink('heatmapVM') private vm: HeatmapVM | null = null;
+  @StorageLink('calendarVM') private calendarVM: CalendarVM | null = null;
+  @StorageLink('activityVM') private activityVM: ActivityVM | null = null;
+  @StorageLink('easterEggVM') private easterEggVM: EasterEggVM | null = null;
   @Consume tokens: DesignTokens;
   @Consume debugLabels: DebugLabels;
   @State private expanded: boolean = false;
@@ -79,7 +83,7 @@ export struct DebugPanel {
         this.expanded = !this.expanded;
       })
 
-      if (this.expanded && this.vm !== null) {
+      if (this.expanded && this.calendarVM !== null && this.activityVM !== null && this.easterEggVM !== null) {
         Column() {
           this.sectionLabel(this.debugLabels.quickTests)
 
@@ -107,16 +111,11 @@ export struct DebugPanel {
           .margin({ top: Spacing.xs })
 
           Row() {
-            this.debugButton(this.debugLabels.tokenSnapshot, () => {
-              const runtime = this.runtime();
-              if (runtime !== null) {
-                this.showResult(this.debugLabels.tokenSnapshot, runtime.tokenSnapshot());
-              }
-            })
-            Blank().width(Spacing.xs)
             this.debugButton(this.debugLabels.clearRecords, () => {
               this.runAsync(this.debugLabels.clearRecords, (runtime: DebugRuntime) => runtime.clearRecords());
             })
+            Blank().width(Spacing.xs)
+            Blank().layoutWeight(1)
           }
           .width('100%')
           .margin({ top: Spacing.xs })
@@ -153,10 +152,10 @@ export struct DebugPanel {
   }
 
   private runtime(): DebugRuntime | null {
-    if (this.vm === null) {
+    if (this.calendarVM === null || this.activityVM === null || this.easterEggVM === null) {
       return null;
     }
-    return new DebugRuntime(this.vm);
+    return new DebugRuntime(this.calendarVM, this.activityVM, this.easterEggVM);
   }
 
   private runAsync(title: string, action: (runtime: DebugRuntime) => Promise<string>): void {

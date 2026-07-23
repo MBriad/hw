@@ -15,7 +15,10 @@ import { LoadHeatmap } from '../usecases/LoadHeatmap';
 import { RecordCheckIn } from '../usecases/RecordCheckIn';
 import { ManageLearnedPatterns } from '../usecases/ManageLearnedPatterns';
 import { AnalyzePendingObservations } from '../usecases/AnalyzePendingObservations';
-import { HeatmapVM } from '../viewmodels/HeatmapVM';
+import { CalendarVM } from '../viewmodels/CalendarVM';
+import { ActivityVM } from '../viewmodels/ActivityVM';
+import { ThemeVM } from '../viewmodels/ThemeVM';
+import { EasterEggVM } from '../viewmodels/EasterEggVM';
 
 const DOMAIN = 0x0000;
 
@@ -44,17 +47,30 @@ export default class EntryAbility extends UIAbility {
       learnedPatternRepo, new LearnedPatternPolicy(), learningObservationRepo);
     const aiAdvisor = new StubAiPatternAdvisor();
     const analyzeUseCase = new AnalyzePendingObservations(manageLearnedPatterns, aiAdvisor);
-    const viewModel = new HeatmapVM(
+
+    // Per-page ViewModels (ISP — split from fat HeatmapVM)
+    const calendarVM = new CalendarVM(
       new LoadHeatmap(repo),
       new RecordCheckIn(repo),
       new ClearCheckIns(repo),
+      manageLearnedPatterns,
+    );
+    const activityVM = new ActivityVM(
       new LoadActivity(repo, patternEngine),
       manageLearnedPatterns,
-      new SkinProviderImpl(this.context),
-      new SoundPlayerImpl(),
-      analyzeUseCase
+      analyzeUseCase,
     );
-    AppStorage.setOrCreate<HeatmapVM>('heatmapVM', viewModel);
+    const themeVM = new ThemeVM(
+      new SkinProviderImpl(this.context),
+    );
+    const easterEggVM = new EasterEggVM(
+      new SoundPlayerImpl(),
+    );
+
+    AppStorage.setOrCreate<CalendarVM>('calendarVM', calendarVM);
+    AppStorage.setOrCreate<ActivityVM>('activityVM', activityVM);
+    AppStorage.setOrCreate<ThemeVM>('themeVM', themeVM);
+    AppStorage.setOrCreate<EasterEggVM>('easterEggVM', easterEggVM);
 
     windowStage.loadContent('pages/HeatmapPage', (err) => {
       if (err.code) {

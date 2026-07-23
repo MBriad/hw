@@ -5,12 +5,17 @@ import { ManageLearnedPatterns } from '../main/ets/usecases/ManageLearnedPattern
 import { MockLearnedPatternRepo } from './mocks/MockLearnedPatternRepo';
 import { MockLearningObservationRepo } from './mocks/MockLearningObservationRepo';
 import { VMFixture } from './mocks/VMFixture';
+import { MockPatternLearning } from './mocks/MockUseCases';
+
+function makeRuntime(fixture: VMFixture): DebugRuntime {
+  return new DebugRuntime(fixture.calendarVM, fixture.activityVM, fixture.easterEggVM);
+}
 
 export default function debugRuntimeTest() {
   describe('DebugRuntime', () => {
     it('quickTests_call_live_viewmodel_workflows', 0, async () => {
       const fixture = new VMFixture();
-      const runtime = new DebugRuntime(fixture.vm);
+      const runtime = makeRuntime(fixture);
       const heatmapResult = await runtime.loadHeatmap();
       const activityResult = await runtime.loadActivity();
       expect(heatmapResult.startsWith('OK | cells=')).assertEqual(true);
@@ -22,46 +27,46 @@ export default function debugRuntimeTest() {
 
     it('clearRecords_calls_live_clear_api', 0, async () => {
       const fixture = new VMFixture();
-      const runtime = new DebugRuntime(fixture.vm);
-      fixture.vm.selectDate('2026-07-19');
+      const runtime = makeRuntime(fixture);
+      fixture.calendarVM.selectDate('2026-07-19');
       const result = await runtime.clearRecords();
       expect(result).assertEqual('OK | records cleared');
       expect(fixture.clear.executeCount).assertEqual(1);
-      expect(fixture.vm.selectedDate).assertEqual('');
+      expect(fixture.calendarVM.selectedDate).assertEqual('');
     });
 
     it('playEasterEgg_uses_live_feedback_pipeline', 0, () => {
       const fixture = new VMFixture();
-      const runtime = new DebugRuntime(fixture.vm);
+      const runtime = makeRuntime(fixture);
       runtime.playEasterEgg('particle_sakura', 'anime_sparkle', 'DEBUG // SAKURA SIGNAL');
-      expect(fixture.vm.triggeredEgg !== null).assertEqual(true);
-      expect(fixture.vm.showParticles).assertEqual(true);
-      expect(fixture.vm.showBanner).assertEqual(true);
+      expect(fixture.easterEggVM.triggeredEgg !== null).assertEqual(true);
+      expect(fixture.easterEggVM.showParticles).assertEqual(true);
+      expect(fixture.easterEggVM.showBanner).assertEqual(true);
       expect(fixture.sound.lastPlayed).assertEqual('anime_sparkle');
-      if (fixture.vm.triggeredEgg !== null) {
-        expect(fixture.vm.triggeredEgg.effectType).assertEqual('particle_sakura');
-        expect(fixture.vm.triggeredEgg.quote).assertEqual('DEBUG // SAKURA SIGNAL');
+      if (fixture.easterEggVM.triggeredEgg !== null) {
+        expect(fixture.easterEggVM.triggeredEgg.effectType).assertEqual('particle_sakura');
+        expect(fixture.easterEggVM.triggeredEgg.quote).assertEqual('DEBUG // SAKURA SIGNAL');
       }
     });
 
     it('blockedRetrigger_keeps_first_signal', 0, () => {
       const fixture = new VMFixture();
-      const runtime = new DebugRuntime(fixture.vm);
+      const runtime = makeRuntime(fixture);
       runtime.playBlockedRetrigger();
       expect(fixture.sound.playCount).assertEqual(1);
-      if (fixture.vm.triggeredEgg !== null) {
-        expect(fixture.vm.triggeredEgg.effectType).assertEqual('particle_dark');
-        expect(fixture.vm.triggeredEgg.quote).assertEqual('DEBUG // FIRST SIGNAL');
+      if (fixture.easterEggVM.triggeredEgg !== null) {
+        expect(fixture.easterEggVM.triggeredEgg.effectType).assertEqual('particle_dark');
+        expect(fixture.easterEggVM.triggeredEgg.quote).assertEqual('DEBUG // FIRST SIGNAL');
       }
     });
 
     it('rapidTaps_does_not_stack_feedback', 0, () => {
       const fixture = new VMFixture();
-      const runtime = new DebugRuntime(fixture.vm);
+      const runtime = makeRuntime(fixture);
       runtime.playRapidTaps();
       expect(fixture.sound.playCount).assertEqual(1);
-      if (fixture.vm.triggeredEgg !== null) {
-        expect(fixture.vm.triggeredEgg.effectType).assertEqual('particle_rise');
+      if (fixture.easterEggVM.triggeredEgg !== null) {
+        expect(fixture.easterEggVM.triggeredEgg.effectType).assertEqual('particle_rise');
       }
     });
 
@@ -69,7 +74,7 @@ export default function debugRuntimeTest() {
       const repo = new MockLearnedPatternRepo();
       const observations = new MockLearningObservationRepo();
       const fixture = new VMFixture(new ManageLearnedPatterns(repo, new LearnedPatternPolicy(), observations));
-      const runtime = new DebugRuntime(fixture.vm);
+      const runtime = makeRuntime(fixture);
       expect(await runtime.runPatternScenario(PatternDebugScenario.OBSERVING))
         .assertEqual('OK | stage=OBSERVING | count=1 | days=1');
       expect(await runtime.runPatternScenario(PatternDebugScenario.CANDIDATE))
@@ -82,10 +87,10 @@ export default function debugRuntimeTest() {
       const repo = new MockLearnedPatternRepo();
       const observations = new MockLearningObservationRepo();
       const fixture = new VMFixture(new ManageLearnedPatterns(repo, new LearnedPatternPolicy(), observations));
-      const runtime = new DebugRuntime(fixture.vm);
+      const runtime = makeRuntime(fixture);
       const result = await runtime.runPatternScenario(PatternDebugScenario.SIMILAR_MATCH);
       expect(result).assertEqual('OK | matched=creative flow');
-      expect(fixture.vm.triggeredEgg !== null).assertEqual(true);
+      expect(fixture.easterEggVM.triggeredEgg !== null).assertEqual(true);
       expect(fixture.sound.lastPlayed).assertEqual('level_up');
     });
 
@@ -93,8 +98,9 @@ export default function debugRuntimeTest() {
       const repo = new MockLearnedPatternRepo();
       const observations = new MockLearningObservationRepo();
       const fixture = new VMFixture(new ManageLearnedPatterns(repo, new LearnedPatternPolicy(), observations));
-      const runtime = new DebugRuntime(fixture.vm);
-      await fixture.vm.doCheckIn('captured note');
+      const runtime = makeRuntime(fixture);
+      fixture.calendarVM.selectDate('2026-07-20');
+      await fixture.calendarVM.doCheckIn('captured note');
       const status = await runtime.runPatternScenario(PatternDebugScenario.OBSERVATION_STATUS);
       expect(status).assertEqual('OK | pending=1');
       const noMatch = await runtime.runPatternScenario(PatternDebugScenario.NO_MATCH);

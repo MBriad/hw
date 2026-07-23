@@ -95,9 +95,9 @@ export struct PatternLearningLabDialog {
           this.sectionLabel('03', 'DATA')
 
           Row() {
-            this.labButton('RESET SAMPLE', PatternDebugScenario.RESET_SAMPLE)
+            this.labButton('OBSERVATION STATUS', PatternDebugScenario.OBSERVATION_STATUS)
             Blank().width(Spacing.xs)
-            Blank().layoutWeight(1)
+            this.labButton('RESET SAMPLE', PatternDebugScenario.RESET_SAMPLE)
           }
           .width('100%')
         }

@@ -3,6 +3,7 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { PreferencesCheckInRepo } from '../adapters/PreferencesCheckInRepo';
 import { PreferencesLearnedPatternRepo } from '../adapters/PreferencesLearnedPatternRepo';
+import { PreferencesLearningObservationRepo } from '../adapters/PreferencesLearningObservationRepo';
 import { SkinProviderImpl } from '../adapters/SkinProviderImpl';
 import { SoundPlayerImpl } from '../adapters/SoundPlayerImpl';
 import { FrequencyPatternEngine } from '../domain/FrequencyPatternEngine';
@@ -35,13 +36,14 @@ export default class EntryAbility extends UIAbility {
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
     const repo = new PreferencesCheckInRepo(this.context);
     const learnedPatternRepo = new PreferencesLearnedPatternRepo(this.context);
+    const learningObservationRepo = new PreferencesLearningObservationRepo(this.context);
     const patternEngine = new FrequencyPatternEngine();
     const viewModel = new HeatmapVM(
       new LoadHeatmap(repo),
       new RecordCheckIn(repo),
       new ClearCheckIns(repo),
       new LoadActivity(repo, patternEngine),
-      new ManageLearnedPatterns(learnedPatternRepo, new LearnedPatternPolicy()),
+      new ManageLearnedPatterns(learnedPatternRepo, new LearnedPatternPolicy(), learningObservationRepo),
       new SkinProviderImpl(),
       new SoundPlayerImpl()
     );

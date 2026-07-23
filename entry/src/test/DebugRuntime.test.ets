@@ -3,6 +3,7 @@ import { DebugRuntime, PatternDebugScenario } from '../main/ets/debug/DebugRunti
 import { LearnedPatternPolicy } from '../main/ets/domain/LearnedPatternPolicy';
 import { ManageLearnedPatterns } from '../main/ets/usecases/ManageLearnedPatterns';
 import { MockLearnedPatternRepo } from './mocks/MockLearnedPatternRepo';
+import { MockLearningObservationRepo } from './mocks/MockLearningObservationRepo';
 import { VMFixture } from './mocks/VMFixture';
 
 export default function debugRuntimeTest() {
@@ -66,7 +67,8 @@ export default function debugRuntimeTest() {
 
     it('patternLab_reaches_observing_candidate_and_mature_through_live_usecase', 0, async () => {
       const repo = new MockLearnedPatternRepo();
-      const fixture = new VMFixture(new ManageLearnedPatterns(repo, new LearnedPatternPolicy()));
+      const observations = new MockLearningObservationRepo();
+      const fixture = new VMFixture(new ManageLearnedPatterns(repo, new LearnedPatternPolicy(), observations));
       const runtime = new DebugRuntime(fixture.vm);
       expect(await runtime.runPatternScenario(PatternDebugScenario.OBSERVING))
         .assertEqual('OK | stage=OBSERVING | count=1 | days=1');
@@ -78,7 +80,8 @@ export default function debugRuntimeTest() {
 
     it('patternLab_similar_match_uses_live_feedback_pipeline', 0, async () => {
       const repo = new MockLearnedPatternRepo();
-      const fixture = new VMFixture(new ManageLearnedPatterns(repo, new LearnedPatternPolicy()));
+      const observations = new MockLearningObservationRepo();
+      const fixture = new VMFixture(new ManageLearnedPatterns(repo, new LearnedPatternPolicy(), observations));
       const runtime = new DebugRuntime(fixture.vm);
       const result = await runtime.runPatternScenario(PatternDebugScenario.SIMILAR_MATCH);
       expect(result).assertEqual('OK | matched=creative flow');
@@ -88,15 +91,20 @@ export default function debugRuntimeTest() {
 
     it('patternLab_no_match_cooldown_and_reset_are_real_state_changes', 0, async () => {
       const repo = new MockLearnedPatternRepo();
-      const fixture = new VMFixture(new ManageLearnedPatterns(repo, new LearnedPatternPolicy()));
+      const observations = new MockLearningObservationRepo();
+      const fixture = new VMFixture(new ManageLearnedPatterns(repo, new LearnedPatternPolicy(), observations));
       const runtime = new DebugRuntime(fixture.vm);
+      await fixture.vm.doCheckIn('captured note');
+      const status = await runtime.runPatternScenario(PatternDebugScenario.OBSERVATION_STATUS);
+      expect(status).assertEqual('OK | pending=1');
       const noMatch = await runtime.runPatternScenario(PatternDebugScenario.NO_MATCH);
       expect(noMatch).assertEqual('OK | no match | stage=MATURE');
       const cooldown = await runtime.runPatternScenario(PatternDebugScenario.COOLDOWN);
       expect(cooldown.startsWith('OK | stage=COOLDOWN')).assertEqual(true);
       const reset = await runtime.runPatternScenario(PatternDebugScenario.RESET_SAMPLE);
-      expect(reset).assertEqual('OK | patterns=0');
+      expect(reset).assertEqual('OK | patterns=0 | pending=0');
       expect(repo.patterns.length).assertEqual(0);
+      expect(observations.observations.length).assertEqual(0);
     });
   });
 }

@@ -67,12 +67,27 @@ export class MockPatternLearning implements PatternLearningApi {
   public matchResult: EasterEgg | null = null;
   public capturedContent: string = '';
   public capturedNow: number = 0;
+  public capturedObservationContent: string = '';
+  public capturedObservationDate: string = '';
+  public capturedObservationNow: number = 0;
+  public pendingCount: number = 0;
   public loadCount: number = 0;
   public clearCount: number = 0;
 
   async load(): Promise<LearnedPattern[]> {
     this.loadCount++;
     return this.loadResult;
+  }
+
+  async captureInput(content: string, date: string, now: number): Promise<void> {
+    this.capturedObservationContent = content;
+    this.capturedObservationDate = date;
+    this.capturedObservationNow = now;
+    this.pendingCount = content.trim().length === 0 ? this.pendingCount : 1;
+  }
+
+  async pendingObservationCount(): Promise<number> {
+    return this.pendingCount;
   }
 
   async observe(suggestion: PatternSuggestion, date: string, now: number): Promise<LearnedPattern> {
@@ -99,5 +114,6 @@ export class MockPatternLearning implements PatternLearningApi {
   async clear(): Promise<void> {
     this.clearCount++;
     this.loadResult = [];
+    this.pendingCount = 0;
   }
 }

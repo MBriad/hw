@@ -23,6 +23,10 @@ export default function heatmapVMTest() {
       await fixture.vm.doCheckIn('shader practice');
       const learning = fixture.patternLearning as MockPatternLearning;
       expect(learning.capturedContent).assertEqual('shader practice');
+      expect(learning.capturedObservationContent).assertEqual('shader practice');
+      expect(learning.capturedObservationDate).assertEqual('2026-07-19');
+      expect(learning.capturedObservationNow).assertEqual(learning.capturedNow);
+      expect(fixture.vm.pendingLearningObservations).assertEqual(1);
       expect(fixture.record.capturedDate).assertEqual('2026-07-19');
       expect(fixture.record.capturedContent).assertEqual('shader practice');
       expect(fixture.loadActivity.executeCount).assertEqual(1);

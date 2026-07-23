@@ -1,20 +1,41 @@
 import { EasterEgg } from '../domain/EasterEgg';
+import { LearningObservation } from '../domain/LearningObservation';
 import { LearnedPattern, PatternMatchResult, PatternSuggestion } from '../domain/LearnedPattern';
 import { LearnedPatternPolicy } from '../domain/LearnedPatternPolicy';
+import { LearningObservationRepository } from '../domain/ports/LearningObservationRepository';
 import { LearnedPatternRepository } from '../domain/ports/LearnedPatternRepository';
 import { PatternLearningApi } from '../domain/ports/PatternLearningApi';
 
 export class ManageLearnedPatterns implements PatternLearningApi {
   private repo: LearnedPatternRepository;
+  private observationRepo: LearningObservationRepository;
   private policy: LearnedPatternPolicy;
 
-  constructor(repo: LearnedPatternRepository, policy: LearnedPatternPolicy) {
+  constructor(
+    repo: LearnedPatternRepository,
+    policy: LearnedPatternPolicy,
+    observationRepo: LearningObservationRepository,
+  ) {
     this.repo = repo;
     this.policy = policy;
+    this.observationRepo = observationRepo;
   }
 
   async load(): Promise<LearnedPattern[]> {
     return this.repo.loadAll();
+  }
+
+  async captureInput(content: string, date: string, now: number): Promise<void> {
+    const normalized = content.trim();
+    if (normalized.length === 0) {
+      return;
+    }
+    await this.observationRepo.save(new LearningObservation(date, normalized, now));
+  }
+
+  async pendingObservationCount(): Promise<number> {
+    const observations = await this.observationRepo.loadPending();
+    return observations.length;
   }
 
   async observe(suggestion: PatternSuggestion, date: string, now: number): Promise<LearnedPattern> {
@@ -44,6 +65,6 @@ export class ManageLearnedPatterns implements PatternLearningApi {
   }
 
   async clear(): Promise<void> {
-    await this.repo.clear();
+    await Promise.all([this.repo.clear(), this.observationRepo.clear()]);
   }
 }

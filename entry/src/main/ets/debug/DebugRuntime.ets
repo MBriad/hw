@@ -26,6 +26,7 @@ export enum PatternDebugScenario {
   SIMILAR_MATCH = 'SIMILAR_MATCH',
   NO_MATCH = 'NO_MATCH',
   COOLDOWN = 'COOLDOWN',
+  OBSERVATION_STATUS = 'OBSERVATION_STATUS',
   RESET_SAMPLE = 'RESET_SAMPLE',
 }
 
@@ -113,9 +114,12 @@ export class DebugRuntime {
           return 'FAIL | pattern missing after match';
         }
         return `OK | stage=${patterns[0].stage} | blockedUntil=${patterns[0].cooldownUntil}`;
+      } else if (scenario === PatternDebugScenario.OBSERVATION_STATUS) {
+        await this.vm.refreshLearningObservationCount();
+        return `OK | pending=${this.vm.pendingLearningObservations}`;
       } else if (scenario === PatternDebugScenario.RESET_SAMPLE) {
         await this.vm.resetLearnedPatterns();
-        return `OK | patterns=${this.vm.learnedPatterns.length}`;
+        return `OK | patterns=${this.vm.learnedPatterns.length} | pending=${this.vm.pendingLearningObservations}`;
       }
       return 'FAIL | unsupported scenario';
     } catch (error) {

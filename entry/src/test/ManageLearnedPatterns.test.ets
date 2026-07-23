@@ -3,6 +3,7 @@ import { PatternStage, PatternSuggestion } from '../main/ets/domain/LearnedPatte
 import { LearnedPatternPolicy } from '../main/ets/domain/LearnedPatternPolicy';
 import { ManageLearnedPatterns } from '../main/ets/usecases/ManageLearnedPatterns';
 import { MockLearnedPatternRepo } from './mocks/MockLearnedPatternRepo';
+import { MockLearningObservationRepo } from './mocks/MockLearningObservationRepo';
 
 function matureSuggestion(): PatternSuggestion {
   return new PatternSuggestion(
@@ -19,7 +20,8 @@ export default function manageLearnedPatternsTest() {
   describe('ManageLearnedPatterns', () => {
     it('observes_and_persists_stage_progress', 0, async () => {
       const repo = new MockLearnedPatternRepo();
-      const usecase = new ManageLearnedPatterns(repo, new LearnedPatternPolicy());
+      const observations = new MockLearningObservationRepo();
+      const usecase = new ManageLearnedPatterns(repo, new LearnedPatternPolicy(), observations);
       const input = matureSuggestion();
       await usecase.observe(input, '2026-07-01', 1);
       await usecase.observe(input, '2026-07-02', 2);
@@ -31,7 +33,8 @@ export default function manageLearnedPatternsTest() {
 
     it('matches_only_mature_alias_and_persists_cooldown', 0, async () => {
       const repo = new MockLearnedPatternRepo();
-      const usecase = new ManageLearnedPatterns(repo, new LearnedPatternPolicy());
+      const observations = new MockLearningObservationRepo();
+      const usecase = new ManageLearnedPatterns(repo, new LearnedPatternPolicy(), observations);
       const input = matureSuggestion();
       for (let i = 0; i < 5; i++) {
         await usecase.observe(input, `2026-07-0${i + 1}`, i);
@@ -45,11 +48,27 @@ export default function manageLearnedPatternsTest() {
 
     it('clear_removes_all_learned_patterns', 0, async () => {
       const repo = new MockLearnedPatternRepo();
-      const usecase = new ManageLearnedPatterns(repo, new LearnedPatternPolicy());
+      const observations = new MockLearningObservationRepo();
+      const usecase = new ManageLearnedPatterns(repo, new LearnedPatternPolicy(), observations);
       await usecase.observe(matureSuggestion(), '2026-07-01', 1);
+      await usecase.captureInput('daily note', '2026-07-01', 2);
       await usecase.clear();
       expect(repo.patterns.length).assertEqual(0);
       expect(repo.clearCount).assertEqual(1);
+      expect(observations.observations.length).assertEqual(0);
+      expect(observations.clearCount).assertEqual(1);
+    });
+
+    it('captures_pending_input_and_overwrites_same_date', 0, async () => {
+      const repo = new MockLearnedPatternRepo();
+      const observations = new MockLearningObservationRepo();
+      const usecase = new ManageLearnedPatterns(repo, new LearnedPatternPolicy(), observations);
+      await usecase.captureInput('first note', '2026-07-01', 1);
+      await usecase.captureInput('updated note', '2026-07-01', 2);
+      await usecase.captureInput('   ', '2026-07-02', 3);
+      expect(await usecase.pendingObservationCount()).assertEqual(1);
+      expect(observations.observations[0].content).assertEqual('updated note');
+      expect(observations.observations[0].capturedAt).assertEqual(2);
     });
   });
 }

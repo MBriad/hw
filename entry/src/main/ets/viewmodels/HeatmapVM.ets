@@ -26,6 +26,7 @@ export class HeatmapVM {
   checkIns: CheckIn[] = [];
   usagePatterns: UsagePattern[] = [];
   learnedPatterns: LearnedPattern[] = [];
+  pendingLearningObservations: number = 0;
 
   // Easter egg state
   triggeredEgg: EasterEgg | null = null;
@@ -63,7 +64,12 @@ export class HeatmapVM {
   }
 
   async initialize(year: number, month: number): Promise<void> {
-    await Promise.all([this.loadMonth(year, month), this.refreshActivity(), this.refreshLearnedPatterns()]);
+    await Promise.all([
+      this.loadMonth(year, month),
+      this.refreshActivity(),
+      this.refreshLearnedPatterns(),
+      this.refreshLearningObservationCount(),
+    ]);
   }
 
   async loadMonth(year: number, month: number): Promise<void> {
@@ -73,12 +79,15 @@ export class HeatmapVM {
   }
 
   async doCheckIn(content: string): Promise<void> {
+    const now = Date.now();
     await this.recordCheckIn.execute(this.selectedDate, content);
-    const egg = await this.patternLearning.match(content, Date.now());
+    await this.patternLearning.captureInput(content, this.selectedDate, now);
+    const egg = await this.patternLearning.match(content, now);
     await Promise.all([
       this.loadMonth(this.currentYear, this.currentMonth),
       this.refreshActivity(),
       this.refreshLearnedPatterns(),
+      this.refreshLearningObservationCount(),
     ]);
 
     if (egg !== null) {
@@ -175,6 +184,10 @@ export class HeatmapVM {
     this.learnedPatterns = await this.patternLearning.load();
   }
 
+  async refreshLearningObservationCount(): Promise<void> {
+    this.pendingLearningObservations = await this.patternLearning.pendingObservationCount();
+  }
+
   async observeLearnedPattern(
     suggestion: PatternSuggestion,
     date: string,
@@ -197,6 +210,7 @@ export class HeatmapVM {
   async resetLearnedPatterns(): Promise<void> {
     await this.patternLearning.clear();
     this.learnedPatterns = [];
+    this.pendingLearningObservations = 0;
     this.dismissEgg();
   }
 

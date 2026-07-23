@@ -1,11 +1,13 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
+import { DebugLabels } from '../../common/DebugLabels';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { EggDebugScenario } from '../DebugRuntime';
 
 @CustomDialog
 export struct EasterEggLabDialog {
   @Consume tokens: DesignTokens;
+  @Consume debugLabels: DebugLabels;
   controller: CustomDialogController;
   onRun?: (scenario: EggDebugScenario) => void;
 
@@ -13,13 +15,13 @@ export struct EasterEggLabDialog {
     Column() {
       Row() {
         Column() {
-          Text('EASTER EGG LAB')
+          Text(this.debugLabels.easterEggLab)
             .fontSize(14)
             .fontWeight(800)
             .fontColor(this.tokens.textPrimary)
             .fontFamily('monospace')
 
-          Text('LIVE EFFECT PIPELINE')
+          Text(this.debugLabels.liveEffectPipeline)
             .fontSize(9)
             .fontWeight(600)
             .fontColor(this.tokens.textMuted)
@@ -60,50 +62,50 @@ export struct EasterEggLabDialog {
 
       Scroll() {
         Column() {
-          this.sectionLabel('01', 'PRESETS')
+          this.sectionLabel('01', this.debugLabels.presets)
 
           Row() {
-            this.labButton('SPARKLE', EggDebugScenario.SPARKLE)
+            this.labButton(this.debugLabels.sparkle, EggDebugScenario.SPARKLE)
             Blank().width(Spacing.xs)
-            this.labButton('DARK', EggDebugScenario.DARK)
+            this.labButton(this.debugLabels.dark, EggDebugScenario.DARK)
           }
           .width('100%')
 
           Row() {
-            this.labButton('BUBBLE', EggDebugScenario.BUBBLE)
+            this.labButton(this.debugLabels.bubble, EggDebugScenario.BUBBLE)
             Blank().width(Spacing.xs)
-            this.labButton('SAKURA', EggDebugScenario.SAKURA)
-          }
-          .width('100%')
-          .margin({ top: Spacing.xs })
-
-          Row() {
-            this.labButton('RISE', EggDebugScenario.RISE)
-            Blank().width(Spacing.xs)
-            this.labButton('AT FIELD', EggDebugScenario.AT_FIELD)
-          }
-          .width('100%')
-          .margin({ top: Spacing.xs })
-
-          this.sectionLabel('02', 'LIFECYCLE')
-
-          Row() {
-            this.labButton('AUTO DISMISS', EggDebugScenario.AUTO_DISMISS)
-            Blank().width(Spacing.xs)
-            this.labButton('TAP DISMISS', EggDebugScenario.TAP_DISMISS)
-          }
-          .width('100%')
-
-          Row() {
-            this.labButton('RETRIGGER BLOCK', EggDebugScenario.RETRIGGER_BLOCKED)
-            Blank().width(Spacing.xs)
-            this.labButton('RAPID TAPS', EggDebugScenario.RAPID_TAPS)
+            this.labButton(this.debugLabels.sakura, EggDebugScenario.SAKURA)
           }
           .width('100%')
           .margin({ top: Spacing.xs })
 
           Row() {
-            this.labButton('AFTER END', EggDebugScenario.AFTER_END)
+            this.labButton(this.debugLabels.rise, EggDebugScenario.RISE)
+            Blank().width(Spacing.xs)
+            this.labButton(this.debugLabels.atField, EggDebugScenario.AT_FIELD)
+          }
+          .width('100%')
+          .margin({ top: Spacing.xs })
+
+          this.sectionLabel('02', this.debugLabels.lifecycle)
+
+          Row() {
+            this.labButton(this.debugLabels.autoDismiss, EggDebugScenario.AUTO_DISMISS)
+            Blank().width(Spacing.xs)
+            this.labButton(this.debugLabels.tapDismiss, EggDebugScenario.TAP_DISMISS)
+          }
+          .width('100%')
+
+          Row() {
+            this.labButton(this.debugLabels.retriggerBlock, EggDebugScenario.RETRIGGER_BLOCKED)
+            Blank().width(Spacing.xs)
+            this.labButton(this.debugLabels.rapidTaps, EggDebugScenario.RAPID_TAPS)
+          }
+          .width('100%')
+          .margin({ top: Spacing.xs })
+
+          Row() {
+            this.labButton(this.debugLabels.afterEnd, EggDebugScenario.AFTER_END)
             Blank().width(Spacing.xs)
             Blank().layoutWeight(1)
           }

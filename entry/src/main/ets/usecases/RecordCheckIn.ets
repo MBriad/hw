@@ -14,11 +14,7 @@ export class RecordCheckIn implements IRecordCheckIn {
   }
 
   async execute(date: string, content: string): Promise<void> {
-    const checkIn: CheckIn = {
-      date: date,
-      content: content,
-      timestamp: Date.now(),
-    };
+    const checkIn = new CheckIn(date, content, Date.now());
     await this.repo.save(checkIn);
   }
 }

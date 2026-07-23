@@ -3,17 +3,29 @@
  * Spawns colored particles that fade and disappear over ~1.5s.
  * Non-blocking — user can still interact with the page.
  */
-interface Particle {
+import { DesignTokens } from '../../domain/SkinTheme';
+
+class Particle {
   x: number;
   y: number;
   size: number;
-  color: string;
+  color: ResourceColor;
   vx: number;
   vy: number;
+
+  constructor(x: number, y: number, size: number, color: ResourceColor, vx: number, vy: number) {
+    this.x = x;
+    this.y = y;
+    this.size = size;
+    this.color = color;
+    this.vx = vx;
+    this.vy = vy;
+  }
 }
 
 @Component
 export struct ParticleOverlay {
+  @Consume tokens: DesignTokens;
   @Prop effectType: string = 'particle_sparkle';
   @State private particles: Particle[] = [];
   @State private visible: boolean = false;
@@ -45,32 +57,32 @@ export struct ParticleOverlay {
     for (let i = 0; i < count; i++) {
       const angle = (Math.random() * Math.PI * 2);
       const distance = 24 + Math.random() * 20;
-      p.push({
-        x: 50,
-        y: 48,
-        size: 4 + Math.random() * 8,
-        color: colors[i % colors.length],
-        vx: Math.cos(angle) * distance,
-        vy: Math.sin(angle) * distance - 10,
-      });
+      p.push(new Particle(
+        50,
+        48,
+        4 + Math.random() * 8,
+        colors[i % colors.length],
+        Math.cos(angle) * distance,
+        Math.sin(angle) * distance - 10,
+      ));
     }
     this.particles = p;
   }
 
-  private getColorsForEffect(): string[] {
+  private getColorsForEffect(): ResourceColor[] {
     switch (this.effectType) {
       case 'eva_at_field':
-        return ['#FF6B35', '#7B2D8E', '#FFA500', '#FF4500'];
+        return [this.tokens.brandAccent, this.tokens.brandActive, this.tokens.brandPrimary, this.tokens.textPrimary];
       case 'particle_dark':
-        return ['#6366F1', '#818CF8', '#312E81', '#A5B4FC'];
+        return [this.tokens.brandActive, this.tokens.brandPrimary, this.tokens.textSecondary, this.tokens.brandText];
       case 'particle_sakura':
-        return ['#FF69B4', '#FFB7C5', '#FF1493', '#FFF0F5'];
+        return [this.tokens.brandAccent, this.tokens.brandPrimary, this.tokens.brandText, this.tokens.brandLight];
       case 'particle_bubble':
-        return ['#67E8F9', '#22D3EE', '#A5F3FC', '#0891B2'];
+        return [this.tokens.brandPrimary, this.tokens.brandText, this.tokens.brandLight, this.tokens.brandActive];
       case 'particle_rise':
-        return ['#34D399', '#FBBF24', '#60A5FA', '#A78BFA'];
+        return [this.tokens.brandPrimary, this.tokens.brandAccent, this.tokens.brandText, this.tokens.textSecondary];
       default:
-        return ['#F59E0B', '#FCD34D', '#FBBF24', '#FDE68A'];
+        return [this.tokens.brandAccent, this.tokens.brandPrimary, this.tokens.brandText, this.tokens.brandLight];
     }
   }
 

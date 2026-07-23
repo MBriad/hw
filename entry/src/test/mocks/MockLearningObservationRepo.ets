@@ -20,6 +20,16 @@ export class MockLearningObservationRepo implements LearningObservationRepositor
     }
   }
 
+  async removeProcessed(processed: LearningObservation[]): Promise<void> {
+    this.observations = this.observations.filter((item: LearningObservation) =>
+      !processed.some((candidate: LearningObservation) =>
+        candidate.date === item.date &&
+        candidate.capturedAt === item.capturedAt &&
+        candidate.content === item.content
+      )
+    );
+  }
+
   async clear(): Promise<void> {
     this.clearCount++;
     this.observations = [];

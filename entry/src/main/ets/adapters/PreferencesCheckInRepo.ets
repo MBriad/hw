@@ -43,7 +43,8 @@ export class PreferencesCheckInRepo implements CheckInRepository {
     } else {
       data = JSON.stringify(raw);
     }
-    return JSON.parse(data) as CheckIn[];
+    const parsed = JSON.parse(data) as CheckIn[];
+    return parsed.map((item: CheckIn) => new CheckIn(item.date, item.content, item.timestamp));
   }
 
   async loadByMonth(year: number, month: number): Promise<CheckIn[]> {

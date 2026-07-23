@@ -38,6 +38,23 @@ export class ManageLearnedPatterns implements PatternLearningApi {
     return observations.length;
   }
 
+  async loadPendingBatch(limit: number): Promise<LearningObservation[]> {
+    if (limit <= 0) {
+      return [];
+    }
+    const observations = await this.observationRepo.loadPending();
+    const sorted = observations.slice();
+    sorted.sort((left: LearningObservation, right: LearningObservation) => left.capturedAt - right.capturedAt);
+    return sorted.slice(0, Math.floor(limit));
+  }
+
+  async acknowledgeProcessed(observations: LearningObservation[]): Promise<void> {
+    if (observations.length === 0) {
+      return;
+    }
+    await this.observationRepo.removeProcessed(observations);
+  }
+
   async observe(suggestion: PatternSuggestion, date: string, now: number): Promise<LearnedPattern> {
     const patterns = await this.repo.loadAll();
     const id = suggestion.topic.trim().toLowerCase();

@@ -1,8 +1,8 @@
 /** Entry page for the Actrace technical activity workspace. */
-import { preferences } from '@kit.ArkData';
 import { Spacing } from '../common/SpacingTokens';
 import { AppSection } from '../domain/AppSection';
 import { DesignTokens, SkinTheme, ThemePalette } from '../domain/SkinTheme';
+import { DebugLabels, CHINESE_DEBUG_LABELS } from '../common/DebugLabels';
 import { HeatmapVM } from '../viewmodels/HeatmapVM';
 import { CheckInInput } from './components/CheckInInput';
 import { GridBackdrop } from './components/GridBackdrop';
@@ -14,14 +14,13 @@ import { LogsSection } from './sections/LogsSection';
 import { PatternsSection } from './sections/PatternsSection';
 import { ProfileSection } from './sections/ProfileSection';
 
-const PREFS_NAME = 'app_settings';
-const KEY_THEME = 'theme';
 const CONTENT_MAX_WIDTH = 420;
 
 @Entry
 @Component
 struct HeatmapPage {
-  @Provide @Watch('onThemeChange') tokens: DesignTokens = ThemePalette[SkinTheme.LIGHT];
+  @Provide tokens: DesignTokens = ThemePalette[SkinTheme.LIGHT];
+  @Provide debugLabels: DebugLabels = CHINESE_DEBUG_LABELS;
   @Provide themeName: SkinTheme = SkinTheme.LIGHT;
   @StorageLink('heatmapVM') private vm: HeatmapVM | null = null;
   @State private activeSection: AppSection = AppSection.DATA;
@@ -29,18 +28,22 @@ struct HeatmapPage {
   aboutToAppear(): void {
     const now = new Date();
     if (this.vm !== null) {
-      this.vm.initialize(now.getFullYear(), now.getMonth() + 1);
+      const vm = this.vm;
+      vm.initialize(now.getFullYear(), now.getMonth() + 1).then(() => {
+        this.themeName = vm.currentSkin;
+        this.tokens = vm.currentTokens;
+      });
     }
-    this.loadPersistedTheme();
-  }
-
-  onThemeChange(): void {
   }
 
   private switchTheme(name: SkinTheme): void {
     this.themeName = name;
-    this.tokens = ThemePalette[name];
-    this.persistTheme(name);
+    if (this.vm !== null) {
+      this.vm.switchSkin(name);
+      this.tokens = this.vm.currentTokens;
+    } else {
+      this.tokens = ThemePalette[name];
+    }
   }
 
   @Builder
@@ -172,36 +175,4 @@ struct HeatmapPage {
     .backgroundColor(this.tokens.bgBase)
   }
 
-  private loadPersistedTheme(): void {
-    try {
-      preferences.getPreferences(getContext(this), PREFS_NAME, (err, pref) => {
-        if (!err) {
-          pref.get(KEY_THEME, SkinTheme.LIGHT, (_e, value) => {
-            const saved = value as string;
-            if (saved === SkinTheme.LIGHT || saved === SkinTheme.DARK ||
-                saved === SkinTheme.PINK || saved === SkinTheme.PASTEL) {
-              this.themeName = saved;
-              this.tokens = ThemePalette[saved];
-            }
-          });
-        }
-      });
-    } catch (_e) {
-    }
-  }
-
-  private persistTheme(name: SkinTheme): void {
-    try {
-      preferences.getPreferences(getContext(this), PREFS_NAME, (err, pref) => {
-        if (!err) {
-          pref.put(KEY_THEME, name, (e) => {
-            if (!e) {
-              pref.flush();
-            }
-          });
-        }
-      });
-    } catch (_e) {
-    }
-  }
 }

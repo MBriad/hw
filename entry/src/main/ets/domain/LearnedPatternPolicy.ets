@@ -4,6 +4,7 @@ import {
   PatternStage,
   PatternSuggestion,
 } from './LearnedPattern';
+import { EasterEgg } from './EasterEgg';
 
 const CANDIDATE_OCCURRENCES = 3;
 const CANDIDATE_DATES = 2;
@@ -50,12 +51,12 @@ export class LearnedPatternPolicy {
     pattern.cooldownUntil = now + COOLDOWN_MS;
     pattern.lastMatchedAt = now;
     pattern.updatedAt = now;
-    return new PatternMatchResult(pattern, {
-      keyword: pattern.topic,
-      quote: pattern.quote,
-      effectType: pattern.effectType,
-      soundFile: pattern.soundFile,
-    });
+    return new PatternMatchResult(pattern, new EasterEgg(
+      pattern.topic,
+      pattern.quote,
+      pattern.effectType,
+      pattern.soundFile,
+    ));
   }
 
   private advanceStage(pattern: LearnedPattern): void {

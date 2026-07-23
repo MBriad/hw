@@ -1,6 +1,6 @@
 /**
  * Humble View: Theme switcher with four compact color swatches.
- * Consumes DesignTokens + themeName from ThemeProvider.
+ * Consumes DesignTokens + themeName provided by the entry page.
  */
 import { SkinTheme, DesignTokens, ThemePalette } from '../../domain/SkinTheme';
 import { Spacing } from '../../common/SpacingTokens';

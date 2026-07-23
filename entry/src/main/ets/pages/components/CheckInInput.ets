@@ -1,5 +1,5 @@
 /**
- * Humble View: Check-in input area. Consumes DesignTokens from ThemeProvider.
+ * Humble View: check-in input area. Consumes page-provided DesignTokens.
  * Uses design system patterns: PrimaryButton + ThemedInput + stateStyles.
  */
 import { DesignTokens } from '../../domain/SkinTheme';

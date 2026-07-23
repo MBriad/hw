@@ -11,4 +11,10 @@ export interface SkinProvider {
 
   /** List all available themes */
   listThemes(): SkinTheme[];
+
+  /** Load the persisted theme, falling back to LIGHT. */
+  loadPersisted(): Promise<SkinTheme>;
+
+  /** Persist the selected theme. */
+  persist(id: SkinTheme): Promise<void>;
 }

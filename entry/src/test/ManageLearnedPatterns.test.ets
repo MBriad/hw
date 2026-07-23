@@ -1,4 +1,5 @@
 import { describe, it, expect } from '@ohos/hypium';
+import { LearningObservation } from '../main/ets/domain/LearningObservation';
 import { PatternStage, PatternSuggestion } from '../main/ets/domain/LearnedPattern';
 import { LearnedPatternPolicy } from '../main/ets/domain/LearnedPatternPolicy';
 import { ManageLearnedPatterns } from '../main/ets/usecases/ManageLearnedPatterns';
@@ -69,6 +70,37 @@ export default function manageLearnedPatternsTest() {
       expect(await usecase.pendingObservationCount()).assertEqual(1);
       expect(observations.observations[0].content).assertEqual('updated note');
       expect(observations.observations[0].capturedAt).assertEqual(2);
+    });
+
+    it('loads_oldest_pending_batch_without_removing_it', 0, async () => {
+      const repo = new MockLearnedPatternRepo();
+      const observations = new MockLearningObservationRepo();
+      observations.observations = [
+        new LearningObservation('2026-07-03', 'third', 30),
+        new LearningObservation('2026-07-01', 'first', 10),
+        new LearningObservation('2026-07-02', 'second', 20)
+      ];
+      const usecase = new ManageLearnedPatterns(repo, new LearnedPatternPolicy(), observations);
+      const batch = await usecase.loadPendingBatch(2);
+      expect(batch.length).assertEqual(2);
+      expect(batch[0].date).assertEqual('2026-07-01');
+      expect(batch[1].date).assertEqual('2026-07-02');
+      expect(observations.observations.length).assertEqual(3);
+      expect((await usecase.loadPendingBatch(0)).length).assertEqual(0);
+    });
+
+    it('acknowledges_only_the_processed_observation_snapshot', 0, async () => {
+      const repo = new MockLearnedPatternRepo();
+      const observations = new MockLearningObservationRepo();
+      const current = new LearningObservation('2026-07-01', 'updated note', 2);
+      observations.observations = [current];
+      const usecase = new ManageLearnedPatterns(repo, new LearnedPatternPolicy(), observations);
+      await usecase.acknowledgeProcessed([
+        new LearningObservation('2026-07-01', 'old note', 1)
+      ]);
+      expect(await usecase.pendingObservationCount()).assertEqual(1);
+      await usecase.acknowledgeProcessed([current]);
+      expect(await usecase.pendingObservationCount()).assertEqual(0);
     });
   });
 }

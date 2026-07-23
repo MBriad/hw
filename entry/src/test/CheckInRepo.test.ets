@@ -48,7 +48,7 @@ export default function checkInRepoTest() {
 
     it('save_and_loadAll_round_trip', 0, async () => {
       const repo = new MockCheckInRepo();
-      await repo.save({ date: '2026-07-19', content: 'Rust学习', timestamp: 1 });
+      await repo.save(new CheckIn('2026-07-19', 'Rust学习', 1));
       const all = await repo.loadAll();
       expect(all.length).assertEqual(1);
       expect(all[0].date).assertEqual('2026-07-19');
@@ -57,8 +57,8 @@ export default function checkInRepoTest() {
 
     it('save_updates_existing_date', 0, async () => {
       const repo = new MockCheckInRepo();
-      await repo.save({ date: '2026-07-19', content: 'first', timestamp: 1 });
-      await repo.save({ date: '2026-07-19', content: 'updated', timestamp: 2 });
+      await repo.save(new CheckIn('2026-07-19', 'first', 1));
+      await repo.save(new CheckIn('2026-07-19', 'updated', 2));
       const all = await repo.loadAll();
       expect(all.length).assertEqual(1);
       expect(all[0].content).assertEqual('updated');
@@ -72,9 +72,9 @@ export default function checkInRepoTest() {
 
     it('loadByMonth_filters_correctly', 0, async () => {
       const repo = new MockCheckInRepo();
-      await repo.save({ date: '2026-07-15', content: 'July 15', timestamp: 1 });
-      await repo.save({ date: '2026-07-20', content: 'July 20', timestamp: 2 });
-      await repo.save({ date: '2026-08-01', content: 'August 1', timestamp: 3 });
+      await repo.save(new CheckIn('2026-07-15', 'July 15', 1));
+      await repo.save(new CheckIn('2026-07-20', 'July 20', 2));
+      await repo.save(new CheckIn('2026-08-01', 'August 1', 3));
       const july = await repo.loadByMonth(2026, 7);
       expect(july.length).assertEqual(2);
       const august = await repo.loadByMonth(2026, 8);
@@ -84,24 +84,24 @@ export default function checkInRepoTest() {
 
     it('loadByMonth_returns_empty_for_no_match', 0, async () => {
       const repo = new MockCheckInRepo();
-      await repo.save({ date: '2026-07-15', content: 'test', timestamp: 1 });
+      await repo.save(new CheckIn('2026-07-15', 'test', 1));
       const january = await repo.loadByMonth(2026, 1);
       expect(january.length).assertEqual(0);
     });
 
     it('multiple_checkins_different_dates', 0, async () => {
       const repo = new MockCheckInRepo();
-      await repo.save({ date: '2026-07-10', content: 'A', timestamp: 1 });
-      await repo.save({ date: '2026-07-11', content: 'B', timestamp: 2 });
-      await repo.save({ date: '2026-07-12', content: 'C', timestamp: 3 });
+      await repo.save(new CheckIn('2026-07-10', 'A', 1));
+      await repo.save(new CheckIn('2026-07-11', 'B', 2));
+      await repo.save(new CheckIn('2026-07-12', 'C', 3));
       const all = await repo.loadAll();
       expect(all.length).assertEqual(3);
     });
 
     it('clear_removes_all_checkins', 0, async () => {
       const repo = new MockCheckInRepo();
-      await repo.save({ date: '2026-07-10', content: 'A', timestamp: 1 });
-      await repo.save({ date: '2026-08-11', content: 'B', timestamp: 2 });
+      await repo.save(new CheckIn('2026-07-10', 'A', 1));
+      await repo.save(new CheckIn('2026-08-11', 'B', 2));
       await repo.clear();
       expect((await repo.loadAll()).length).assertEqual(0);
       expect((await repo.loadByMonth(2026, 7)).length).assertEqual(0);

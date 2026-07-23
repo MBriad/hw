@@ -15,4 +15,6 @@ export class Spacing {
   static readonly lg: number = 24;
   /** 32vp - large composition spacing */
   static readonly xl: number = 32;
+  /** Calendar day-cell width and height. */
+  static readonly calendarCell: number = 40;
 }

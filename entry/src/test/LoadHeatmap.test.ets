@@ -29,7 +29,7 @@ export default function loadHeatmapTest() {
 
     it('marks_checked_dates_with_level_1', 0, async () => {
       const mockRepo = new MockCheckInRepo();
-      const sampleCheckIn: CheckIn = { date: '2026-07-15', content: 'test', timestamp: 1 };
+      const sampleCheckIn = new CheckIn('2026-07-15', 'test', 1);
       const samples: CheckIn[] = [sampleCheckIn];
       mockRepo.loadByMonthResult = samples;
 

@@ -5,13 +5,13 @@ import recordCheckInTest from './RecordCheckIn.test';
 import loadHeatmapTest from './LoadHeatmap.test';
 import skinProviderTest from './SkinProvider.test';
 import heatmapVMTest from './HeatmapVM.test';
-import keywordMatcherTest from './KeywordMatcher.test';
-import detectEasterEggTest from './DetectEasterEgg.test';
+import frequencyPatternEngineTest from './FrequencyPatternEngine.test';
 import soundPlayerTest from './SoundPlayer.test';
 import loadActivityTest from './LoadActivity.test';
 import debugRuntimeTest from './DebugRuntime.test';
 import learnedPatternPolicyTest from './LearnedPatternPolicy.test';
 import manageLearnedPatternsTest from './ManageLearnedPatterns.test';
+import analyzePendingObservationsTest from './AnalyzePendingObservations.test';
 
 export default function testsuite() {
   localUnitTest();
@@ -21,11 +21,11 @@ export default function testsuite() {
   loadHeatmapTest();
   skinProviderTest();
   heatmapVMTest();
-  keywordMatcherTest();
-  detectEasterEggTest();
+  frequencyPatternEngineTest();
   soundPlayerTest();
   loadActivityTest();
   debugRuntimeTest();
   learnedPatternPolicyTest();
   manageLearnedPatternsTest();
+  analyzePendingObservationsTest();
 }

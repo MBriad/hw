@@ -1,15 +1,18 @@
 /** Domain entities for usage-driven feedback. Pure ArkTS. */
 
-/** Result of matching a keyword against check-in text */
-export interface EasterEgg {
-  /** The user-derived pattern that reached a milestone. */
+/** Result of matching a learned pattern against check-in text. */
+export class EasterEgg {
   keyword: string;
-  /** Feedback text to display. */
   quote: string;
-  /** Particle effect preset. */
   effectType: string;
-  /** Synthesized sound preset. */
   soundFile: string;
+
+  constructor(keyword: string, quote: string, effectType: string, soundFile: string) {
+    this.keyword = keyword;
+    this.quote = quote;
+    this.effectType = effectType;
+    this.soundFile = soundFile;
+  }
 }
 
 export class UsagePattern {

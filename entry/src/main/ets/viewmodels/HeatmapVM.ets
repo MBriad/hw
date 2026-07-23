@@ -3,7 +3,7 @@
  * @Observed — ArkUI components react to property changes via @ObjectLink.
  * Injects usecases and providers via constructor (DIP).
  */
-import { HeatmapCell, StreakInfo, StreakLevel } from '../domain/Streak';
+import { HeatmapCell } from '../domain/Streak';
 import { SkinTheme, DesignTokens, ThemePalette } from '../domain/SkinTheme';
 import { CheckIn } from '../domain/CheckIn';
 import { EasterEgg, UsagePattern } from '../domain/EasterEgg';
@@ -13,6 +13,7 @@ import { IClearCheckIns, ILoadHeatmap, IRecordCheckIn } from '../domain/ports/He
 import { PatternLearningApi } from '../domain/ports/PatternLearningApi';
 import { SkinProvider } from '../domain/ports/SkinProvider';
 import { SoundPlayer } from '../domain/ports/SoundPlayer';
+import { AnalyzePendingObservations, AnalyzeResult } from '../usecases/AnalyzePendingObservations';
 
 const EGG_DISPLAY_MS = 2800;
 
@@ -22,7 +23,6 @@ export class HeatmapVM {
   currentSkin: SkinTheme = SkinTheme.LIGHT;
   currentTokens: DesignTokens = ThemePalette[SkinTheme.LIGHT];
   selectedDate: string = '';
-  streakInfo: StreakInfo = { current: 0, longest: 0, level: StreakLevel.NONE };
   checkIns: CheckIn[] = [];
   usagePatterns: UsagePattern[] = [];
   learnedPatterns: LearnedPattern[] = [];
@@ -39,6 +39,7 @@ export class HeatmapVM {
   private clearCheckIns: IClearCheckIns;
   private loadActivity: ILoadActivity;
   private patternLearning: PatternLearningApi;
+  private analyzeUseCase: AnalyzePendingObservations | null;
   private skinProvider: SkinProvider;
   private soundPlayer: SoundPlayer;
   private eggRunId: number = 0;
@@ -53,17 +54,21 @@ export class HeatmapVM {
     patternLearning: PatternLearningApi,
     skinProvider: SkinProvider,
     soundPlayer: SoundPlayer,
+    analyzeUseCase?: AnalyzePendingObservations,
   ) {
     this.loadHeatmap = loadHeatmap;
     this.recordCheckIn = recordCheckIn;
     this.clearCheckIns = clearCheckIns;
     this.loadActivity = loadActivity;
     this.patternLearning = patternLearning;
+    this.analyzeUseCase = analyzeUseCase ?? null;
     this.skinProvider = skinProvider;
     this.soundPlayer = soundPlayer;
   }
 
   async initialize(year: number, month: number): Promise<void> {
+    const persistedTheme = await this.skinProvider.loadPersisted();
+    this.applySkin(persistedTheme);
     await Promise.all([
       this.loadMonth(year, month),
       this.refreshActivity(),
@@ -127,7 +132,12 @@ export class HeatmapVM {
     this.selectedDate = date;
   }
 
-  switchSkin(theme: SkinTheme): void {
+  switchSkin(theme: SkinTheme): Promise<void> {
+    this.applySkin(theme);
+    return this.skinProvider.persist(theme);
+  }
+
+  private applySkin(theme: SkinTheme): void {
     this.currentSkin = theme;
     this.currentTokens = this.skinProvider.getTokens(theme);
   }
@@ -212,6 +222,22 @@ export class HeatmapVM {
     this.learnedPatterns = [];
     this.pendingLearningObservations = 0;
     this.dismissEgg();
+  }
+
+  async triggerAiAnalysis(): Promise<string> {
+    if (this.analyzeUseCase === null) {
+      return 'FAIL | AiPatternAdvisor not configured';
+    }
+    try {
+      const result: AnalyzeResult = await this.analyzeUseCase.execute(Date.now());
+      await Promise.all([
+        this.refreshLearnedPatterns(),
+        this.refreshLearningObservationCount(),
+      ]);
+      return `OK | analyzed=${result.analyzed} | patterns=${result.patternsCreated}`;
+    } catch (error) {
+      return `FAIL | ${JSON.stringify(error)}`;
+    }
   }
 
   async clearAllRecords(): Promise<void> {

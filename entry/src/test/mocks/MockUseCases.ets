@@ -1,8 +1,9 @@
 import { HeatmapCell } from '../../main/ets/domain/Streak';
 import { ActivitySnapshot } from '../../main/ets/domain/ActivitySnapshot';
 import { EasterEgg } from '../../main/ets/domain/EasterEgg';
+import { LearningObservation } from '../../main/ets/domain/LearningObservation';
 import { LearnedPattern, PatternSuggestion } from '../../main/ets/domain/LearnedPattern';
-import { IDetectEasterEgg, ILoadActivity } from '../../main/ets/domain/ports/ActivityUseCases';
+import { ILoadActivity } from '../../main/ets/domain/ports/ActivityUseCases';
 import { IClearCheckIns, ILoadHeatmap, IRecordCheckIn } from '../../main/ets/domain/ports/HeatmapUseCases';
 import { PatternLearningApi } from '../../main/ets/domain/ports/PatternLearningApi';
 
@@ -50,20 +51,9 @@ export class MockLoadActivity implements ILoadActivity {
   }
 }
 
-export class MockDetectEasterEgg implements IDetectEasterEgg {
-  public result: EasterEgg | null = null;
-  public capturedDate: string = '';
-  public capturedContent: string = '';
-
-  async execute(date: string, content: string): Promise<EasterEgg | null> {
-    this.capturedDate = date;
-    this.capturedContent = content;
-    return this.result;
-  }
-}
-
 export class MockPatternLearning implements PatternLearningApi {
   public loadResult: LearnedPattern[] = [];
+  public pendingObservations: LearningObservation[] = [];
   public matchResult: EasterEgg | null = null;
   public capturedContent: string = '';
   public capturedNow: number = 0;
@@ -88,6 +78,21 @@ export class MockPatternLearning implements PatternLearningApi {
 
   async pendingObservationCount(): Promise<number> {
     return this.pendingCount;
+  }
+
+  async loadPendingBatch(limit: number): Promise<LearningObservation[]> {
+    return this.pendingObservations.slice(0, limit);
+  }
+
+  async acknowledgeProcessed(observations: LearningObservation[]): Promise<void> {
+    this.pendingObservations = this.pendingObservations.filter((item: LearningObservation) =>
+      !observations.some((candidate: LearningObservation) =>
+        candidate.date === item.date &&
+        candidate.capturedAt === item.capturedAt &&
+        candidate.content === item.content
+      )
+    );
+    this.pendingCount = this.pendingObservations.length;
   }
 
   async observe(suggestion: PatternSuggestion, date: string, now: number): Promise<LearnedPattern> {

@@ -21,11 +21,7 @@ export class LoadHeatmap implements ILoadHeatmap {
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const match = checkins.find((c) => c.date === dateStr);
-      cells.push({
-        date: dateStr,
-        level: match ? 1 : 0,
-        checkIn: match ? match : undefined,
-      });
+      cells.push(new HeatmapCell(dateStr, match ? 1 : 0, match));
     }
 
     return cells;

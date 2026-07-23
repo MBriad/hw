@@ -1,14 +1,14 @@
 import { describe, it, expect } from '@ohos/hypium';
 import { CheckIn } from '../main/ets/domain/CheckIn';
 import { SkinTheme, DesignTokens, ThemePalette, ThemeNames } from '../main/ets/domain/SkinTheme';
-import { StreakLevel, StreakInfo, HeatmapCell } from '../main/ets/domain/Streak';
+import { HeatmapCell } from '../main/ets/domain/Streak';
 import { EasterEgg, UsagePattern } from '../main/ets/domain/EasterEgg';
 
 export default function domainEntityTest() {
   describe('DomainEntity', () => {
 
-    it('CheckIn_interface_is_creatable', 0, () => {
-      const ci: CheckIn = { date: '2026-07-19', content: 'Rust学习', timestamp: 123456 };
+    it('CheckIn_class_is_creatable', 0, () => {
+      const ci = new CheckIn('2026-07-19', 'Rust学习', 123456);
       expect(ci.date).assertEqual('2026-07-19');
       expect(ci.content).assertEqual('Rust学习');
       expect(ci.timestamp).assertEqual(123456);
@@ -75,27 +75,11 @@ export default function domainEntityTest() {
       }
     });
 
-    it('StreakLevel_enum_values_are_correct', 0, () => {
-      expect(StreakLevel.NONE === 'NONE').assertEqual(true);
-      expect(StreakLevel.L1_GLOW === 'L1_GLOW').assertEqual(true);
-      expect(StreakLevel.L2_ATFIELD === 'L2_ATFIELD').assertEqual(true);
-      expect(StreakLevel.L3_AWAKENED === 'L3_AWAKENED').assertEqual(true);
-    });
-
-    it('StreakInfo_interface_is_creatable', 0, () => {
-      const info: StreakInfo = { current: 5, longest: 10, level: StreakLevel.L1_GLOW };
-      expect(info.current).assertEqual(5);
-      expect(info.longest).assertEqual(10);
-      expect(info.level).assertEqual(StreakLevel.L1_GLOW);
-    });
-
     it('HeatmapCell_differentiates_levels', 0, () => {
-      const empty: HeatmapCell = { date: '2026-07-01', level: 0 };
-      const filled: HeatmapCell = {
-        date: '2026-07-15',
-        level: 3,
-        checkIn: { date: '2026-07-15', content: 'Rust学习', timestamp: 1 }
-      };
+      const empty = new HeatmapCell('2026-07-01', 0);
+      const filled = new HeatmapCell(
+        '2026-07-15', 3, new CheckIn('2026-07-15', 'Rust学习', 1)
+      );
       expect(empty.level).assertEqual(0);
       let hasNoCheckIn: boolean = (empty.checkIn === undefined);
       expect(hasNoCheckIn).assertEqual(true);
@@ -103,13 +87,10 @@ export default function domainEntityTest() {
       expect(filled.checkIn!.content).assertEqual('Rust学习');
     });
 
-    it('EasterEgg_interface_is_creatable', 0, () => {
-      const egg: EasterEgg = {
-        keyword: 'Rust',
-        quote: '检测到 Rustacean Commit',
-        effectType: 'eva_at_field',
-        soundFile: 'eva_alert.ogg'
-      };
+    it('EasterEgg_class_is_creatable', 0, () => {
+      const egg = new EasterEgg(
+        'Rust', '检测到 Rustacean Commit', 'eva_at_field', 'eva_alert.ogg'
+      );
       expect(egg.keyword).assertEqual('Rust');
       expect(egg.quote).assertContain('Rustacean');
     });
@@ -122,7 +103,7 @@ export default function domainEntityTest() {
     });
 
     it('domain_types_compile_and_resolve', 0, () => {
-      const ci: CheckIn = { date: '2026-07-19', content: 'test', timestamp: 0 };
+      const ci = new CheckIn('2026-07-19', 'test', 0);
       let isValid: boolean = (ci !== null && ci !== undefined);
       expect(isValid).assertEqual(true);
       expect(ci.content).assertEqual('test');

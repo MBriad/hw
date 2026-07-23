@@ -36,6 +36,20 @@ export class PreferencesLearningObservationRepo implements LearningObservationRe
     await store.flush();
   }
 
+  async removeProcessed(processed: LearningObservation[]): Promise<void> {
+    const store = await this.getStore();
+    const observations = await this.loadPending();
+    const remaining = observations.filter((item: LearningObservation) =>
+      !processed.some((candidate: LearningObservation) =>
+        candidate.date === item.date &&
+        candidate.capturedAt === item.capturedAt &&
+        candidate.content === item.content
+      )
+    );
+    await store.put(KEY_OBSERVATIONS, JSON.stringify(remaining));
+    await store.flush();
+  }
+
   async clear(): Promise<void> {
     const store = await this.getStore();
     await store.put(KEY_OBSERVATIONS, '[]');

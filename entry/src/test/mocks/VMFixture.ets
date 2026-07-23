@@ -1,4 +1,5 @@
-import { SkinProviderImpl } from '../../main/ets/adapters/SkinProviderImpl';
+import { DesignTokens, SkinTheme, ThemePalette } from '../../main/ets/domain/SkinTheme';
+import { SkinProvider } from '../../main/ets/domain/ports/SkinProvider';
 import { SoundPlayer } from '../../main/ets/domain/ports/SoundPlayer';
 import { HeatmapVM } from '../../main/ets/viewmodels/HeatmapVM';
 import { PatternLearningApi } from '../../main/ets/domain/ports/PatternLearningApi';
@@ -21,12 +22,35 @@ export class MockSoundPlayer implements SoundPlayer {
   }
 }
 
+export class MockSkinProvider implements SkinProvider {
+  persistedTheme: SkinTheme = SkinTheme.LIGHT;
+  persistedCount: number = 0;
+
+  getTokens(id: SkinTheme): DesignTokens {
+    return ThemePalette[id];
+  }
+
+  listThemes(): SkinTheme[] {
+    return [SkinTheme.LIGHT, SkinTheme.DARK, SkinTheme.PINK, SkinTheme.PASTEL];
+  }
+
+  async loadPersisted(): Promise<SkinTheme> {
+    return this.persistedTheme;
+  }
+
+  async persist(id: SkinTheme): Promise<void> {
+    this.persistedTheme = id;
+    this.persistedCount++;
+  }
+}
+
 export class VMFixture {
   loadHeatmap: MockLoadHeatmap = new MockLoadHeatmap();
   record: MockRecordCheckIn = new MockRecordCheckIn();
   clear: MockClearCheckIns = new MockClearCheckIns();
   loadActivity: MockLoadActivity = new MockLoadActivity();
   patternLearning: PatternLearningApi;
+  skin: MockSkinProvider = new MockSkinProvider();
   sound: MockSoundPlayer = new MockSoundPlayer();
   vm: HeatmapVM;
 
@@ -38,7 +62,7 @@ export class VMFixture {
       this.clear,
       this.loadActivity,
       this.patternLearning,
-      new SkinProviderImpl(),
+      this.skin,
       this.sound
     );
   }

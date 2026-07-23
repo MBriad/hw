@@ -1,12 +1,10 @@
 /**
  * Humble View: A single day cell on the heatmap grid.
- * Consumes DesignTokens from ThemeProvider. Emits tap intent.
+ * Consumes page-provided DesignTokens. Emits tap intent.
  */
 import { HeatmapCell } from '../../domain/Streak';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { Spacing } from '../../common/SpacingTokens';
-
-const CELL_SIZE = 40;
 
 @Component
 export struct DayCell {
@@ -24,8 +22,8 @@ export struct DayCell {
         .fontColor(this.getTextColor())
         .fontFamily('monospace')
     }
-    .width(CELL_SIZE)
-    .height(CELL_SIZE)
+    .width(Spacing.calendarCell)
+    .height(Spacing.calendarCell)
     .padding({ left: Spacing.xxs, top: Spacing.xxs })
     .alignItems(HorizontalAlign.Start)
     .backgroundColor(this.getCellColor())

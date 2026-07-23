@@ -4,15 +4,17 @@ import { window } from '@kit.ArkUI';
 import { PreferencesCheckInRepo } from '../adapters/PreferencesCheckInRepo';
 import { PreferencesLearnedPatternRepo } from '../adapters/PreferencesLearnedPatternRepo';
 import { PreferencesLearningObservationRepo } from '../adapters/PreferencesLearningObservationRepo';
+import { StubAiPatternAdvisor } from '../adapters/StubAiPatternAdvisor';
+import { FrequencyPatternEngine } from '../adapters/FrequencyPatternEngine';
 import { SkinProviderImpl } from '../adapters/SkinProviderImpl';
 import { SoundPlayerImpl } from '../adapters/SoundPlayerImpl';
-import { FrequencyPatternEngine } from '../domain/FrequencyPatternEngine';
 import { LearnedPatternPolicy } from '../domain/LearnedPatternPolicy';
 import { ClearCheckIns } from '../usecases/ClearCheckIns';
 import { LoadActivity } from '../usecases/LoadActivity';
 import { LoadHeatmap } from '../usecases/LoadHeatmap';
 import { RecordCheckIn } from '../usecases/RecordCheckIn';
 import { ManageLearnedPatterns } from '../usecases/ManageLearnedPatterns';
+import { AnalyzePendingObservations } from '../usecases/AnalyzePendingObservations';
 import { HeatmapVM } from '../viewmodels/HeatmapVM';
 
 const DOMAIN = 0x0000;
@@ -38,14 +40,19 @@ export default class EntryAbility extends UIAbility {
     const learnedPatternRepo = new PreferencesLearnedPatternRepo(this.context);
     const learningObservationRepo = new PreferencesLearningObservationRepo(this.context);
     const patternEngine = new FrequencyPatternEngine();
+    const manageLearnedPatterns = new ManageLearnedPatterns(
+      learnedPatternRepo, new LearnedPatternPolicy(), learningObservationRepo);
+    const aiAdvisor = new StubAiPatternAdvisor();
+    const analyzeUseCase = new AnalyzePendingObservations(manageLearnedPatterns, aiAdvisor);
     const viewModel = new HeatmapVM(
       new LoadHeatmap(repo),
       new RecordCheckIn(repo),
       new ClearCheckIns(repo),
       new LoadActivity(repo, patternEngine),
-      new ManageLearnedPatterns(learnedPatternRepo, new LearnedPatternPolicy(), learningObservationRepo),
-      new SkinProviderImpl(),
-      new SoundPlayerImpl()
+      manageLearnedPatterns,
+      new SkinProviderImpl(this.context),
+      new SoundPlayerImpl(),
+      analyzeUseCase
     );
     AppStorage.setOrCreate<HeatmapVM>('heatmapVM', viewModel);
 

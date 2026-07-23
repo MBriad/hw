@@ -1,57 +1,11 @@
-import { CheckIn } from './CheckIn';
-import { EasterEgg, UsagePattern } from './EasterEgg';
-import { UsagePatternEngine } from './ports/UsagePatternEngine';
+import { CheckIn } from '../domain/CheckIn';
+import { UsagePattern } from '../domain/EasterEgg';
+import { UsagePatternEngine } from '../domain/ports/UsagePatternEngine';
 
 const MILESTONES: number[] = [3, 7, 14, 30];
-const EFFECTS: string[] = [
-  'particle_sparkle',
-  'particle_dark',
-  'particle_bubble',
-  'particle_sakura',
-  'particle_rise',
-  'eva_at_field',
-];
-const SOUNDS: string[] = [
-  'level_up',
-  'wind_chime',
-  'healing_bell',
-  'anime_sparkle',
-  'jojo_menace',
-  'eva_alert',
-];
 
-/**
- * Learns repeated terms locally. There is no built-in trigger vocabulary:
- * feedback fires only when one of the user's own terms reaches a milestone.
- */
+/** Local adapter that summarizes repeated terms without triggering feedback. */
 export class FrequencyPatternEngine implements UsagePatternEngine {
-  evaluate(content: string, history: CheckIn[]): EasterEgg | null {
-    const terms = this.extractTerms(content);
-    let selectedTerm = '';
-    let selectedCount = 0;
-
-    terms.forEach((term: string) => {
-      const count = this.countTerm(term, history) + 1;
-      if (MILESTONES.includes(count) &&
-          (count > selectedCount || (count === selectedCount && term.length > selectedTerm.length))) {
-        selectedTerm = term;
-        selectedCount = count;
-      }
-    });
-
-    if (selectedTerm.length === 0) {
-      return null;
-    }
-
-    const presetIndex = this.stableIndex(selectedTerm, EFFECTS.length);
-    return {
-      keyword: selectedTerm,
-      quote: `PATTERN LOCKED // ${selectedTerm.toUpperCase()} x${selectedCount}`,
-      effectType: EFFECTS[presetIndex],
-      soundFile: SOUNDS[presetIndex],
-    };
-  }
-
   summarize(history: CheckIn[]): UsagePattern[] {
     const counts: Map<string, number> = new Map<string, number>();
     history.forEach((checkIn: CheckIn) => {
@@ -73,16 +27,6 @@ export class FrequencyPatternEngine implements UsagePatternEngine {
       return right.term.length - left.term.length;
     });
     return patterns.slice(0, 8);
-  }
-
-  private countTerm(term: string, history: CheckIn[]): number {
-    let count = 0;
-    history.forEach((checkIn: CheckIn) => {
-      if (this.extractTerms(checkIn.content).includes(term)) {
-        count++;
-      }
-    });
-    return count;
   }
 
   private extractTerms(content: string): string[] {
@@ -127,13 +71,5 @@ export class FrequencyPatternEngine implements UsagePatternEngine {
       }
     }
     return 0;
-  }
-
-  private stableIndex(term: string, size: number): number {
-    let hash = 0;
-    for (let i = 0; i < term.length; i++) {
-      hash = (hash * 31 + term.charCodeAt(i)) & 0x7fffffff;
-    }
-    return hash % size;
   }
 }

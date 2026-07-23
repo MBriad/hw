@@ -2,7 +2,8 @@ import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { HeatmapVM } from '../../viewmodels/HeatmapVM';
-import { DebugRuntime, EggDebugScenario, PatternDebugScenario } from '../DebugRuntime';
+import { DebugRuntime, EggDebugScenario, PatternDebugScenario, AiDebugScenario } from '../DebugRuntime';
+import { DebugLabels } from '../../common/DebugLabels';
 import { EasterEggLabDialog } from './EasterEggLabDialog';
 import { PatternLearningLabDialog } from './PatternLearningLabDialog';
 
@@ -10,6 +11,7 @@ import { PatternLearningLabDialog } from './PatternLearningLabDialog';
 export struct DebugPanel {
   @StorageLink('heatmapVM') private vm: HeatmapVM | null = null;
   @Consume tokens: DesignTokens;
+  @Consume debugLabels: DebugLabels;
   @State private expanded: boolean = false;
   private eggLabController: CustomDialogController = new CustomDialogController({
     builder: EasterEggLabDialog({
@@ -25,6 +27,9 @@ export struct DebugPanel {
     builder: PatternLearningLabDialog({
       onRun: (scenario: PatternDebugScenario) => {
         this.runPatternScenario(scenario);
+      },
+      onAiRun: (scenario: AiDebugScenario) => {
+        this.runAiScenario(scenario);
       }
     }),
     autoCancel: true,
@@ -36,13 +41,13 @@ export struct DebugPanel {
     Column() {
       Row() {
         Column() {
-          Text('DEV DEBUG PANEL')
+          Text(this.debugLabels.devDebugPanel)
             .fontSize(13)
             .fontWeight(800)
             .fontColor(this.tokens.textPrimary)
             .fontFamily('monospace')
 
-          Text('UNIFIED DEBUG ENTRY')
+          Text(this.debugLabels.unifiedDebugEntry)
             .fontSize(9)
             .fontWeight(600)
             .fontColor(this.tokens.textMuted)
@@ -76,51 +81,51 @@ export struct DebugPanel {
 
       if (this.expanded && this.vm !== null) {
         Column() {
-          this.sectionLabel('QUICK TESTS')
+          this.sectionLabel(this.debugLabels.quickTests)
 
           Row() {
-            this.debugButton('LOAD HEATMAP', () => {
-              this.runAsync('LOAD HEATMAP', (runtime: DebugRuntime) => runtime.loadHeatmap());
+            this.debugButton(this.debugLabels.loadHeatmap, () => {
+              this.runAsync(this.debugLabels.loadHeatmap, (runtime: DebugRuntime) => runtime.loadHeatmap());
             })
             Blank().width(Spacing.xs)
-            this.debugButton('LOAD ACTIVITY', () => {
-              this.runAsync('LOAD ACTIVITY', (runtime: DebugRuntime) => runtime.loadActivity());
+            this.debugButton(this.debugLabels.loadActivity, () => {
+              this.runAsync(this.debugLabels.loadActivity, (runtime: DebugRuntime) => runtime.loadActivity());
             })
           }
           .width('100%')
 
           Row() {
-            this.debugButton('RELOAD MONTH', () => {
-              this.runAsync('RELOAD MONTH', (runtime: DebugRuntime) => runtime.reloadMonth());
+            this.debugButton(this.debugLabels.reloadMonth, () => {
+              this.runAsync(this.debugLabels.reloadMonth, (runtime: DebugRuntime) => runtime.reloadMonth());
             })
             Blank().width(Spacing.xs)
-            this.debugButton('REFRESH DATA', () => {
-              this.runAsync('REFRESH DATA', (runtime: DebugRuntime) => runtime.refreshData());
+            this.debugButton(this.debugLabels.refreshData, () => {
+              this.runAsync(this.debugLabels.refreshData, (runtime: DebugRuntime) => runtime.refreshData());
             })
           }
           .width('100%')
           .margin({ top: Spacing.xs })
 
           Row() {
-            this.debugButton('TOKEN SNAPSHOT', () => {
+            this.debugButton(this.debugLabels.tokenSnapshot, () => {
               const runtime = this.runtime();
               if (runtime !== null) {
-                this.showResult('TOKEN SNAPSHOT', runtime.tokenSnapshot());
+                this.showResult(this.debugLabels.tokenSnapshot, runtime.tokenSnapshot());
               }
             })
             Blank().width(Spacing.xs)
-            this.debugButton('CLEAR RECORDS', () => {
-              this.runAsync('CLEAR RECORDS', (runtime: DebugRuntime) => runtime.clearRecords());
+            this.debugButton(this.debugLabels.clearRecords, () => {
+              this.runAsync(this.debugLabels.clearRecords, (runtime: DebugRuntime) => runtime.clearRecords());
             })
           }
           .width('100%')
           .margin({ top: Spacing.xs })
 
-          this.sectionLabel('FEATURE LABS')
+          this.sectionLabel(this.debugLabels.featureLabs)
 
           this.featureLabButton(
-            'EASTER EGG LAB',
-            'PRESETS / LIFECYCLE / LIVE EFFECTS',
+            this.debugLabels.easterEggLab,
+            this.debugLabels.easterEggLabSub,
             () => {
               this.eggLabController.open();
             }
@@ -129,8 +134,8 @@ export struct DebugPanel {
           Blank().height(Spacing.xs)
 
           this.featureLabButton(
-            'PATTERN LEARNING LAB',
-            'STAGES / MATCHING / COOLDOWN',
+            this.debugLabels.patternLearningLab,
+            this.debugLabels.patternLearningLabSub,
             () => {
               this.patternLabController.open();
             }
@@ -195,6 +200,16 @@ export struct DebugPanel {
         return;
       }
       this.showResult('PATTERN LEARNING', result);
+    });
+  }
+
+  private runAiScenario(scenario: AiDebugScenario): void {
+    const runtime = this.runtime();
+    if (runtime === null) {
+      return;
+    }
+    runtime.runAiScenario(scenario).then((result: string) => {
+      this.showResult('AI PATTERN', result);
     });
   }
 

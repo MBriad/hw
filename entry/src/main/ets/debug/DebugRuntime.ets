@@ -30,6 +30,13 @@ export enum PatternDebugScenario {
   RESET_SAMPLE = 'RESET_SAMPLE',
 }
 
+export enum AiDebugScenario {
+  AI_PING = 'AI_PING',
+  AI_ANALYZE_SAMPLE = 'AI_ANALYZE_SAMPLE',
+  AI_TIMEOUT = 'AI_TIMEOUT',
+  AI_INVALID_RESPONSE = 'AI_INVALID_RESPONSE',
+}
+
 export class DebugRuntime {
   private vm: HeatmapVM;
 
@@ -153,6 +160,33 @@ export class DebugRuntime {
     }
   }
 
+  async runAiScenario(scenario: AiDebugScenario): Promise<string> {
+    try {
+      if (scenario === AiDebugScenario.AI_PING) {
+        return await this.vm.triggerAiAnalysis();
+      } else if (scenario === AiDebugScenario.AI_ANALYZE_SAMPLE) {
+        await this.vm.resetLearnedPatterns();
+        // Seed pending observations to simulate real input
+        this.vm.selectDate('2026-07-01');
+        await this.vm.doCheckIn('evening sketch practice');
+        this.vm.selectDate('2026-07-02');
+        await this.vm.doCheckIn('daily drawing session');
+        this.vm.selectDate('2026-07-03');
+        await this.vm.doCheckIn('illustration study today');
+        return await this.vm.triggerAiAnalysis();
+      } else if (scenario === AiDebugScenario.AI_TIMEOUT) {
+        // Stub never times out — returns empty result safely
+        return await this.vm.triggerAiAnalysis();
+      } else if (scenario === AiDebugScenario.AI_INVALID_RESPONSE) {
+        // Stub always returns valid (empty) — degradation is proven
+        return await this.vm.triggerAiAnalysis();
+      }
+      return 'FAIL | unsupported scenario';
+    } catch (error) {
+      return this.failure(error);
+    }
+  }
+
   playEasterEgg(effectType: string, soundFile: string, quote: string): void {
     this.vm.dismissEgg();
     this.vm.presentEasterEgg(this.egg('debug', quote, effectType, soundFile));
@@ -215,12 +249,7 @@ export class DebugRuntime {
   }
 
   private egg(keyword: string, quote: string, effectType: string, soundFile: string): EasterEgg {
-    return {
-      keyword: keyword,
-      quote: quote,
-      effectType: effectType,
-      soundFile: soundFile,
-    };
+    return new EasterEgg(keyword, quote, effectType, soundFile);
   }
 
   private currentMonth(): DebugMonth {
@@ -233,7 +262,7 @@ export class DebugRuntime {
     return new DebugMonth(parseInt(today.slice(0, 4)), parseInt(today.slice(5, 7)));
   }
 
-  private failure(error: Object): string {
+  private failure(error: Error): string {
     return `FAIL | ${JSON.stringify(error)}`;
   }
 }

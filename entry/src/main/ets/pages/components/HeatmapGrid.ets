@@ -1,13 +1,12 @@
 /**
  * Humble View: 7-column calendar grid for a single month.
- * Consumes DesignTokens from ThemeProvider.
+ * Consumes page-provided DesignTokens.
  */
 import { HeatmapCell } from '../../domain/Streak';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { DayCell } from './DayCell';
 import { Spacing } from '../../common/SpacingTokens';
 
-const CELL_SIZE = 40;
 const CALENDAR_ROWS = 6;
 
 @Component
@@ -41,7 +40,7 @@ export struct HeatmapGrid {
       Grid() {
         ForEach(this.getOffsetCells(), (_: number) => {
           GridItem() {
-            Column().width(CELL_SIZE).height(CELL_SIZE)
+            Column().width(Spacing.calendarCell).height(Spacing.calendarCell)
           }
           .align(Alignment.Center)
         })
@@ -65,7 +64,7 @@ export struct HeatmapGrid {
       .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr')
       .columnsGap(Spacing.xxs)
       .rowsGap(Spacing.xxs)
-      .height(CALENDAR_ROWS * CELL_SIZE + (CALENDAR_ROWS - 1) * Spacing.xxs)
+      .height(CALENDAR_ROWS * Spacing.calendarCell + (CALENDAR_ROWS - 1) * Spacing.xxs)
       .width('100%')
     }
     .width('100%')

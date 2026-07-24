@@ -2,7 +2,8 @@
  * ViewModel: Theme state and persistence.
  * @Observed — serves ProfileSection and SkinSwitcher.
  */
-import { SkinTheme, DesignTokens, ThemePalette } from '../domain/SkinTheme';
+import { SkinTheme } from '../domain/SkinTheme';
+import { DesignTokens, ThemePalette } from '../common/ThemeTokens';
 import { SkinProvider } from '../domain/ports/SkinProvider';
 
 @Observed
@@ -36,6 +37,6 @@ export class ThemeVM {
 
   private applySkin(theme: SkinTheme): void {
     this.currentSkin = theme;
-    this.currentTokens = this.skinProvider.getTokens(theme);
+    this.currentTokens = ThemePalette[theme];
   }
 }

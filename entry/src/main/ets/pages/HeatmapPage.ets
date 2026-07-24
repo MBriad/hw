@@ -1,8 +1,10 @@
 /** Entry page for the Actrace technical activity workspace. */
 import { Spacing } from '../common/SpacingTokens';
 import { AppSection } from '../domain/AppSection';
-import { DesignTokens, SkinTheme, ThemePalette } from '../domain/SkinTheme';
+import { SkinTheme } from '../domain/SkinTheme';
+import { DesignTokens, ThemePalette } from '../common/ThemeTokens';
 import { UILabels, labelsForLocale } from '../common/UILabels';
+import { pageStorage } from '../common/PageStorage';
 import { CalendarVM } from '../viewmodels/CalendarVM';
 import { ActivityVM } from '../viewmodels/ActivityVM';
 import { ThemeVM } from '../viewmodels/ThemeVM';
@@ -19,17 +21,17 @@ import { ProfileSection } from './sections/ProfileSection';
 
 const CONTENT_MAX_WIDTH = 420;
 
-@Entry
+@Entry(pageStorage)
 @Component
 struct HeatmapPage {
   @Provide tokens: DesignTokens = ThemePalette[SkinTheme.LIGHT];
   @Provide locale: string = 'zh';
   @Provide uiLabels: UILabels = labelsForLocale('zh');
   @Provide themeName: SkinTheme = SkinTheme.LIGHT;
-  @StorageLink('calendarVM') private calendarVM: CalendarVM | null = null;
-  @StorageLink('activityVM') private activityVM: ActivityVM | null = null;
-  @StorageLink('themeVM') private themeVM: ThemeVM | null = null;
-  @StorageLink('easterEggVM') private easterEggVM: EasterEggVM | null = null;
+  @LocalStorageLink('calendarVM') private calendarVM: CalendarVM | null = null;
+  @LocalStorageLink('activityVM') private activityVM: ActivityVM | null = null;
+  @LocalStorageLink('themeVM') private themeVM: ThemeVM | null = null;
+  @LocalStorageLink('easterEggVM') private easterEggVM: EasterEggVM | null = null;
   @State private activeSection: AppSection = AppSection.DATA;
 
   aboutToAppear(): void {

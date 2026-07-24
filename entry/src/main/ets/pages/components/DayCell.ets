@@ -3,7 +3,7 @@
  * Consumes page-provided DesignTokens. Emits tap intent.
  */
 import { HeatmapCell } from '../../domain/Streak';
-import { DesignTokens } from '../../domain/SkinTheme';
+import { DesignTokens } from '../../common/ThemeTokens';
 import { Spacing } from '../../common/SpacingTokens';
 import { ColorMetrics } from '@kit.ArkUI';
 
@@ -59,8 +59,12 @@ export struct DayCell {
       const opacity = this.cell.level >= 4 ? 1 :
         this.cell.level >= 3 ? 0.7 :
         this.cell.level >= 2 ? 0.45 : 0.2;
-      const primary: ColorMetrics = ColorMetrics.resourceColor(this.tokens.brandPrimary);
-      return ColorMetrics.rgba(primary.red, primary.green, primary.blue, opacity).color;
+      try {
+        const primary: ColorMetrics = ColorMetrics.resourceColor(this.tokens.brandPrimary);
+        return ColorMetrics.rgba(primary.red, primary.green, primary.blue, opacity).color;
+      } catch (_error) {
+        return this.tokens.brandPrimary;
+      }
     }
     if (this.isToday) return this.tokens.brandLight;
     return this.tokens.bgSurface;

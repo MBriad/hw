@@ -1,6 +1,7 @@
 import { describe, it, expect } from '@ohos/hypium';
 import { CheckIn } from '../main/ets/domain/CheckIn';
-import { SkinTheme, DesignTokens, ThemePalette, ThemeNames } from '../main/ets/domain/SkinTheme';
+import { SkinTheme } from '../main/ets/domain/SkinTheme';
+import { DesignTokens, ThemePalette, ThemeNames } from '../main/ets/common/ThemeTokens';
 import { HeatmapCell } from '../main/ets/domain/Streak';
 import { EasterEgg, UsagePattern } from '../main/ets/domain/EasterEgg';
 

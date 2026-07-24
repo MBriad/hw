@@ -24,20 +24,34 @@ export class SoundPlayerImpl implements SoundPlayer {
     let renderer: audio.AudioRenderer | null = null;
     try {
       renderer = await audio.createAudioRenderer(new EasterEggRendererOptions());
-      await renderer.start();
       const tone = this.createTone(this.getFrequency(fileName));
+      const source = new Uint8Array(tone);
       let offset = 0;
-      while (offset < tone.byteLength) {
-        const written = await renderer.write(tone.slice(offset));
-        if (written <= 0) {
-          break;
+      let resolveWrite: () => void = () => {};
+      const writeComplete = new Promise<void>((resolve: () => void) => {
+        resolveWrite = resolve;
+      });
+      const writeData: audio.AudioRendererWriteDataCallback = (data: ArrayBuffer) => {
+        const target = new Uint8Array(data);
+        target.fill(0);
+        const byteCount = Math.min(target.length, source.length - offset);
+        if (byteCount > 0) {
+          target.set(source.subarray(offset, offset + byteCount));
+          offset += byteCount;
         }
-        offset += written;
-      }
+        if (offset >= source.length) {
+          resolveWrite();
+        }
+        return audio.AudioDataCallbackResult.VALID;
+      };
+      renderer.on('writeData', writeData);
+      await renderer.start();
+      await writeComplete;
+      renderer.off('writeData', writeData);
       await renderer.drain();
       await renderer.stop();
       await renderer.release();
-      return offset === tone.byteLength;
+      return offset === source.length;
     } catch (_e) {
       if (renderer !== null) {
         try {

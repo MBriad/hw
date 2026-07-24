@@ -1,7 +1,8 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { UILabels } from '../../common/UILabels';
 import { AppSection } from '../../domain/AppSection';
-import { DesignTokens, SkinTheme } from '../../domain/SkinTheme';
+import { SkinTheme } from '../../domain/SkinTheme';
+import { DesignTokens } from '../../common/ThemeTokens';
 
 const RAIL_HEIGHT = 44;
 
@@ -12,6 +13,19 @@ export struct HorizontalNavigation {
   @Consume themeName: SkinTheme;
   @Prop active: AppSection;
   onNavigate?: (section: AppSection) => void;
+
+  private tabId(section: AppSection): string {
+    if (section === AppSection.DATA) {
+      return 'nav-data';
+    }
+    if (section === AppSection.LOGS) {
+      return 'nav-logs';
+    }
+    if (section === AppSection.CORE) {
+      return 'nav-patterns';
+    }
+    return 'nav-profile';
+  }
 
   @Builder
   private tab(section: AppSection) {
@@ -56,6 +70,7 @@ export struct HorizontalNavigation {
       }
     })
     .animation({ duration: 100, curve: Curve.EaseOut })
+    .id(this.tabId(section))
     .onClick(() => {
       if (this.onNavigate) {
         this.onNavigate(section);

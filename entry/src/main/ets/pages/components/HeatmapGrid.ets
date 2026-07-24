@@ -4,7 +4,7 @@
  */
 import { HeatmapCell } from '../../domain/Streak';
 import { UILabels } from '../../common/UILabels';
-import { DesignTokens } from '../../domain/SkinTheme';
+import { DesignTokens } from '../../common/ThemeTokens';
 import { DayCell } from './DayCell';
 import { Spacing } from '../../common/SpacingTokens';
 

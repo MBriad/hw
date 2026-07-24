@@ -1,19 +1,7 @@
 import { PatternSuggestion } from '../domain/LearnedPattern';
 import { AiPatternAdvisor } from '../domain/ports/AiPatternAdvisor';
 import { PatternLearningApi } from '../domain/ports/PatternLearningApi';
-
-/**
- * Summary returned after a batch analysis run.
- */
-export class AnalyzeResult {
-  analyzed: number;
-  patternsCreated: number;
-
-  constructor(analyzed: number, patternsCreated: number) {
-    this.analyzed = analyzed;
-    this.patternsCreated = patternsCreated;
-  }
-}
+import { AnalyzePendingUseCase, AnalyzeResult } from '../domain/ports/AnalyzePendingUseCase';
 
 /**
  * Orchestrates a single batch AI analysis cycle:
@@ -26,7 +14,7 @@ export class AnalyzeResult {
  * observations are NOT consumed — they remain pending for the
  * next attempt. No data is lost.
  */
-export class AnalyzePendingObservations {
+export class AnalyzePendingObservations implements AnalyzePendingUseCase {
   private patternLearning: PatternLearningApi;
   private aiAdvisor: AiPatternAdvisor;
   private batchSize: number;

@@ -13,32 +13,48 @@ export class PreferencesLearnedPatternRepo implements LearnedPatternRepository {
   }
 
   private async getStore(): Promise<preferences.Preferences> {
-    return preferences.getPreferences(this.context, STORE_NAME);
+    try {
+      return await preferences.getPreferences(this.context, STORE_NAME);
+    } catch (error) {
+      throw new Error(JSON.stringify(error));
+    }
   }
 
   async loadAll(): Promise<LearnedPattern[]> {
-    const store = await this.getStore();
-    const raw = await store.get(KEY_PATTERNS, '[]');
-    const data = typeof raw === 'string' ? raw : JSON.stringify(raw);
-    return JSON.parse(data) as LearnedPattern[];
+    try {
+      const store = await this.getStore();
+      const raw = await store.get(KEY_PATTERNS, '[]');
+      const data = typeof raw === 'string' ? raw : JSON.stringify(raw);
+      return JSON.parse(data) as LearnedPattern[];
+    } catch (error) {
+      throw new Error(JSON.stringify(error));
+    }
   }
 
   async save(pattern: LearnedPattern): Promise<void> {
-    const store = await this.getStore();
-    const patterns = await this.loadAll();
-    const index = patterns.findIndex((item: LearnedPattern) => item.id === pattern.id);
-    if (index >= 0) {
-      patterns[index] = pattern;
-    } else {
-      patterns.push(pattern);
+    try {
+      const store = await this.getStore();
+      const patterns = await this.loadAll();
+      const index = patterns.findIndex((item: LearnedPattern) => item.id === pattern.id);
+      if (index >= 0) {
+        patterns[index] = pattern;
+      } else {
+        patterns.push(pattern);
+      }
+      await store.put(KEY_PATTERNS, JSON.stringify(patterns));
+      await store.flush();
+    } catch (error) {
+      throw new Error(JSON.stringify(error));
     }
-    await store.put(KEY_PATTERNS, JSON.stringify(patterns));
-    await store.flush();
   }
 
   async clear(): Promise<void> {
-    const store = await this.getStore();
-    await store.put(KEY_PATTERNS, '[]');
-    await store.flush();
+    try {
+      const store = await this.getStore();
+      await store.put(KEY_PATTERNS, '[]');
+      await store.flush();
+    } catch (error) {
+      throw new Error(JSON.stringify(error));
+    }
   }
 }

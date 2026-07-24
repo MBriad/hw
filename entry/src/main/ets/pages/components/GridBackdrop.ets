@@ -1,5 +1,5 @@
 /** Subtle technical grid used as a non-interactive page background. */
-import { DesignTokens } from '../../domain/SkinTheme';
+import { DesignTokens } from '../../common/ThemeTokens';
 
 @Component
 export struct GridBackdrop {

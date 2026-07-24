@@ -135,6 +135,11 @@ export class UILabels {
   // ── Language toggle
   langZh: string;
   langEn: string;
+  searchCommits: string = '';
+  noSearchResults: string = '';
+  searchDate: string = '';
+  searchConfirm: string = '';
+  searchCancel: string = '';
 
   constructor(
     tabCalendar: string, tabLogs: string, tabPatterns: string, tabProfile: string,
@@ -289,6 +294,17 @@ export const ENGLISH_UI_LABELS: UILabels = new UILabels(
   // Language toggle
   'ZH', 'EN',
 );
+
+CHINESE_UI_LABELS.searchCommits = '搜索内容或 #序号';
+CHINESE_UI_LABELS.noSearchResults = '未找到提交记录';
+CHINESE_UI_LABELS.searchDate = '按日期搜索';
+CHINESE_UI_LABELS.searchConfirm = '确认';
+CHINESE_UI_LABELS.searchCancel = '取消';
+ENGLISH_UI_LABELS.searchCommits = 'CONTENT OR #INDEX';
+ENGLISH_UI_LABELS.noSearchResults = 'NO MATCHING COMMITS';
+ENGLISH_UI_LABELS.searchDate = 'SEARCH BY DATE';
+ENGLISH_UI_LABELS.searchConfirm = 'CONFIRM';
+ENGLISH_UI_LABELS.searchCancel = 'CANCEL';
 
 export function labelsForLocale(locale: string): UILabels {
   return locale === 'en' ? ENGLISH_UI_LABELS : CHINESE_UI_LABELS;

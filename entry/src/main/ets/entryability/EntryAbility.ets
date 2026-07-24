@@ -19,6 +19,7 @@ import { CalendarVM } from '../viewmodels/CalendarVM';
 import { ActivityVM } from '../viewmodels/ActivityVM';
 import { ThemeVM } from '../viewmodels/ThemeVM';
 import { EasterEggVM } from '../viewmodels/EasterEggVM';
+import { pageStorage } from '../common/PageStorage';
 
 const DOMAIN = 0x0000;
 
@@ -67,12 +68,16 @@ export default class EntryAbility extends UIAbility {
       new SoundPlayerImpl(),
     );
 
-    AppStorage.setOrCreate<CalendarVM>('calendarVM', calendarVM);
-    AppStorage.setOrCreate<ActivityVM>('activityVM', activityVM);
-    AppStorage.setOrCreate<ThemeVM>('themeVM', themeVM);
-    AppStorage.setOrCreate<EasterEggVM>('easterEggVM', easterEggVM);
+    pageStorage.setOrCreate<CalendarVM>('calendarVM', calendarVM);
+    pageStorage.setOrCreate<ActivityVM>('activityVM', activityVM);
+    pageStorage.setOrCreate<ThemeVM>('themeVM', themeVM);
+    pageStorage.setOrCreate<EasterEggVM>('easterEggVM', easterEggVM);
+    pageStorage.set<CalendarVM>('calendarVM', calendarVM);
+    pageStorage.set<ActivityVM>('activityVM', activityVM);
+    pageStorage.set<ThemeVM>('themeVM', themeVM);
+    pageStorage.set<EasterEggVM>('easterEggVM', easterEggVM);
 
-    windowStage.loadContent('pages/HeatmapPage', (err) => {
+    windowStage.loadContent('pages/HeatmapPage', pageStorage, (err) => {
       if (err.code) {
         hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
         return;

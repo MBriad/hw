@@ -4,6 +4,12 @@
 
 本文档根据 `target.md` 和当前代码状态整理。已完成并通过验收的功能默认保持不动；除非出现明确缺陷，不进行重复设计或无关重构。
 
+## 分支接手提示
+
+- [ ] 拉取 `feature/提交记录ui优化` 后先检查项目架构：`entry` 是应用入口模块，`EntryAbility.ets` 是唯一组合根；确认依赖继续保持 `pages -> viewmodels -> usecases -> domain/ports`，领域层不得依赖 ArkUI、适配器或展示类型。
+- [ ] 继续开发前检查 Logs UI 待优化项：窄屏对齐、大量记录索引与滚动性能、悬浮搜索遮挡、长文本/URL 换行，以及 Light、Dark、Pink、Pastel 四套主题下的视觉一致性。
+- [ ] 修改架构或 Logs UI 后重新运行 Hypium、Debug HAP、ohosTest HAP 和 `scripts/test-logs-navigation.ps1` 设备自动化。
+
 ## 开发与验收约定
 
 - [x] 已完成项保持现状，不因后续功能开发随意改动。
@@ -19,8 +25,13 @@
 
 - [x] 建立 `pages -> viewmodels -> usecases -> domain/ports` 的依赖方向。
 - [x] 使用 `EntryAbility.ets` 组装仓库、用例、ViewModel 和适配器。
+- [x] 业务 ViewModel 由 `EntryAbility.ets` 注入页面级 `LocalStorage`，不再通过全局 `AppStorage` 分发。
+- [x] 将 `DesignTokens` 与主题调色板移至展示层 `common/ThemeTokens.ets`，领域层仅保留稳定主题枚举和持久化端口。
+- [x] `ActivityVM` 通过 `AnalyzePendingUseCase` 端口依赖分析能力，具体实现仅在入口装配。
 - [x] 使用 Preferences 在设备本地持久化打卡与主题设置。
 - [x] 已有覆盖 Domain、UseCase、ViewModel、Repository、主题和声音的 Hypium 测试。
+- [x] 架构修复后已通过 Hypium、主 HAP、ohosTest HAP 构建及模拟器 UI 自动化（1/1）。
+- [x] 清理 ArkTS 构建警告：Preferences 异常边界显式处理，音频、动画、弹窗迁移至 API 24 推荐接口，ohosTest 驱动异常保持失败上抛。
 
 ### 导航与页面布局
 
@@ -152,6 +163,21 @@
 - [x] 增加重复提交、最新记录选择、1/20/50/100 字边界和多条记录累计跨级的 Hypium 测试。
 - [ ] 在 Profile 调试面板增加 0-4 级热度样本按钮。
 - [x] 在 HarmonyOS API 24 实机验证同日重复提交、重启持久化、当天自动选中及 Light、Dark、Pink、Pastel 四主题下的热度递增与文字对比度。
+
+### Codex 式提交记录
+
+- [x] 将 Logs 的提交记录改为左侧纵向短线索引与右侧完整提交 `List`，默认定位最新记录。
+- [x] 独立 `CommitIndexRail` 使用均匀低对比短线和更长、更粗的悬停/当前标记，并按可用高度压缩大量记录。
+- [x] 索引轨道支持鼠标悬停、点击和触摸拖动平滑定位，`List` 手动滚动时反向同步当前标记。
+- [x] 索引悬停时隐藏独立选中标记，仅保留当前黑色粗线，避免选中线与悬停线叠加产生重影。
+- [x] 选中态直接渲染在对应索引槽位，统一短线水平/垂直对齐，移除绝对定位偏移。
+- [x] 悬停和触摸拖动使用无动画预览滚动，仅点击使用平滑滚动，避免连续事件造成卡顿。
+- [x] 独立悬浮搜索窗使用文本框搜索内容或严格 `#序号`，使用日历按钮精确选择日期并循环当天全部记录。
+- [x] 每条记录展示序号、精确提交时间和完整内容，长文本与 URL 自动换行，URL 点击或悬停可显示本地详情浮窗。
+- [x] 增加 Hypium 搜索/索引测试和 `ohosTest` 设备 UI 自动化，并提供 `scripts/test-logs-navigation.ps1` 一键构建、安装、执行与清理。
+- [x] 一键脚本自动使用 DevEco JBR 并禁用 Hvigor daemon，避免终端 Java 环境或陈旧 daemon 导致打包失败。
+- [x] 在 HarmonyOS API 24 测试目标验证索引拖动、悬浮窗布局、内容/序号/日期搜索、无结果、关闭清理、同日循环、中英文和四主题。
+- [ ] 在 HarmonyOS API 24 实机验证空、单条、多条、同日重复和长文本记录，以及四主题和中英文布局。
 
 ### Streak 连击基础
 

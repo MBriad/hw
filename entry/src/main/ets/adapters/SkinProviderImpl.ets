@@ -1,6 +1,6 @@
 /** Adapter: theme palette lookup and preferences persistence. */
 import { preferences } from '@kit.ArkData';
-import { SkinTheme, DesignTokens, ThemePalette } from '../domain/SkinTheme';
+import { SkinTheme } from '../domain/SkinTheme';
 import { SkinProvider } from '../domain/ports/SkinProvider';
 
 const STORE_NAME = 'app_settings';
@@ -12,10 +12,6 @@ export class SkinProviderImpl implements SkinProvider {
 
   constructor(context: Context | null) {
     this.context = context;
-  }
-
-  getTokens(id: SkinTheme): DesignTokens {
-    return ThemePalette[id];
   }
 
   listThemes(): SkinTheme[] {

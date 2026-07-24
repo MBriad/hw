@@ -2,7 +2,8 @@
  * Humble View: Theme switcher with four compact color swatches.
  * Consumes DesignTokens + themeName provided by the entry page.
  */
-import { SkinTheme, DesignTokens, ThemePalette } from '../../domain/SkinTheme';
+import { SkinTheme } from '../../domain/SkinTheme';
+import { DesignTokens, ThemePalette } from '../../common/ThemeTokens';
 import { Spacing } from '../../common/SpacingTokens';
 import { UILabels } from '../../common/UILabels';
 
@@ -69,6 +70,7 @@ export struct SkinSwitcher {
       }
     })
     .animation({ duration: 150, curve: Curve.EaseOut })
+    .id(`theme-${theme}`)
     .onClick(() => {
       if (this.onSwitch) {
         this.onSwitch(theme);

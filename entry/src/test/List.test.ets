@@ -13,6 +13,9 @@ import learnedPatternPolicyTest from './LearnedPatternPolicy.test';
 import manageLearnedPatternsTest from './ManageLearnedPatterns.test';
 import analyzePendingObservationsTest from './AnalyzePendingObservations.test';
 import uiLabelsTest from './UILabels.test';
+import commitIndexMathTest from './CommitIndexMath.test';
+import commitSearchTest from './CommitSearch.test';
+import commitContentParserTest from './CommitContentParser.test';
 
 export default function testsuite() {
   localUnitTest();
@@ -30,4 +33,7 @@ export default function testsuite() {
   manageLearnedPatternsTest();
   analyzePendingObservationsTest();
   uiLabelsTest();
+  commitIndexMathTest();
+  commitSearchTest();
+  commitContentParserTest();
 }

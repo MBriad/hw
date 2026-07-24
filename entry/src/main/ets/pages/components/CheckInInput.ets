@@ -3,7 +3,7 @@
  * Uses design system patterns: PrimaryButton + ThemedInput + stateStyles.
  */
 import { UILabels } from '../../common/UILabels';
-import { DesignTokens } from '../../domain/SkinTheme';
+import { DesignTokens } from '../../common/ThemeTokens';
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
 

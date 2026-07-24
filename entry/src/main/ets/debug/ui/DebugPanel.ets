@@ -1,6 +1,6 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { Radius } from '../../common/RadiusTokens';
-import { DesignTokens } from '../../domain/SkinTheme';
+import { DesignTokens } from '../../common/ThemeTokens';
 import { CalendarVM } from '../../viewmodels/CalendarVM';
 import { ActivityVM } from '../../viewmodels/ActivityVM';
 import { EasterEggVM } from '../../viewmodels/EasterEggVM';
@@ -37,9 +37,9 @@ enum DebugLabKind {
 
 @Component
 export struct DebugPanel {
-  @StorageLink('calendarVM') private calendarVM: CalendarVM | null = null;
-  @StorageLink('activityVM') private activityVM: ActivityVM | null = null;
-  @StorageLink('easterEggVM') private easterEggVM: EasterEggVM | null = null;
+  @LocalStorageLink('calendarVM') private calendarVM: CalendarVM | null = null;
+  @LocalStorageLink('activityVM') private activityVM: ActivityVM | null = null;
+  @LocalStorageLink('easterEggVM') private easterEggVM: EasterEggVM | null = null;
   @Consume tokens: DesignTokens;
   @Consume uiLabels: UILabels;
   @State private expanded: boolean = false;
@@ -214,7 +214,7 @@ export struct DebugPanel {
 
   private showResult(title: string, message: string): void {
     const isError = message.startsWith('FAIL');
-    AlertDialog.show({
+    this.getUIContext().showAlertDialog({
       title: title,
       message: message,
       confirm: {

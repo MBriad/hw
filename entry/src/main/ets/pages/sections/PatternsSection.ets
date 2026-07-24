@@ -2,7 +2,7 @@ import { Radius } from '../../common/RadiusTokens';
 import { Spacing } from '../../common/SpacingTokens';
 import { UILabels } from '../../common/UILabels';
 import { UsagePattern } from '../../domain/EasterEgg';
-import { DesignTokens } from '../../domain/SkinTheme';
+import { DesignTokens } from '../../common/ThemeTokens';
 
 enum PatternsSectionKind {
   ENGINE = 'engine',

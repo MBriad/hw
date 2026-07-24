@@ -3,7 +3,7 @@
  * Slides up from bottom, stays 2.5s, auto-dismisses. Tap to dismiss early.
  */
 import { UILabels } from '../../common/UILabels';
-import { DesignTokens } from '../../domain/SkinTheme';
+import { DesignTokens } from '../../common/ThemeTokens';
 import { Spacing } from '../../common/SpacingTokens';
 
 @Component
@@ -22,7 +22,7 @@ export struct QuoteBanner {
     this.visible = true;
     this.translateY = 100;
     // Animate in
-    animateTo({ duration: 300, curve: Curve.EaseOut }, () => {
+    this.getUIContext().animateTo({ duration: 300, curve: Curve.EaseOut }, () => {
       this.translateY = 0;
     });
     // Auto-dismiss
@@ -32,7 +32,7 @@ export struct QuoteBanner {
   }
 
   private dismiss(): void {
-    animateTo({ duration: 200, curve: Curve.EaseIn }, () => {
+    this.getUIContext().animateTo({ duration: 200, curve: Curve.EaseIn }, () => {
       this.translateY = 100;
     });
     setTimeout(() => {

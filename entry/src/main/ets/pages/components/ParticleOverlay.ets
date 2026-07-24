@@ -3,7 +3,7 @@
  * Spawns colored particles that fade and disappear over ~1.5s.
  * Non-blocking — user can still interact with the page.
  */
-import { DesignTokens } from '../../domain/SkinTheme';
+import { DesignTokens } from '../../common/ThemeTokens';
 
 class Particle {
   x: number;
@@ -40,7 +40,7 @@ export struct ParticleOverlay {
     this.progress = 0;
     this.generateParticles();
     setTimeout(() => {
-      animateTo({ duration: 1200, curve: Curve.EaseOut }, () => {
+      this.getUIContext().animateTo({ duration: 1200, curve: Curve.EaseOut }, () => {
         this.progress = 1;
       });
     }, 16);

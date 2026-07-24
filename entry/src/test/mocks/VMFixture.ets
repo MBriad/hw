@@ -1,4 +1,4 @@
-import { DesignTokens, SkinTheme, ThemePalette } from '../../main/ets/domain/SkinTheme';
+import { SkinTheme } from '../../main/ets/domain/SkinTheme';
 import { SkinProvider } from '../../main/ets/domain/ports/SkinProvider';
 import { SoundPlayer } from '../../main/ets/domain/ports/SoundPlayer';
 import { PatternLearningApi } from '../../main/ets/domain/ports/PatternLearningApi';
@@ -29,10 +29,6 @@ export class MockSkinProvider implements SkinProvider {
   persistedTheme: SkinTheme = SkinTheme.LIGHT;
   persistedCount: number = 0;
   persistedLocale: string = 'zh';
-
-  getTokens(id: SkinTheme): DesignTokens {
-    return ThemePalette[id];
-  }
 
   listThemes(): SkinTheme[] {
     return [SkinTheme.LIGHT, SkinTheme.DARK, SkinTheme.PINK, SkinTheme.PASTEL];

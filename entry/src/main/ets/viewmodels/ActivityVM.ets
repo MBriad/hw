@@ -7,7 +7,7 @@ import { EasterEgg, UsagePattern } from '../domain/EasterEgg';
 import { LearnedPattern, PatternSuggestion } from '../domain/LearnedPattern';
 import { ILoadActivity } from '../domain/ports/ActivityUseCases';
 import { PatternLearningApi } from '../domain/ports/PatternLearningApi';
-import { AnalyzePendingObservations, AnalyzeResult } from '../usecases/AnalyzePendingObservations';
+import { AnalyzePendingUseCase, AnalyzeResult } from '../domain/ports/AnalyzePendingUseCase';
 
 @Observed
 export class ActivityVM {
@@ -18,12 +18,12 @@ export class ActivityVM {
 
   private loadActivity: ILoadActivity;
   private patternLearning: PatternLearningApi;
-  private analyzeUseCase: AnalyzePendingObservations | null;
+  private analyzeUseCase: AnalyzePendingUseCase | null;
 
   constructor(
     loadActivity: ILoadActivity,
     patternLearning: PatternLearningApi,
-    analyzeUseCase?: AnalyzePendingObservations,
+    analyzeUseCase?: AnalyzePendingUseCase,
   ) {
     this.loadActivity = loadActivity;
     this.patternLearning = patternLearning;

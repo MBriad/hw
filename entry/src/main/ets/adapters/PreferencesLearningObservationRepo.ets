@@ -13,46 +13,66 @@ export class PreferencesLearningObservationRepo implements LearningObservationRe
   }
 
   private async getStore(): Promise<preferences.Preferences> {
-    return preferences.getPreferences(this.context, STORE_NAME);
+    try {
+      return await preferences.getPreferences(this.context, STORE_NAME);
+    } catch (error) {
+      throw new Error(JSON.stringify(error));
+    }
   }
 
   async loadPending(): Promise<LearningObservation[]> {
-    const store = await this.getStore();
-    const raw = await store.get(KEY_OBSERVATIONS, '[]');
-    const data = typeof raw === 'string' ? raw : JSON.stringify(raw);
-    return JSON.parse(data) as LearningObservation[];
+    try {
+      const store = await this.getStore();
+      const raw = await store.get(KEY_OBSERVATIONS, '[]');
+      const data = typeof raw === 'string' ? raw : JSON.stringify(raw);
+      return JSON.parse(data) as LearningObservation[];
+    } catch (error) {
+      throw new Error(JSON.stringify(error));
+    }
   }
 
   async save(observation: LearningObservation): Promise<void> {
-    const store = await this.getStore();
-    const observations = await this.loadPending();
-    const index = observations.findIndex((item: LearningObservation) => item.date === observation.date);
-    if (index >= 0) {
-      observations[index] = observation;
-    } else {
-      observations.push(observation);
+    try {
+      const store = await this.getStore();
+      const observations = await this.loadPending();
+      const index = observations.findIndex((item: LearningObservation) => item.date === observation.date);
+      if (index >= 0) {
+        observations[index] = observation;
+      } else {
+        observations.push(observation);
+      }
+      await store.put(KEY_OBSERVATIONS, JSON.stringify(observations));
+      await store.flush();
+    } catch (error) {
+      throw new Error(JSON.stringify(error));
     }
-    await store.put(KEY_OBSERVATIONS, JSON.stringify(observations));
-    await store.flush();
   }
 
   async removeProcessed(processed: LearningObservation[]): Promise<void> {
-    const store = await this.getStore();
-    const observations = await this.loadPending();
-    const remaining = observations.filter((item: LearningObservation) =>
-      !processed.some((candidate: LearningObservation) =>
-        candidate.date === item.date &&
-        candidate.capturedAt === item.capturedAt &&
-        candidate.content === item.content
-      )
-    );
-    await store.put(KEY_OBSERVATIONS, JSON.stringify(remaining));
-    await store.flush();
+    try {
+      const store = await this.getStore();
+      const observations = await this.loadPending();
+      const remaining = observations.filter((item: LearningObservation) =>
+        !processed.some((candidate: LearningObservation) =>
+          candidate.date === item.date &&
+          candidate.capturedAt === item.capturedAt &&
+          candidate.content === item.content
+        )
+      );
+      await store.put(KEY_OBSERVATIONS, JSON.stringify(remaining));
+      await store.flush();
+    } catch (error) {
+      throw new Error(JSON.stringify(error));
+    }
   }
 
   async clear(): Promise<void> {
-    const store = await this.getStore();
-    await store.put(KEY_OBSERVATIONS, '[]');
-    await store.flush();
+    try {
+      const store = await this.getStore();
+      await store.put(KEY_OBSERVATIONS, '[]');
+      await store.flush();
+    } catch (error) {
+      throw new Error(JSON.stringify(error));
+    }
   }
 }

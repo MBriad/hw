@@ -1,6 +1,6 @@
 import { Spacing } from '../../common/SpacingTokens';
 import { UILabels } from '../../common/UILabels';
-import { DesignTokens } from '../../domain/SkinTheme';
+import { DesignTokens } from '../../common/ThemeTokens';
 import { HeatmapCell } from '../../domain/Streak';
 import { HeatmapGrid } from '../components/HeatmapGrid';
 

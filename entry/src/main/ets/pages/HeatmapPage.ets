@@ -46,7 +46,7 @@ struct HeatmapPage {
         this.switchLocale(saved);
       });
       Promise.all([
-        calendar.loadMonth(now.getFullYear(), now.getMonth() + 1),
+        calendar.returnToCurrentMonth(now),
         activity.refreshAll(),
       ]);
     }

@@ -47,6 +47,41 @@ export default function loadHeatmapTest() {
       expect(foundChecked).assertEqual(true);
     });
 
+    it('aggregates_same_day_content_and_keeps_latest_checkin', 0, async () => {
+      const mockRepo = new MockCheckInRepo();
+      mockRepo.loadByMonthResult = [
+        new CheckIn('2026-07-15', '1234567890123456789', 1),
+        new CheckIn('2026-07-15', '12345678901234567890', 2),
+      ];
+
+      const usecase = new LoadHeatmap(mockRepo);
+      const cells = await usecase.execute(2026, 7);
+      const cell = cells[14];
+
+      expect(cell.level).assertEqual(2);
+      expect(cell.checkIn!.content).assertEqual('12345678901234567890');
+    });
+
+    it('maps_character_thresholds_to_progressive_levels', 0, async () => {
+      const mockRepo = new MockCheckInRepo();
+      mockRepo.loadByMonthResult = [
+        new CheckIn('2026-07-01', 'a', 1),
+        new CheckIn('2026-07-02', '12345678901234567890', 2),
+        new CheckIn('2026-07-03', '12345678901234567890123456789012345678901234567890', 3),
+        new CheckIn('2026-07-04', '1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890', 4),
+        new CheckIn('2026-07-05', '  1234567890123456789  ', 5),
+      ];
+
+      const usecase = new LoadHeatmap(mockRepo);
+      const cells = await usecase.execute(2026, 7);
+
+      expect(cells[0].level).assertEqual(1);
+      expect(cells[1].level).assertEqual(2);
+      expect(cells[2].level).assertEqual(3);
+      expect(cells[3].level).assertEqual(4);
+      expect(cells[4].level).assertEqual(1);
+    });
+
     it('empty_dates_have_level_0_and_no_checkin', 0, async () => {
       const mockRepo = new MockCheckInRepo();
       const usecase = new LoadHeatmap(mockRepo);

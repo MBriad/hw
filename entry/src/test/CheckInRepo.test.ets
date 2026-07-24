@@ -8,22 +8,14 @@ import { CheckInRepository } from '../main/ets/domain/ports/CheckInRepository';
  * not the framework integration (that requires device/emulator).
  */
 class MockCheckInRepo implements CheckInRepository {
-  private store: Map<string, CheckIn> = new Map();
+  private store: CheckIn[] = [];
 
   async save(checkIn: CheckIn): Promise<void> {
-    this.store.set(checkIn.date, checkIn);
+    this.store.push(checkIn);
   }
 
   async loadAll(): Promise<CheckIn[]> {
-    const result: CheckIn[] = [];
-    const keys = Array.from(this.store.keys());
-    for (let i = 0; i < keys.length; i++) {
-      const item = this.store.get(keys[i]);
-      if (item !== undefined) {
-        result.push(item);
-      }
-    }
-    return result;
+    return this.store;
   }
 
   async loadByMonth(year: number, month: number): Promise<CheckIn[]> {
@@ -39,7 +31,7 @@ class MockCheckInRepo implements CheckInRepository {
   }
 
   async clear(): Promise<void> {
-    this.store.clear();
+    this.store = [];
   }
 }
 
@@ -55,13 +47,16 @@ export default function checkInRepoTest() {
       expect(all[0].content).assertEqual('Rust学习');
     });
 
-    it('save_updates_existing_date', 0, async () => {
+    it('save_preserves_multiple_records_for_same_date', 0, async () => {
       const repo = new MockCheckInRepo();
       await repo.save(new CheckIn('2026-07-19', 'first', 1));
       await repo.save(new CheckIn('2026-07-19', 'updated', 2));
       const all = await repo.loadAll();
-      expect(all.length).assertEqual(1);
-      expect(all[0].content).assertEqual('updated');
+      expect(all.length).assertEqual(2);
+      expect(all[0].content).assertEqual('first');
+      expect(all[1].content).assertEqual('updated');
+      const july = await repo.loadByMonth(2026, 7);
+      expect(july.length).assertEqual(2);
     });
 
     it('loadAll_returns_empty_when_no_data', 0, async () => {

@@ -5,6 +5,7 @@
 import { HeatmapCell } from '../../domain/Streak';
 import { DesignTokens } from '../../domain/SkinTheme';
 import { Spacing } from '../../common/SpacingTokens';
+import { ColorMetrics } from '@kit.ArkUI';
 
 @Component
 export struct DayCell {
@@ -48,22 +49,25 @@ export struct DayCell {
   /**
    * Map heatmap level to design tokens:
    *   0 (empty)     → bgSurface
-   *   1             → brandLight
-   *   2             → brandPrimary (50% opacity)
-   *   3             → brandPrimary
-   *   4             → brandActive
+   *   1             → brandPrimary at 20% opacity
+   *   2             → brandPrimary at 45% opacity
+   *   3             → brandPrimary at 70% opacity
+   *   4             → brandPrimary at 100% opacity
    */
   private getCellColor(): ResourceColor {
-    if (this.cell.level >= 4) return this.tokens.brandActive;
-    if (this.cell.level >= 3) return this.tokens.brandPrimary;
-    if (this.cell.level >= 2) return this.tokens.brandText;
-    if (this.cell.level >= 1) return this.tokens.brandLight;
+    if (this.cell.level >= 1) {
+      const opacity = this.cell.level >= 4 ? 1 :
+        this.cell.level >= 3 ? 0.7 :
+        this.cell.level >= 2 ? 0.45 : 0.2;
+      const primary: ColorMetrics = ColorMetrics.resourceColor(this.tokens.brandPrimary);
+      return ColorMetrics.rgba(primary.red, primary.green, primary.blue, opacity).color;
+    }
     if (this.isToday) return this.tokens.brandLight;
     return this.tokens.bgSurface;
   }
 
   private getTextColor(): ResourceColor {
-    if (this.cell.level >= 2) return Color.White;
+    if (this.cell.level >= 3) return Color.White;
     if (this.cell.level >= 1) return this.tokens.textPrimary;
     if (this.isToday) return this.tokens.brandText;
     return this.tokens.textMuted;

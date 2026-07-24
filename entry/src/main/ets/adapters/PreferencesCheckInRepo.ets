@@ -23,13 +23,7 @@ export class PreferencesCheckInRepo implements CheckInRepository {
   async save(checkIn: CheckIn): Promise<void> {
     const store = await this.getStore();
     const all = await this.loadAll();
-    // Upsert: replace existing entry for same date, or append new
-    const idx = all.findIndex((c: CheckIn) => c.date === checkIn.date);
-    if (idx >= 0) {
-      all[idx] = checkIn;
-    } else {
-      all.push(checkIn);
-    }
+    all.push(checkIn);
     await store.put(KEY_CHECKINS, JSON.stringify(all));
     await store.flush();
   }

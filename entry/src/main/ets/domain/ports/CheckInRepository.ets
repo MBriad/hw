@@ -6,7 +6,7 @@
 import { CheckIn } from '../CheckIn';
 
 export interface CheckInRepository {
-  /** Persist a single check-in record */
+  /** Append a check-in record without replacing earlier entries for the same date */
   save(checkIn: CheckIn): Promise<void>;
 
   /** Load all check-in records ever created */

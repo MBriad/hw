@@ -6,6 +6,8 @@
 
 ## 分支接手提示
 
+> 后续接手要求是检查项目架构，不是默认重构或修复架构；只有发现明确问题后再单独处理。Logs UI 属于待继续优化范围。
+
 - [ ] 拉取 `feature/提交记录ui优化` 后先检查项目架构：`entry` 是应用入口模块，`EntryAbility.ets` 是唯一组合根；确认依赖继续保持 `pages -> viewmodels -> usecases -> domain/ports`，领域层不得依赖 ArkUI、适配器或展示类型。
 - [ ] 继续开发前检查 Logs UI 待优化项：窄屏对齐、大量记录索引与滚动性能、悬浮搜索遮挡、长文本/URL 换行，以及 Light、Dark、Pink、Pastel 四套主题下的视觉一致性。
 - [ ] 修改架构或 Logs UI 后重新运行 Hypium、Debug HAP、ohosTest HAP 和 `scripts/test-logs-navigation.ps1` 设备自动化。
